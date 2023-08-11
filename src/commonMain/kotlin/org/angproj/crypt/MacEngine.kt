@@ -12,13 +12,13 @@
  * Contributors:
  *      Kristoffer Paulsson - initial implementation
  */
-package org.angproj.crypt.sha
+package org.angproj.crypt
 
-import org.angproj.crypt.HashEngine
+interface MacEngine {
 
-interface ShaHashEngine: HashEngine {
+    val type: String
 
-    companion object {
-        const val byteSize = Byte.SIZE_BITS
-    }
+    fun update(messagePart: ByteArray)
+
+    fun final(): ByteArray
 }

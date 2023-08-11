@@ -25,6 +25,9 @@ class Sha512256Hash: AbstractSha512HashEngine() {
 
     override fun truncate(hash: ByteArray) = hash.copyOf(messageDigestSize)
 
+    override val type: String
+        get() = "SHA512/256"
+
     companion object: Hash {
         override val name = "${Hash.TYPE}-512/256"
         override val blockSize = 1024 / ShaHashEngine.byteSize

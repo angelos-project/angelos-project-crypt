@@ -20,6 +20,8 @@ interface Hash: Crypto {
     val wordSize: Int
     val messageDigestSize: Int
 
+    override fun create(): HashEngine
+
     companion object {
         const val TYPE = "SHA"
     }

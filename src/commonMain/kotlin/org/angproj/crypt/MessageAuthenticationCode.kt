@@ -12,13 +12,7 @@
  * Contributors:
  *      Kristoffer Paulsson - initial implementation
  */
-package org.angproj.crypt.sha
+package org.angproj.crypt
 
-import org.angproj.crypt.HashEngine
-
-interface ShaHashEngine: HashEngine {
-
-    companion object {
-        const val byteSize = Byte.SIZE_BITS
-    }
+interface MessageAuthenticationCode {
 }

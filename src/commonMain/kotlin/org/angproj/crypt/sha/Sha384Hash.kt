@@ -25,6 +25,9 @@ class Sha384Hash: AbstractSha512HashEngine() {
 
     override fun truncate(hash: ByteArray) = hash.copyOf(messageDigestSize)
 
+    override val type: String
+        get() = "SHA384"
+
     companion object: Hash {
         override val name = "${Hash.TYPE}-384"
         override val blockSize = 1024 / ShaHashEngine.byteSize

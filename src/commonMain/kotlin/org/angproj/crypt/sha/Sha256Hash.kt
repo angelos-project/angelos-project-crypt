@@ -25,11 +25,15 @@ class Sha256Hash: AbstractSha256HashEngine() {
 
     override fun truncate(hash: ByteArray) = hash
 
+    override val type: String
+        get() = "SHA256"
+
     companion object: Hash {
         override val name = "${Hash.TYPE}-256"
         override val blockSize: Int = 512 / ShaHashEngine.byteSize
         override val wordSize: Int = 32 / ShaHashEngine.byteSize
         override val messageDigestSize: Int = 256 / ShaHashEngine.byteSize
+
         override fun create() = Sha256Hash()
     }
 }

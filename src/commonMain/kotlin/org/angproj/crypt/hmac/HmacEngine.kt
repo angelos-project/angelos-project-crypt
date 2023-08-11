@@ -12,13 +12,9 @@
  * Contributors:
  *      Kristoffer Paulsson - initial implementation
  */
-package org.angproj.crypt.sha
+package org.angproj.crypt.hmac
 
-import org.angproj.crypt.HashEngine
+import org.angproj.crypt.MacEngine
 
-interface ShaHashEngine: HashEngine {
-
-    companion object {
-        const val byteSize = Byte.SIZE_BITS
-    }
+interface HmacEngine: MacEngine {
 }
