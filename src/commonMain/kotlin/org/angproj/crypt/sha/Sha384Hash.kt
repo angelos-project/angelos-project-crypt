@@ -16,21 +16,21 @@ package org.angproj.crypt.sha
 
 import org.angproj.crypt.Hash
 
-class Sha512Hash: AbstractSha512HashEngine() {
+class Sha384Hash: AbstractSha512HashEngine() {
 
     override val h = longArrayOf(
-        0x6A09E667F3BCC908L, -0x4498517a7b3558c5L, 0x3C6EF372FE94F82BL, -0x5ab00ac5a0e2c90fL,
-        0x510E527FADE682D1L, -0x64fa9773d4c193e1L, 0x1F83D9ABFB41BD6BL, 0x5BE0CD19137E2179L
+        -0x344462a23efa6128L, 0x629a292a367cd507L, -0x6ea6fea5cf8f22e9L, 0x152fecd8f70e5939L,
+        0x67332667ffc00b31L, -0x714bb57897a7eaefL, -0x24f3d1f29b067059L, 0x47b5481dbefa4fa4L
     )
 
-    override fun truncate(hash: ByteArray) = hash
+    override fun truncate(hash: ByteArray) = hash.copyOf(messageDigestSize)
 
     companion object: Hash {
-        override val name = "${Hash.TYPE}-512"
+        override val name = "${Hash.TYPE}-384"
         override val blockSize = 1024 / ShaHashEngine.byteSize
         override val wordSize = 64 / ShaHashEngine.byteSize
-        override val messageDigestSize = 512 / ShaHashEngine.byteSize
+        override val messageDigestSize = 384 / ShaHashEngine.byteSize
 
-        override fun create() = Sha512Hash()
+        override fun create() = Sha384Hash()
     }
 }

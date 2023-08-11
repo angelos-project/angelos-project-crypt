@@ -14,13 +14,14 @@
  */
 package org.angproj.crypt.sha
 
-interface ShaHashEngine {
+abstract class AbstractShaHashEngine: ShaHashEngine {
+    protected abstract val h: Any
 
-    fun update(messagePart: ByteArray)
+    protected abstract val w: Any
 
-    fun final(): ByteArray
+    protected var lasting: ByteArray = ByteArray(0)
 
-    companion object {
-        const val byteSize = Byte.SIZE_BITS
-    }
+    protected var count = 0
+
+    protected abstract fun truncate(hash: ByteArray): ByteArray
 }
