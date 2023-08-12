@@ -2,7 +2,7 @@ package org.angproj.crypt.sha
 
 import org.angproj.crypt.BinHex
 import kotlin.test.Test
-import kotlin.test.assertContains
+import kotlin.test.assertEquals
 
 class Sha512256HashTest: HashVectorParsing {
 
@@ -11,7 +11,7 @@ class Sha512256HashTest: HashVectorParsing {
         msgIter(SHA512256ShortMsg.testVectors) { msg, md ->
             val algo = Sha512256Hash()
             algo.update(msg)
-            assertContains(BinHex.encodeToHex(algo.final()), md.lowercase())
+            assertEquals(BinHex.encodeToHex(algo.final()), md.lowercase())
         }
     }
 
@@ -20,7 +20,7 @@ class Sha512256HashTest: HashVectorParsing {
         msgIter(SHA512256LongMsg.testVectors) { msg, md ->
             val algo = Sha512256Hash()
             algo.update(msg)
-            assertContains(BinHex.encodeToHex(algo.final()), md.lowercase())
+            assertEquals(BinHex.encodeToHex(algo.final()), md.lowercase())
         }
     }
 

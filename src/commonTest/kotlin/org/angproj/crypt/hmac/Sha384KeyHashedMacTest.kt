@@ -3,16 +3,16 @@ package org.angproj.crypt.hmac
 import org.angproj.crypt.BinHex
 import org.angproj.crypt.sha.Sha384Hash
 import kotlin.test.Test
-import kotlin.test.assertContains
+import kotlin.test.assertEquals
 
 class Sha384KeyHashedMacTest: HmacVectorParsing {
 
     @Test
     fun testSha384Msg() {
-        msgIter(SHA384HMACMsg.testVectors) { msg, key, md ->
+        msgIter(SHA384HMACMsg.testVectors) { msg, key, md, t, k ->
             val hmac = KeyHashedMac.create(key, Sha384Hash)
             hmac.update(msg)
-            assertContains(BinHex.encodeToHex(hmac.final()).lowercase(), md.lowercase())
+            assertEquals(BinHex.encodeToHex(hmac.final().copyOf(k)).lowercase(), md.lowercase())
         }
     }
 

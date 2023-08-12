@@ -4,7 +4,7 @@ import org.angproj.crypt.BinHex
 
 interface HmacVectorParsing {
 
-    fun msgIter(file: String, process: (msg: ByteArray, key: ByteArray, md: String) -> Unit) {
+    fun msgIter(file: String, process: (msg: ByteArray, key: ByteArray, md: String, klen: Int, tlen: Int) -> Unit) {
         val data = file.split("]\n\n")[1]
         data.split("\n\n").forEach { entry ->
             val rows = entry.split("\n")
@@ -14,7 +14,7 @@ interface HmacVectorParsing {
             val key = BinHex.decodeToBin(rows[3].substring(6).trim()).copyOfRange(0, klen)
             val message = BinHex.decodeToBin(rows[4].substring(6).trim())
             val mac = rows[5].substring(6).trim().lowercase()
-            process(message, key, mac)
+            process(message, key, mac, klen, tlen)
         }
     }
 }

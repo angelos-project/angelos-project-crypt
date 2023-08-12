@@ -42,8 +42,8 @@ class KeyHashedMac(prepared: HmacKey): AbstractHmacEngine() {
         get() = "HMAC-${inner.type}"
 
     companion object: Hmac {
-        override val name = ""
-        override fun create(): KeyHashedMac = KeyHashedMac(ByteArray(0), Sha512Hash)
+        override val name = "HMAC"
+        override fun create(): KeyHashedMac = create(ByteArray(0), Sha512Hash)
 
         override fun create(key: ByteArray, algo: Hash) = KeyHashedMac(key, algo)
 
