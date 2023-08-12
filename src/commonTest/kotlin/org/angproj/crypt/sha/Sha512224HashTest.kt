@@ -1,5 +1,6 @@
 package org.angproj.crypt.sha
 
+import org.angproj.crypt.BinHex
 import kotlin.test.Test
 import kotlin.test.assertContains
 
@@ -24,7 +25,7 @@ class Sha512224HashTest: HashVectorParsing {
     }
 
     object SHA512224ShortMsg {
-        val testVectors: String = """#  CAVS 21.1
+        const val testVectors: String = """#  CAVS 21.1
 #  "SHA-512/224 ShortMsg" information for "sha_values"
 #  SHA-512/224 tests are configured for BYTE oriented implementations
 #  Generated on Mon Jul 10 14:34:13 2017

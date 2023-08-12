@@ -1,4 +1,4 @@
-package org.angproj.crypt.sha
+package org.angproj.crypt
 
 import kotlin.jvm.JvmStatic
 
