@@ -25,7 +25,7 @@ class Sha512HashTest: HashVectorParsing {
     }
 
     object SHA512ShortMsg {
-        const val testVectors: String = """#  CAVS 11.0
+        val testVectors: String = """#  CAVS 11.0
 #  "SHA-512 ShortMsg" information 
 #  SHA-512 tests are configured for BYTE oriented implementations
 #  Generated on Tue Mar 15 08:23:49 2011

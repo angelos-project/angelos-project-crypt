@@ -25,7 +25,7 @@ class Sha384HashTest: HashVectorParsing {
     }
 
     object SHA384ShortMsg {
-        const val testVectors: String = """#  CAVS 11.0
+        val testVectors: String = """#  CAVS 11.0
 #  "SHA-384 ShortMsg" information 
 #  SHA-384 tests are configured for BYTE oriented implementations
 #  Generated on Tue Mar 15 08:23:39 2011

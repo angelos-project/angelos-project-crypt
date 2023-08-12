@@ -17,7 +17,7 @@ class Sha256KeyHashedMacTest: HmacVectorParsing {
     }
 
     object SHA256HMACMsg {
-        const val testVectors: String = """#  CAVS 11.0
+        val testVectors: String = """#  CAVS 11.0
 #  HMAC information 
 #  Hash sizes tested: 20 28 32 48 64
 #  Generated on Mon Feb 28 20:38:43 2011

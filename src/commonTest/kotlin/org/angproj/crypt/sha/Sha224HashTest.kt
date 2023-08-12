@@ -25,7 +25,7 @@ class Sha224HashTest: HashVectorParsing {
     }
 
     object SHA224ShortMsg {
-        const val testVectors: String = """#  CAVS 11.0
+        val testVectors: String = """#  CAVS 11.0
 #  "SHA-224 ShortMsg" information 
 #  SHA-224 tests are configured for BYTE oriented implementations
 #  Generated on Tue Mar 15 08:23:36 2011
