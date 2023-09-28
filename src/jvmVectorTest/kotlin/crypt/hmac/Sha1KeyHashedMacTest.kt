@@ -9,7 +9,7 @@ class Sha1KeyHashedMacTest: HmacVectorParsing {
 
     @Test
     fun testSha1Msg() {
-        msgIter(SHA1HMACMsg.testVectors) { msg, key, md, t, k ->
+        msgIter(SHA1HMACMsg.testVectors) { msg, key, md, _, k ->
             val hmac = KeyHashedMac.create(key, Sha1Hash)
             hmac.update(msg)
             assertEquals(BinHex.encodeToHex(hmac.final().copyOf(k)).lowercase(), md.lowercase())

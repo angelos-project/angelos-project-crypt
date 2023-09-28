@@ -1,10 +1,10 @@
 plugins {
-    kotlin("multiplatform") version "1.9.0"
+    kotlin("multiplatform") version "1.8.22"
     `maven-publish`
 }
 
 group = "org.angproj.crypt"
-version = "0.0.1"
+version = "0.1"
 
 repositories {
     mavenCentral()
@@ -12,21 +12,17 @@ repositories {
 }
 
 kotlin {
-    withSourcesJar(publish = true)
     jvm {
         compilations.all {
             kotlinOptions.jvmTarget = "1.8"
         }
-        withJava()
         testRuns["test"].executionTask.configure {
-            useJUnitPlatform()
+            useJUnit()
         }
     }
     js(IR) {
-        binaries.executable()
-        browser {
-        }
-        generateTypeScriptDefinitions()
+        browser()
+        nodejs()
     }
     val hostOs = System.getProperty("os.name")
     val isMingwX64 = hostOs.startsWith("Windows")
@@ -36,7 +32,6 @@ kotlin {
         isMingwX64 -> mingwX64("native")
         else -> throw GradleException("Host OS is not supported in Kotlin/Native.")
     }
-
 
     sourceSets {
         val commonMain by getting {
@@ -55,14 +50,25 @@ kotlin {
         val jsTest by getting
         val nativeMain by getting
         val nativeTest by getting
+
+        val baseBackboneTest by creating {
+            description = "Backbone Test Suite"
+            dependsOn(commonMain)
+        }
+
+        val jvmVectorTest by creating {
+            description = "Vector Test Suite"
+            dependsOn(jvmMain)
+            dependsOn(baseBackboneTest)
+        }
+
+        jvm { compilations["test"].source(jvmVectorTest) }
     }
 }
 
 publishing {
     repositories {
-        maven {
-
-        }
+        maven {}
     }
     publications {
         getByName<MavenPublication>("kotlinMultiplatform") {
