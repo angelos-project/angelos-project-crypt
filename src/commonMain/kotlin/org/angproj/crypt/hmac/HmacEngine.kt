@@ -16,5 +16,5 @@ package org.angproj.crypt.hmac
 
 import org.angproj.crypt.MacEngine
 
-interface HmacEngine: MacEngine {
+public interface HmacEngine: MacEngine {
 }

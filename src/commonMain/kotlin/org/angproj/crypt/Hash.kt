@@ -14,15 +14,15 @@
  */
 package org.angproj.crypt
 
-interface Hash: Crypto {
-    val name: String
-    val blockSize: Int
-    val wordSize: Int
-    val messageDigestSize: Int
+public interface Hash: Crypto {
+    public val name: String
+    public val blockSize: Int
+    public val wordSize: Int
+    public val messageDigestSize: Int
 
     override fun create(): HashEngine
 
-    companion object {
-        const val TYPE = "SHA"
+    public companion object {
+        public const val TYPE: String = "SHA"
     }
 }

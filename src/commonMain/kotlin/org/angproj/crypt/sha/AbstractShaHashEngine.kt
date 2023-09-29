@@ -14,14 +14,14 @@
  */
 package org.angproj.crypt.sha
 
-abstract class AbstractShaHashEngine: ShaHashEngine {
+public abstract class AbstractShaHashEngine: ShaHashEngine {
     protected abstract val h: Any
 
     protected abstract val w: Any
 
     protected var lasting: ByteArray = ByteArray(0)
 
-    protected var count = 0
+    protected var count: Int = 0
 
     protected abstract fun truncate(hash: ByteArray): ByteArray
 }

@@ -16,8 +16,8 @@ package org.angproj.crypt
 
 import org.angproj.crypt.hmac.HmacEngine
 
-interface Hmac: Crypto {
-    val name: String
+public interface Hmac: Crypto {
+    public val name: String
     override fun create(): HmacEngine
-    fun create(key: ByteArray, algo: Hash): HmacEngine
+    public fun create(key: ByteArray, algo: Hash): HmacEngine
 }

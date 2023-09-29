@@ -16,8 +16,8 @@ package org.angproj.crypt
 
 import org.angproj.crypt.kdf.PasswordBasedKeyDerivation
 
-interface Pbkd: Crypto {
-    val name: String
+public interface Pbkd: Crypto {
+    public val name: String
     override fun create(): PasswordBasedKeyDerivation
-    fun create(algo: Hash, keySize: Int, count: Int): PasswordBasedKeyDerivation
+    public fun create(algo: Hash, keySize: Int, count: Int): PasswordBasedKeyDerivation
 }

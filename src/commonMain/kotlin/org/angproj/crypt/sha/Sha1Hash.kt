@@ -19,13 +19,13 @@ import org.angproj.aux.util.swapEndian
 import org.angproj.aux.util.writeIntAt
 import org.angproj.crypt.Hash
 
-class Sha1Hash: AbstractShaHashEngine() {
+internal class Sha1Hash: AbstractShaHashEngine() {
 
-    override val h = intArrayOf(
+    override val h: IntArray = intArrayOf(
         0x67452301, -0x10325477, -0x67452302, 0x10325476, -0x3c2d1e10
     )
 
-    override val w = IntArray(80)
+    override val w: IntArray = IntArray(80)
 
     private fun push(chunk: ByteArray) = (0 until 16).forEach { i ->
         w[i] = chunk.readIntAt(i * wordSize).swapEndian()
@@ -111,19 +111,19 @@ class Sha1Hash: AbstractShaHashEngine() {
         return truncate(hash)
     }
 
-    override fun truncate(hash: ByteArray) = hash
+    override fun truncate(hash: ByteArray): ByteArray = hash
 
     override val type: String
         get() = "SHA1"
 
-    companion object: Hash {
-        override val name = "${Hash.TYPE}-1"
-        override val blockSize: Int = 512 / ShaHashEngine.byteSize
-        override val wordSize: Int = 32 / ShaHashEngine.byteSize
-        override val messageDigestSize: Int = 160 / ShaHashEngine.byteSize
+    public companion object: Hash {
+        public override val name: String = "${Hash.TYPE}-1"
+        public override val blockSize: Int = 512 / ShaHashEngine.byteSize
+        public override val wordSize: Int = 32 / ShaHashEngine.byteSize
+        public override val messageDigestSize: Int = 160 / ShaHashEngine.byteSize
 
-        override fun create() = Sha1Hash()
+        public override fun create(): Sha1Hash = Sha1Hash()
 
-        internal val k = intArrayOf(0x5A827999, 0x6ED9EBA1, -0x70e44324, -0x359d3e2a)
+        private val k = intArrayOf(0x5A827999, 0x6ED9EBA1, -0x70e44324, -0x359d3e2a)
     }
 }

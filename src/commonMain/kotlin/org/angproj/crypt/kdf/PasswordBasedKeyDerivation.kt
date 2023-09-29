@@ -14,8 +14,8 @@
  */
 package org.angproj.crypt.kdf
 
-interface PasswordBasedKeyDerivation {
-    val type: String
+public interface PasswordBasedKeyDerivation {
+    public val type: String
 
-    fun newKey(password: ByteArray, salt: ByteArray): ByteArray
+    public fun newKey(password: ByteArray, salt: ByteArray): ByteArray
 }

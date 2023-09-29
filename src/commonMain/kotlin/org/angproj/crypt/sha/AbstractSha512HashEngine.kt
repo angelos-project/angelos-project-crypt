@@ -18,10 +18,10 @@ import org.angproj.aux.util.readLongAt
 import org.angproj.aux.util.swapEndian
 import org.angproj.aux.util.writeLongAt
 
-abstract class AbstractSha512HashEngine : AbstractShaHashEngine() {
+public abstract class AbstractSha512HashEngine : AbstractShaHashEngine() {
     abstract override val h: LongArray
 
-    override val w = LongArray(k.size)
+    override val w: LongArray = LongArray(k.size)
 
     private fun push(chunk: ByteArray) = (0 until 16).forEach { i ->
         w[i] = chunk.readLongAt(i * wordSize).swapEndian()
@@ -44,7 +44,7 @@ abstract class AbstractSha512HashEngine : AbstractShaHashEngine() {
         h.indices.forEach { t -> h[t] += temp[t] }
     }
 
-    override fun update(messagePart: ByteArray) {
+    public override fun update(messagePart: ByteArray) {
         val buffer = lasting + messagePart
         lasting = ByteArray(0) // Setting an empty array
 
@@ -65,7 +65,7 @@ abstract class AbstractSha512HashEngine : AbstractShaHashEngine() {
         }
     }
 
-    override fun final(): ByteArray {
+    public override fun final(): ByteArray {
         count += lasting.size
         val blocksNeeded = if (lasting.size + 1 + 16 > blockSize) 2 else 1
         val blockLength = lasting.size / wordSize
@@ -100,29 +100,29 @@ abstract class AbstractSha512HashEngine : AbstractShaHashEngine() {
 
     abstract override fun truncate(hash: ByteArray): ByteArray
 
-    companion object {
+    internal companion object {
         const val blockSize: Int = 1024 / ShaHashEngine.byteSize
         const val wordSize: Int = 64 / ShaHashEngine.byteSize
 
-        private fun ch(x: Long, y: Long, z: Long): Long = x and y or (x.inv() and z)
-        private fun maj(x: Long, y: Long, z: Long): Long = x and y or (x and z) or (y and z)
-        private fun bigSig0(x: Long): Long = x.rotateRight(28) xor x.rotateRight(
+        fun ch(x: Long, y: Long, z: Long): Long = x and y or (x.inv() and z)
+        fun maj(x: Long, y: Long, z: Long): Long = x and y or (x and z) or (y and z)
+        fun bigSig0(x: Long): Long = x.rotateRight(28) xor x.rotateRight(
             34
         ) xor x.rotateRight(39)
 
-        private fun bigSig1(x: Long): Long = x.rotateRight(14) xor x.rotateRight(
+        fun bigSig1(x: Long): Long = x.rotateRight(14) xor x.rotateRight(
             18
         ) xor x.rotateRight(41)
 
-        private fun smallSig0(x: Long): Long = x.rotateRight(1) xor x.rotateRight(
+        fun smallSig0(x: Long): Long = x.rotateRight(1) xor x.rotateRight(
             8
         ) xor (x ushr 7)
 
-        private fun smallSig1(x: Long): Long = x.rotateRight(19) xor x.rotateRight(
+        fun smallSig1(x: Long): Long = x.rotateRight(19) xor x.rotateRight(
             61
         ) xor (x ushr 6)
 
-        private val k = longArrayOf(
+        val k = longArrayOf(
             0x428A2F98D728AE22L, 0x7137449123EF65CDL, -0x4a3f043013b2c4d1L, -0x164a245a7e762444L,
             0x3956C25BF348B538L, 0x59F111F1B605D019L, -0x6dc07d5b50e6b065L, -0x54e3a12a25927ee8L,
             -0x27f855675cfcfdbeL, 0x12835B0145706FBEL, 0x243185BE4EE4B28CL, 0x550C7DC3D5FFB4E2L,

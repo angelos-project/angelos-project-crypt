@@ -14,6 +14,6 @@
  */
 package org.angproj.crypt
 
-interface Crypto {
-    fun create(): Any
+public interface Crypto {
+    public fun create(): Any
 }

@@ -15,13 +15,14 @@
 package org.angproj.crypt.hmac
 
 import org.angproj.crypt.Hash
+import org.angproj.crypt.HashEngine
 import org.angproj.crypt.Hmac
 import org.angproj.crypt.sha.Sha512Hash
 
 
-class KeyHashedMac(prepared: HmacKey): AbstractHmacEngine() {
+public class KeyHashedMac(prepared: HmacKey): AbstractHmacEngine() {
 
-    constructor(key: ByteArray, algo: Hash): this(prepareHmacKey(key, algo))
+    public constructor(key: ByteArray, algo: Hash): this(prepareHmacKey(key, algo))
 
     private val inner = prepared.algo.create()
     private val outer = prepared.algo.create()
@@ -31,7 +32,7 @@ class KeyHashedMac(prepared: HmacKey): AbstractHmacEngine() {
         outer.update(prepared.oPadKey)
     }
 
-    override fun update(messagePart: ByteArray) = inner.update(messagePart)
+    override fun update(messagePart: ByteArray): Unit = inner.update(messagePart)
 
     override fun final(): ByteArray {
         outer.update(inner.final())
@@ -41,11 +42,11 @@ class KeyHashedMac(prepared: HmacKey): AbstractHmacEngine() {
     override val type: String
         get() = "HMAC-${inner.type}"
 
-    companion object: Hmac {
-        override val name = "HMAC"
-        override fun create(): KeyHashedMac = create(ByteArray(0), Sha512Hash)
+    public companion object: Hmac {
+        public override val name: String = "HMAC"
+        public override fun create(): KeyHashedMac = create(ByteArray(0), Sha512Hash)
 
-        override fun create(key: ByteArray, algo: Hash) = KeyHashedMac(key, algo)
+        public override fun create(key: ByteArray, algo: Hash): KeyHashedMac = KeyHashedMac(key, algo)
 
         private fun determineKey(key: ByteArray, algo: Hash): ByteArray = when {
             key.size == algo.blockSize -> key
@@ -70,7 +71,7 @@ class KeyHashedMac(prepared: HmacKey): AbstractHmacEngine() {
             return xPad
         }
 
-        fun prepareHmacKey(key: ByteArray, algo: Hash): HmacKey {
+        public fun prepareHmacKey(key: ByteArray, algo: Hash): HmacKey {
             val key0 = determineKey(key, algo)
             return HmacKey(Triple(
                 padKey(key0, pad(0x36, algo), algo),

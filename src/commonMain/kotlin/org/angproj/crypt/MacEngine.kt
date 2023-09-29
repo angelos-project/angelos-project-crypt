@@ -14,11 +14,11 @@
  */
 package org.angproj.crypt
 
-interface MacEngine {
+public interface MacEngine {
 
-    val type: String
+    public val type: String
 
-    fun update(messagePart: ByteArray)
+    public fun update(messagePart: ByteArray)
 
-    fun final(): ByteArray
+    public fun final(): ByteArray
 }

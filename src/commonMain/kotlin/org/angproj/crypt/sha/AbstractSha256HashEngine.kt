@@ -18,10 +18,10 @@ import org.angproj.aux.util.readIntAt
 import org.angproj.aux.util.swapEndian
 import org.angproj.aux.util.writeIntAt
 
-abstract class AbstractSha256HashEngine : AbstractShaHashEngine() {
+public abstract class AbstractSha256HashEngine : AbstractShaHashEngine() {
     abstract override val h: IntArray
 
-    override val w = IntArray(k.size)
+    override val w: IntArray = IntArray(k.size)
 
     private fun push(chunk: ByteArray) = (0 until 16).forEach { i ->
         w[i] = chunk.readIntAt(i * wordSize).swapEndian()
@@ -44,7 +44,7 @@ abstract class AbstractSha256HashEngine : AbstractShaHashEngine() {
         h.indices.forEach { t -> h[t] += temp[t] }
     }
 
-    override fun update(messagePart: ByteArray) {
+    public override fun update(messagePart: ByteArray) {
         val buffer = lasting + messagePart
         lasting = ByteArray(0) // Setting an empty array
 
@@ -65,7 +65,7 @@ abstract class AbstractSha256HashEngine : AbstractShaHashEngine() {
         }
     }
 
-    override fun final(): ByteArray {
+    public override fun final(): ByteArray {
         count += lasting.size
         val blocksNeeded = if (lasting.size + 1 + 8 > blockSize) 2 else 1
         val blockLength = lasting.size / wordSize
@@ -101,9 +101,9 @@ abstract class AbstractSha256HashEngine : AbstractShaHashEngine() {
 
     abstract override fun truncate(hash: ByteArray): ByteArray
 
-    companion object {
-        const val blockSize: Int = 512 / ShaHashEngine.byteSize
-        const val wordSize: Int = 32 / ShaHashEngine.byteSize
+    public  companion object {
+        public const val blockSize: Int = 512 / ShaHashEngine.byteSize
+        public const val wordSize: Int = 32 / ShaHashEngine.byteSize
         private fun ch(x: Int, y: Int, z: Int): Int = x and y or (x.inv() and z)
         private fun maj(x: Int, y: Int, z: Int): Int = x and y or (x and z) or (y and z)
         private fun bigSig0(x: Int): Int = x.rotateRight(2) xor x.rotateRight(
@@ -122,7 +122,7 @@ abstract class AbstractSha256HashEngine : AbstractShaHashEngine() {
             19
         ) xor (x ushr 10)
 
-        internal val k = intArrayOf(
+        private val k = intArrayOf(
             0x428a2f98, 0x71374491, -0x4a3f0431, -0x164a245b,
             0x3956c25b, 0x59f111f1, -0x6dc07d5c, -0x54e3a12b,
             -0x27f85568, 0x12835b01, 0x243185be, 0x550c7dc3,

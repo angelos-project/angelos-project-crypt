@@ -14,5 +14,5 @@
  */
 package org.angproj.crypt
 
-interface MessageAuthenticationCode {
+public interface MessageAuthenticationCode {
 }

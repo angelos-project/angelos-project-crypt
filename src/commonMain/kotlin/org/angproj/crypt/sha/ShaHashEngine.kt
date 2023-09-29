@@ -16,9 +16,9 @@ package org.angproj.crypt.sha
 
 import org.angproj.crypt.HashEngine
 
-interface ShaHashEngine: HashEngine {
+internal interface ShaHashEngine: HashEngine {
 
     companion object {
-        const val byteSize = Byte.SIZE_BITS
+        const val byteSize: Int = Byte.SIZE_BITS
     }
 }

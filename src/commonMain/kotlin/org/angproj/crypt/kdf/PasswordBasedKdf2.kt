@@ -23,17 +23,18 @@ import org.angproj.crypt.hmac.KeyHashedMac
 import org.angproj.crypt.sha.Sha256Hash
 import kotlin.math.ceil
 
-class PasswordBasedKdf2(private val algo: Hash, val keySize: Int, val count: Int = 1000): PasswordBasedKeyDerivation {
+ public class PasswordBasedKdf2(algo: Hash, public val keySize: Int, public val count: Int = 1000): PasswordBasedKeyDerivation {
 
     init {
         require(keySize >= 14) { "Key length to small" }
         require(keySize < Int.MAX_VALUE - 1) { "Key length to big" }
     }
 
-    private val len = ceil(keySize.toDouble() / algo.messageDigestSize.toDouble()).toInt()
-    private val r = keySize - (len - 1) * algo.messageDigestSize
+     private val algo = algo
+     private val len = ceil(keySize.toDouble() / algo.messageDigestSize.toDouble()).toInt()
+        private val r = keySize - (len - 1) * algo.messageDigestSize
 
-    override fun newKey(password: ByteArray, salt: ByteArray): ByteArray {
+    public override fun newKey(password: ByteArray, salt: ByteArray): ByteArray {
         //require(salt.size >= 16) { "The salt must be at least 128 bits" }
 
         val mk = ByteArray(keySize)
@@ -54,8 +55,8 @@ class PasswordBasedKdf2(private val algo: Hash, val keySize: Int, val count: Int
     override val type: String
         get() = "PBKDF2-${KeyHashedMac.name}-${algo.name}"
 
-    companion object: Pbkd {
-        override val name = "PBKDF2"
+    public companion object: Pbkd {
+        override val name: String = "PBKDF2"
 
         override fun create(): PasswordBasedKeyDerivation = create(Sha256Hash, Sha256Hash.messageDigestSize, 1)
 

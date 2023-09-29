@@ -18,19 +18,19 @@ import org.angproj.crypt.Hash
 import kotlin.jvm.JvmInline
 
 @JvmInline
-value class HmacKey(private val prepared: Triple<ByteArray, ByteArray, Hash>) {
+public value class HmacKey(private val prepared: Triple<ByteArray, ByteArray, Hash>) {
 
     init {
         require(prepared.first.size == algo.blockSize)
         require(prepared.second.size == algo.blockSize)
     }
 
-    val algo: Hash
+    public val algo: Hash
         get() = prepared.third
 
-    val iPadKey: ByteArray
+    public val iPadKey: ByteArray
         get() = prepared.first
 
-    val oPadKey: ByteArray
+    public val oPadKey: ByteArray
         get() = prepared.second
 }

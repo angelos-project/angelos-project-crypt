@@ -14,5 +14,5 @@
  */
 package org.angproj.crypt.hmac
 
-abstract class AbstractHmacEngine: HmacEngine {
+public abstract class AbstractHmacEngine: HmacEngine {
 }

@@ -14,11 +14,10 @@
  */
 package org.angproj.crypt
 
-interface HashEngine {
+public interface HashEngine {
 
-    val type: String
+    public val type: String
 
-    fun update(messagePart: ByteArray)
-
-    fun final(): ByteArray
+    public fun update(messagePart: ByteArray)
+    public fun final(): ByteArray
 }
