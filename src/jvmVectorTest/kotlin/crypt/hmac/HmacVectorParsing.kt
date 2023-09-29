@@ -1,6 +1,7 @@
 package org.angproj.crypt.hmac
 
-import org.angproj.crypt.BinHex
+import org.angproj.aux.util.BinHex
+
 
 interface HmacVectorParsing {
 

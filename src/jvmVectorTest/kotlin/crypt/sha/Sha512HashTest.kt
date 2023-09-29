@@ -1,6 +1,6 @@
 package org.angproj.crypt.sha
 
-import org.angproj.crypt.BinHex
+import org.angproj.aux.util.BinHex
 import kotlin.test.Test
 import kotlin.test.assertEquals
 

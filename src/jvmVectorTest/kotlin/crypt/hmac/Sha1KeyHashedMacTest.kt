@@ -1,6 +1,6 @@
 package org.angproj.crypt.hmac
 
-import org.angproj.crypt.BinHex
+import org.angproj.aux.util.BinHex
 import org.angproj.crypt.sha.Sha1Hash
 import kotlin.test.Test
 import kotlin.test.assertEquals

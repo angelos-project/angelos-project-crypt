@@ -1,6 +1,6 @@
 package org.angproj.crypt.kdf
 
-import org.angproj.crypt.BinHex
+import org.angproj.aux.util.BinHex
 import org.angproj.crypt.sha.Sha1Hash
 import org.angproj.crypt.sha.Sha256Hash
 import org.angproj.crypt.sha.Sha512Hash
