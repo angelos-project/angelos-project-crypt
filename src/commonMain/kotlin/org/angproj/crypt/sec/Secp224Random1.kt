@@ -1,4 +1,4 @@
-package org.angproj.crypt.secp
+package org.angproj.crypt.sec
 
 import org.angproj.aux.util.BinHex
 

@@ -12,7 +12,7 @@
  * Contributors:
  *      Kristoffer Paulsson - initial implementation
  */
-package org.angproj.crypt.secp
+package org.angproj.crypt.sec
 
 public interface Secp {
     public val strength: Int
