@@ -10,7 +10,7 @@ class BigIntTest {
         assertContentEquals(BigInt(data).toByteArray(padded = true), data)
     }
 
-    fun runKoblitz(dp: SecKoblitz) {
+    fun runKoblitz(dp: SecPKoblitz) {
         //println(dp.name)
         compareInOut(dp.p)
         compareInOut(dp.a)
@@ -21,7 +21,7 @@ class BigIntTest {
         compareInOut(dp.h)
     }
 
-    fun runRandom(dp: SecRandom) {
+    fun runRandom(dp: SecPRandom) {
         //println(dp.name)
         compareInOut(dp.p)
         compareInOut(dp.a)

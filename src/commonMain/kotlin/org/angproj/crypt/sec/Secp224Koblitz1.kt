@@ -2,10 +2,10 @@ package org.angproj.crypt.sec
 
 import org.angproj.aux.util.BinHex
 
-public object Secp224Koblitz1 : SecKoblitz {
-    public override val name: String = "Secp224k1"
-    public val strength: Int = 112
-    public val size: Int = 224
+public object Secp224Koblitz1 : SecPKoblitz {
+    public override val name: String = "secp224k1"
+    public override val strength: Int = 112
+    public override val size: Int = 224
 
     private val _p: ByteArray = BinHex.decodeToBin(
         "FFFFFFFF" +

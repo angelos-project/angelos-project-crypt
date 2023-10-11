@@ -2,10 +2,10 @@ package org.angproj.crypt.sec
 
 import org.angproj.aux.util.BinHex
 
-public object Secp256Random1 : SecRandom {
-    public override val name: String = "Secp256r1"
-    public val strength: Int = 128
-    public val size: Int = 256
+public object Secp256Random1 : SecPRandom {
+    public override val name: String = "secp256r1"
+    public override val strength: Int = 128
+    public override val size: Int = 256
 
     private val _p: ByteArray = BinHex.decodeToBin(
         "FFFFFFFF" +
