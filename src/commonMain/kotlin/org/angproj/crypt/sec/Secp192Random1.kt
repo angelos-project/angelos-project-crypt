@@ -2,84 +2,99 @@ package org.angproj.crypt.sec
 
 import org.angproj.aux.util.BinHex
 
-public class Secp192Random1 {
+public object Secp192Random1 : SecRandom {
+    public override val name: String = "Secp192r1"
+    public val strength: Int = 96
+    public val size: Int = 192
 
-    public companion object: Secp {
-        public override val strength: Int = 96
-        public override val size: Int = 192
+    private val _p: ByteArray = BinHex.decodeToBin(
+        "FFFFFFFF" +
+                "FFFFFFFF" +
+                "FFFFFFFF" +
+                "FFFFFFFE" +
+                "FFFFFFFF" +
+                "FFFFFFFF"
+    )
 
-        protected val p: ByteArray = BinHex.decodeToBin(
-            "FFFFFFFF" +
-                    "FFFFFFFF" +
-                    "FFFFFFFF" +
-                    "FFFFFFFE" +
-                    "FFFFFFFF" +
-                    "FFFFFFFF"
-        )
+    private val _a: ByteArray = BinHex.decodeToBin(
+        "FFFFFFFF" +
+                "FFFFFFFF" +
+                "FFFFFFFF" +
+                "FFFFFFFE" +
+                "FFFFFFFF" +
+                "FFFFFFFC"
+    )
 
-        protected val a: ByteArray = BinHex.decodeToBin(
-            "FFFFFFFF" +
-                    "FFFFFFFF" +
-                    "FFFFFFFF" +
-                    "FFFFFFFE" +
-                    "FFFFFFFF" +
-                    "FFFFFFFC"
-        )
+    private val _b: ByteArray = BinHex.decodeToBin(
+        "64210519" +
+                "E59C80E7" +
+                "0FA7E9AB" +
+                "72243049" +
+                "FEB8DEEC" +
+                "C146B9B1"
+    )
 
-        protected val b: ByteArray = BinHex.decodeToBin(
-            "64210519" +
-                    "E59C80E7" +
-                    "0FA7E9AB" +
-                    "72243049" +
-                    "FEB8DEEC" +
-                    "C146B9B1"
-        )
+    private val _S: ByteArray = BinHex.decodeToBin(
+        "3045AE6F" +
+                "C8422F64" +
+                "ED579528" +
+                "D38120EA" +
+                "E12196D5"
+    )
 
-        protected val S: ByteArray = BinHex.decodeToBin(
-            "3045AE6F" +
-                    "C8422F64" +
-                    "ED579528" +
-                    "D38120EA" +
-                    "E12196D5"
-        )
+    private val _G: ByteArray = BinHex.decodeToBin(
+        "03" +
+                "188DA80E" +
+                "B03090F6" +
+                "7CBF20EB" +
+                "43A18800" +
+                "F4FF0AFD" +
+                "82FF1012"
+    )
 
-        protected val G: ByteArray = BinHex.decodeToBin(
-            "03" +
-                    "188DA80E" +
-                    "B03090F6" +
-                    "7CBF20EB" +
-                    "43A18800" +
-                    "F4FF0AFD" +
-                    "82FF1012"
-        )
+    private val _Gc: ByteArray = BinHex.decodeToBin(
+        "04" +
+                "188DA80E" +
+                "B03090F6" +
+                "7CBF20EB" +
+                "43A18800" +
+                "F4FF0AFD" +
+                "82FF1012" +
+                "07192B95" +
+                "FFC8DA78" +
+                "631011ED" +
+                "6B24CDD5" +
+                "73F977A1" +
+                "1E794811"
+    )
 
-        protected val Gc: ByteArray = BinHex.decodeToBin(
-            "04" +
-                    "188DA80E" +
-                    "B03090F6" +
-                    "7CBF20EB" +
-                    "43A18800" +
-                    "F4FF0AFD" +
-                    "82FF1012" +
-                    "07192B95" +
-                    "FFC8DA78" +
-                    "631011ED" +
-                    "6B24CDD5" +
-                    "73F977A1" +
-                    "1E794811"
-        )
+    private val _n: ByteArray = BinHex.decodeToBin(
+        "FFFFFFFF" +
+                "FFFFFFFF" +
+                "FFFFFFFF" +
+                "99DEF836" +
+                "146BC9B1" +
+                "B4D22831"
+    )
 
-        protected val n: ByteArray = BinHex.decodeToBin(
-            "FFFFFFFF" +
-                    "FFFFFFFF" +
-                    "FFFFFFFF" +
-                    "99DEF836" +
-                    "146BC9B1" +
-                    "B4D22831"
-        )
+    private val _h: ByteArray = BinHex.decodeToBin(
+        "01"
+    )
 
-        protected val h: ByteArray = BinHex.decodeToBin(
-            "01"
-        )
-    }
+    override val p: ByteArray
+        get() = _p.copyOf()
+    override val a: ByteArray
+        get() = _a.copyOf()
+    override val b: ByteArray
+        get() = _b.copyOf()
+    override val S: ByteArray
+        get() = _S.copyOf()
+    override val G: ByteArray
+        get() = _G.copyOf()
+    override val Gc: ByteArray
+        get() = _Gc.copyOf()
+    override val n: ByteArray
+        get() = _n.copyOf()
+    override val h: ByteArray
+        get() = _h.copyOf()
 }

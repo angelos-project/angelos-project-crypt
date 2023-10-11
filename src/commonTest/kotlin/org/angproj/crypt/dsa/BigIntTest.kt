@@ -1,19 +1,47 @@
 package org.angproj.crypt.dsa
 
-import org.angproj.crypt.sec.Secp256Koblitz1
+import org.angproj.crypt.sec.*
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
 
 class BigIntTest {
 
+    fun compareInOut(data: ByteArray) {
+        assertContentEquals(BigInt(data).toByteArray(padded = true), data)
+    }
+
+    fun runKoblitz(dp: SecKoblitz) {
+        //println(dp.name)
+        compareInOut(dp.p)
+        compareInOut(dp.a)
+        compareInOut(dp.b)
+        compareInOut(dp.G)
+        compareInOut(dp.Gc)
+        compareInOut(dp.n)
+        compareInOut(dp.h)
+    }
+
+    fun runRandom(dp: SecRandom) {
+        //println(dp.name)
+        compareInOut(dp.p)
+        compareInOut(dp.a)
+        compareInOut(dp.b)
+        compareInOut(dp.S)
+        compareInOut(dp.G)
+        compareInOut(dp.Gc)
+        compareInOut(dp.n)
+        compareInOut(dp.h)
+    }
+
     @Test
     fun impexp() {
-        assertContentEquals(BigInt(Secp256Koblitz1.p).toByteArray(), Secp256Koblitz1.p)
-        assertContentEquals(BigInt(Secp256Koblitz1.a).toByteArray(), Secp256Koblitz1.a) // OK
-        assertContentEquals(BigInt(Secp256Koblitz1.b).toByteArray(), Secp256Koblitz1.b)  // OK
-        assertContentEquals(BigInt(Secp256Koblitz1.G).toByteArray(), Secp256Koblitz1.G) // OK
-        assertContentEquals(BigInt(Secp256Koblitz1.Gc).toByteArray(), Secp256Koblitz1.Gc) // OK
-        assertContentEquals(BigInt(Secp256Koblitz1.n).toByteArray(), Secp256Koblitz1.n)
-        assertContentEquals(BigInt(Secp256Koblitz1.h).toByteArray(), Secp256Koblitz1.h) // OK
+        runKoblitz(Secp192Koblitz1)
+        runRandom(Secp192Random1)
+        runKoblitz(Secp224Koblitz1)
+        runRandom(Secp224Random1)
+        runKoblitz(Secp256Koblitz1)
+        runRandom(Secp256Random1)
+        runRandom(Secp384Random1)
+        runRandom(Secp521Random1)
     }
 }
