@@ -8,31 +8,110 @@ public object Sect409Random1 : SecTRandom {
     public override val size: Int = 409
 
     private val _a: ByteArray = BinHex.decodeToBin(
-        ""
+        "00000000" +
+                "00000000" +
+                "00000000" +
+                "00000000" +
+                "00000000" +
+                "00000000" +
+                "00000000" +
+                "00000000" +
+                "00000000" +
+                "00000000" +
+                "00000000" +
+                "00000000" +
+                "00000001"
     )
 
     private val _b: ByteArray = BinHex.decodeToBin(
-        ""
+        "0021A5C2" +
+                "C8EE9FEB" +
+                "5C4B9A75" +
+                "3B7B476B" +
+                "7FD6422E" +
+                "F1F3DD67" +
+                "4761FA99" +
+                "D6AC27C8" +
+                "A9A197B2" +
+                "72822F6C" +
+                "D57A55AA" +
+                "4F50AE31" +
+                "7B13545F"
     )
 
     private val _S: ByteArray = BinHex.decodeToBin(
-        ""
+        "4099B5A4" +
+                "57F9D69F" +
+                "79213D09" +
+                "4C4BCD4D" +
+                "4262210B"
     )
 
     private val _G: ByteArray = BinHex.decodeToBin(
-        ""
+        "03" +
+                "015D4860" +
+                "D088DDB3" +
+                "496B0C60" +
+                "64756260" +
+                "441CDE4A" +
+                "F1771D4D" +
+                "B01FFE5B" +
+                "34E59703" +
+                "DC255A86" +
+                "8A118051" +
+                "5603AEAB" +
+                "60794E54" +
+                "BB7996A7"
     )
 
     private val _Gc: ByteArray = BinHex.decodeToBin(
-        ""
+        "04" +
+                "015D4860" +
+                "D088DDB3" +
+                "496B0C60" +
+                "64756260" +
+                "441CDE4A" +
+                "F1771D4D" +
+                "B01FFE5B" +
+                "34E59703" +
+                "DC255A86" +
+                "8A118051" +
+                "5603AEAB" +
+                "60794E54" +
+                "BB7996A7" +
+                "0061B1CF" +
+                "AB6BE5F3" +
+                "2BBFA783" +
+                "24ED106A" +
+                "7636B9C5" +
+                "A7BD198D" +
+                "0158AA4F" +
+                "5488D08F" +
+                "38514F1F" +
+                "DF4B4F40" +
+                "D2181B36" +
+                "81C364BA" +
+                "0273C706"
     )
 
     private val _n: ByteArray = BinHex.decodeToBin(
-        ""
+        "01000000" +
+                "00000000" +
+                "00000000" +
+                "00000000" +
+                "00000000" +
+                "00000000" +
+                "000001E2" +
+                "AAD6A612" +
+                "F33307BE" +
+                "5FA47C3C" +
+                "9E052F83" +
+                "8164CD37" +
+                "D9A21173"
     )
 
     private val _h: ByteArray = BinHex.decodeToBin(
-        ""
+        "02"
     )
 
     override val a: ByteArray
