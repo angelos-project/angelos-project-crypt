@@ -7,7 +7,7 @@ import kotlin.test.assertContentEquals
 class BigIntTest {
 
     fun compareInOut(data: ByteArray) {
-        assertContentEquals(BigInt(data).toByteArray(padded = true), data)
+        assertContentEquals(BigInt.fromByteArray(data, withLeadingZeros = true).toByteArray(), data)
     }
 
     fun runKoblitzP(dp: SecPKoblitz) {
