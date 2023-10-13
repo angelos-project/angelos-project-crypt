@@ -2,10 +2,10 @@ package org.angproj.crypt.sec
 
 public interface SecTKoblitz: SecDomainParameters {
     //public val p: ByteArray
-    public val a: ByteArray
-    public val b: ByteArray
-    public val G: ByteArray
-    public val Gc: ByteArray
-    public val n: ByteArray
-    public val h: ByteArray
+    public override val a: ByteArray
+    public override val b: ByteArray
+    public override val G: ByteArray
+    public override val Gc: ByteArray
+    public override val n: ByteArray
+    public override val h: ByteArray
 }

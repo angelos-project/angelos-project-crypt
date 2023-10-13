@@ -1,14 +1,37 @@
+/**
+ * Copyright (c) 2023 by Kristoffer Paulsson <kristoffer.paulsson@talenten.se>.
+ *
+ * This software is available under the terms of the MIT license. Parts are licensed
+ * under different terms if stated. The legal terms are attached to the LICENSE file
+ * and are made available on:
+ *
+ *      https://opensource.org/licenses/MIT
+ *
+ * SPDX-License-Identifier: MIT
+ *
+ * Contributors:
+ *      Kristoffer Paulsson - initial implementation
+ */
 package org.angproj.crypt.dsa
 
 import org.angproj.aux.util.readIntAt
 import org.angproj.aux.util.swapEndian
 import org.angproj.aux.util.writeIntAt
-import kotlin.jvm.JvmInline
 
 public enum class BigSignedInt(public val num: Int, public val sign: Int) {
     POSITIVE(1, 0),
     ZERO(0, 0),
     NEGATIVE(-1, -1);
+
+    public fun isNonZero(): Boolean = when(this) {
+        ZERO -> false
+        else -> true
+    }
+
+    public fun isNonNegative(): Boolean = when(this) {
+        NEGATIVE -> false
+        else -> true
+    }
 }
 
 public enum class BigCompare(public val num: Int) {
@@ -30,6 +53,16 @@ public class BigInt(
 ) {
 
     public val bitSize: Int by lazy { usedIntBits(magnitude[0]) + (magnitude.size - 1) * Int.SIZE_BITS }
+    public val firstNonzeroIntNum: Int by lazy {
+        magnitude.size - magnitude.indices.reversed().indexOfFirst { it != 0} - 1 + 2}
+
+    init {
+        require((
+                magnitude.isEmpty() && !signedNumber.isNonZero()) || (
+                magnitude.isNotEmpty() && signedNumber.isNonZero())) {
+            "Zero misconfiguration"
+        }
+    }
 
     public fun compareTo(other: BigInt): BigCompare = when {
         signedNumber.num > other.signedNumber.num -> BigCompare.GREATER
