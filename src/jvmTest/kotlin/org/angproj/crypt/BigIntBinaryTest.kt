@@ -1,12 +1,19 @@
 package org.angproj.crypt.dsa
 
+import org.angproj.aux.util.BinHex
+import org.angproj.crypt.number.Combinator
 import org.angproj.crypt.number.and
+import org.angproj.crypt.number.bitLength
 import org.angproj.crypt.sec.*
 import java.math.BigInteger
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
 
 class BigIntBinaryTest {
+
+    val vectorList1 = Combinator.generateValueVector()
+    val vectorList2 = Combinator.generateValueVector()
+    val vectcorListLong = Combinator.generateLongValueVector()
 
     val dp: List<SecDomainParameters> = listOf(
         Secp192Koblitz1,
@@ -44,17 +51,47 @@ class BigIntBinaryTest {
     }
 
     @Test
-    fun compareAndTest() {
-        dp.forEach {
-            println(it.name)
-            println("G ${it.G}")
-            println("n ${it.n}")
+    fun compareDataImportTest() {
+        dp.forEach { compareImport(it.G)}
 
-            val jbi1 = BigInteger(it.G)
-            val jbi2 = BigInteger(it.n)
-            val cbi1 = BigInt.fromByteArray(it.G)
-            val cbi2 = BigInt.fromByteArray(it.n)
-            assertContentEquals(cbi1.and(cbi2).toByteArray(), jbi1.and(jbi2).toByteArray())
+        Combinator.doVectorTests(vectorList1) { xbi, x ->
+            Pair(xbi, x)
+        }
+    }
+
+    @Test
+    fun andTest() {
+        Combinator.doMatrixTests(vectorList1, vectorList2) { xbi, ybi, x, y ->
+            Pair(xbi.and(ybi), x.and(y))
+        }
+    }
+
+    @Test
+    fun fromLongTest() {
+        Combinator.doLongVectorTests(vectcorListLong) { xbi, x ->
+            println(xbi.bitLength())
+            Pair(xbi, x)
+        }
+    }
+
+    @Test
+    fun compareToTest() {
+        Combinator.doMatrixIntTests(vectorList1, vectorList2) { xbi, ybi, x, y ->
+            Pair(xbi.compareTo(ybi).num, x.compareTo(y))
+        }
+    }
+
+    @Test
+    fun negateTest() {
+        Combinator.doVectorTests(vectorList1) { xbi, x ->
+            Pair(xbi.negate(), x.negate())
+        }
+    }
+
+    @Test
+    fun absTest() {
+        Combinator.doVectorTests(vectorList1) { xbi, x ->
+            Pair(xbi.abs(), x.abs())
         }
     }
 }

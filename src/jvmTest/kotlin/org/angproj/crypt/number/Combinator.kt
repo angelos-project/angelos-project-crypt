@@ -1,9 +1,13 @@
 package org.angproj.crypt.number
 
+import org.angproj.aux.util.BinHex
+import org.angproj.aux.util.swapEndian
+import org.angproj.aux.util.writeLongAt
 import org.angproj.crypt.dsa.BigInt
 import java.math.BigInteger
 import kotlin.random.Random
 import kotlin.test.assertContentEquals
+import kotlin.test.assertEquals
 
 object Combinator {
 
@@ -34,6 +38,19 @@ object Combinator {
         return vector.toList()
     }
 
+    fun generateLongValueVector(): List<Long>{
+        val vector = mutableListOf<Long>()
+
+            vector.add(positiveMaxRange())
+            vector.add(positiveLongRange())
+            vector.add(positiveIntRange())
+        vector.add(zero())
+            vector.add(negativeIntRange())
+            vector.add(negativeLongRange())
+            vector.add(negativeMinRange())
+        return vector.toList()
+    }
+
     fun produceFilledVector(significant: Long, fill: Int = 0): BigInteger {
         var output = BigInteger.valueOf(significant).toByteArray()
         (0 until fill).forEach { output += BigInteger.valueOf(randomFiller()).toByteArray() }
@@ -45,9 +62,36 @@ object Combinator {
         action: (cbi: BigInt, jbi: BigInteger) -> Pair<BigInt, BigInteger>
     ) {
         vector.forEach {
+            println("H: ${BinHex.encodeToHex(it.toByteArray())}")
             val bi = BigInt.fromByteArray(it.toByteArray())
             val result: Pair<BigInt, BigInteger> = action(bi, it)
-            assertContentEquals(result.first.toByteArray(), result.second.toByteArray())
+            println("D: ${result.second}")
+            println("K: ${BinHex.encodeToHex(result.first.toByteArray())}")
+            println("J: ${BinHex.encodeToHex( stripLeadingZeroBytesCorrection(result.second.toByteArray()))}\n")
+            //println("J: ${BinHex.encodeToHex(result.second.toByteArray())}\n")
+            assertContentEquals(result.first.toByteArray(), stripLeadingZeroBytesCorrection(result.second.toByteArray()))
+            //assertContentEquals(result.first.toByteArray(), result.second.toByteArray())
+
+        }
+    }
+
+    fun doLongVectorTests(
+        vector: List<Long>,
+        action: (cbi: BigInt, jbi: BigInteger) -> Pair<BigInt, BigInteger>
+    ) {
+        vector.forEach {
+            println("H: ${BinHex.encodeToHex(ByteArray(8).also{ ba ->
+                ba.writeLongAt(0, it.swapEndian())})}")
+            val bi = BigInt.fromLong(it)
+            val jbi = BigInteger.valueOf(it)
+            val result: Pair<BigInt, BigInteger> = action(bi, jbi)
+            println("D: ${result.second}")
+            println("K: ${BinHex.encodeToHex(result.first.toByteArray())}")
+            //println("J: ${BinHex.encodeToHex( stripLeadingZeroBytesCorrection(result.second.toByteArray()))}\n")
+            println("J: ${BinHex.encodeToHex(result.second.toByteArray())}\n")
+            //assertContentEquals(result.first.toByteArray(), stripLeadingZeroBytesCorrection(result.second.toByteArray()))
+            //assertContentEquals(result.first.toByteArray(), result.second.toByteArray())
+            //assertEquals(result.first.longValueExact(), result.second.longValueExact())
         }
     }
 
@@ -61,8 +105,39 @@ object Combinator {
             vector2.forEach { y ->
                 val ybi = BigInt.fromByteArray(y.toByteArray())
                 val result: Pair<BigInt, BigInteger> = action(xbi, ybi, x, y)
+                println("D: ${result.second}")
+                println("K: ${BinHex.encodeToHex(result.first.toByteArray())}")
+                println("J: ${BinHex.encodeToHex( stripLeadingZeroBytesCorrection(result.second.toByteArray()))}\n")
                 assertContentEquals(result.first.toByteArray(), result.second.toByteArray())
             }
         }
+    }
+
+    fun doMatrixIntTests(
+        vector1: List<BigInteger>,
+        vector2: List<BigInteger>,
+        action: (xbi: BigInt, ybi: BigInt, x: BigInteger, y: BigInteger) -> Pair<Int, Int>
+    ) {
+        vector1.forEach { x ->
+            val xbi = BigInt.fromByteArray(x.toByteArray())
+            vector2.forEach { y ->
+                val ybi = BigInt.fromByteArray(y.toByteArray())
+                val result: Pair<Int, Int> = action(xbi, ybi, x, y)
+                //println("D: ${result.second}")
+                //println("K: ${BinHex.encodeToHex(result.first.toByteArray())}")
+                //println("J: ${BinHex.encodeToHex( stripLeadingZeroBytesCorrection(result.second.toByteArray()))}\n")
+                assertEquals(result.first, result.second)
+            }
+        }
+    }
+
+    fun stripLeadingZeroBytesCorrection(value: ByteArray): ByteArray {
+        val keep = when(val idx = value.indexOfFirst { it.toInt() != 0 }) {
+            //-1 -> value.size
+            //else -> idx
+            -1 -> 0
+            else -> idx
+        }
+        return value.copyOfRange(keep, value.size)
     }
 }

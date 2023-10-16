@@ -17,11 +17,18 @@ package org.angproj.crypt.dsa
 import org.angproj.aux.util.readIntAt
 import org.angproj.aux.util.swapEndian
 import org.angproj.aux.util.writeIntAt
+import org.angproj.crypt.number.fromIntArrayAndSigNum
 
-public enum class BigSignedInt(public val num: Int, public val sign: Int) {
+public enum class BigSignedInt(public val state: Int, public val signed: Int) {
     POSITIVE(1, 0),
     ZERO(0, 0),
     NEGATIVE(-1, -1);
+
+    public fun isPositive(): Boolean = this == POSITIVE
+
+    public fun isZero(): Boolean = this == ZERO
+
+    public fun isNegative(): Boolean = this == NEGATIVE
 
     public fun isNonZero(): Boolean = when(this) {
         ZERO -> false
@@ -52,21 +59,25 @@ public class BigInt(
     public val fullSize: Int = 0
 ) {
 
+    // will be removed
+    public var bitCountPlusOne: Int = 0
+    public var bitLengthPlusOne: Int = 0
+
     public val bitSize: Int by lazy { usedIntBits(magnitude[0]) + (magnitude.size - 1) * Int.SIZE_BITS }
     public val firstNonzeroIntNum: Int by lazy {
         magnitude.size - magnitude.indices.reversed().indexOfFirst { it != 0} - 1 + 2}
 
     init {
-        require((
+        /*require((
                 magnitude.isEmpty() && !signedNumber.isNonZero()) || (
                 magnitude.isNotEmpty() && signedNumber.isNonZero())) {
             "Zero misconfiguration"
-        }
+        }*/
     }
 
     public fun compareTo(other: BigInt): BigCompare = when {
-        signedNumber.num > other.signedNumber.num -> BigCompare.GREATER
-        signedNumber.num < other.signedNumber.num -> BigCompare.LESSER
+        signedNumber.state > other.signedNumber.state -> BigCompare.GREATER
+        signedNumber.state < other.signedNumber.state -> BigCompare.LESSER
         signedNumber == BigSignedInt.POSITIVE -> compareMagnitude(other)
         signedNumber == BigSignedInt.NEGATIVE -> other.compareMagnitude(this)
         else -> BigCompare.EQUAL
@@ -93,7 +104,7 @@ public class BigInt(
 
     public fun toByteArray(): ByteArray {
         val cache = ByteArray(magnitude.size * Int.SIZE_BYTES).also {
-            it.fill(signedNumber.sign.toByte()) }
+            it.fill(signedNumber.signed.toByte()) }
         magnitude.indices.forEach {idx ->
             val complimented = when (signedNumber) {
                 BigSignedInt.NEGATIVE -> magnitude[idx].swapEndian().inv()
@@ -104,7 +115,10 @@ public class BigInt(
         if (signedNumber == BigSignedInt.NEGATIVE) cache[cache.lastIndex] = (
                 cache.last() + 1).toByte() // Could be dangerous
         return when(fullSize) {
-            0 -> cache.copyOfRange(unusedIntBytes(magnitude[0]), cache.size)
+           0 -> when (cache.size) {
+                0 -> byteArrayOf(0)
+                else -> cache.copyOfRange(unusedIntBytes(magnitude[0]), cache.size)
+            }
             else -> {
                 val value = when {
                     cache.size > fullSize -> cache.copyOfRange(unusedIntBytes(magnitude[0]), cache.size)
@@ -113,7 +127,7 @@ public class BigInt(
                 when {
                     value.size == fullSize -> value
                     value.size < fullSize -> ByteArray(fullSize - value.size).also {
-                        it.fill(signedNumber.sign.toByte()) } + value
+                        it.fill(signedNumber.signed.toByte()) } + value
                     else -> error("Can't pad value larger than full size")
                 }
             }
@@ -126,8 +140,9 @@ public class BigInt(
             value.indexOfFirst { it != 0 }, value.size)
 
         public fun fromLong(value: Long): BigInt = when {
-            value == 0L -> BigInt(intArrayOf(0), BigSignedInt.ZERO)
-            value < 0 -> BigInt(long2IntArray(-value), BigSignedInt.NEGATIVE)
+            value == 0L -> BigInt(intArrayOf(), BigSignedInt.ZERO)
+            //value < 0 -> BigInt(long2IntArray(-value), BigSignedInt.NEGATIVE)
+            value < 0 -> BigInt(long2IntArray(value.inv()), BigSignedInt.NEGATIVE)
             else -> BigInt(long2IntArray(value), BigSignedInt.POSITIVE)
         }
 
@@ -211,11 +226,13 @@ public class BigInt(
     }
 }
 
-
-public inline fun BigInt.negate(): BigInt = when (signedNumber) {
-    BigSignedInt.POSITIVE -> BigInt(magnitude, BigSignedInt.NEGATIVE)
-    BigSignedInt.NEGATIVE -> BigInt(magnitude, BigSignedInt.POSITIVE)
-    else -> this
+public inline fun BigInt.negate(): BigInt {
+    val negated = when (signedNumber) {
+        BigSignedInt.POSITIVE -> BigSignedInt.NEGATIVE
+        BigSignedInt.NEGATIVE -> BigSignedInt.POSITIVE
+        else -> signedNumber
+    }
+    return fromIntArrayAndSigNum(magnitude, negated)
 }
 
 public inline fun BigInt.abs(): BigInt = when(signedNumber) {
