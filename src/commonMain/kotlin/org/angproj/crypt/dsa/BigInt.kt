@@ -17,12 +17,20 @@ package org.angproj.crypt.dsa
 import org.angproj.aux.util.readIntAt
 import org.angproj.aux.util.swapEndian
 import org.angproj.aux.util.writeIntAt
+import org.angproj.crypt.number.bitLength
 import org.angproj.crypt.number.fromIntArrayAndSigNum
+import org.angproj.crypt.number.getInt
 
 public enum class BigSignedInt(public val state: Int, public val signed: Int) {
     POSITIVE(1, 0),
     ZERO(0, 0),
     NEGATIVE(-1, -1);
+
+    public fun negate(): BigSignedInt = when (this) {
+        POSITIVE -> NEGATIVE
+        NEGATIVE -> POSITIVE
+        else -> this
+    }
 
     public fun isPositive(): Boolean = this == POSITIVE
 
@@ -62,10 +70,11 @@ public class BigInt(
     // will be removed
     public var bitCountPlusOne: Int = 0
     public var bitLengthPlusOne: Int = 0
+    public var firstNonzeroIntNumPlusTwo: Int = 0
 
     public val bitSize: Int by lazy { usedIntBits(magnitude[0]) + (magnitude.size - 1) * Int.SIZE_BITS }
-    public val firstNonzeroIntNum: Int by lazy {
-        magnitude.size - magnitude.indices.reversed().indexOfFirst { it != 0} - 1 + 2}
+    /* public val firstNonzeroIntNum: Int by lazy {
+        magnitude.size - magnitude.indices.reversed().indexOfFirst { it != 0} - 1 + 2} */
 
     init {
         /*require((
@@ -102,7 +111,7 @@ public class BigInt(
         }
     }
 
-    public fun toByteArray(): ByteArray {
+    public fun toByteArray0(): ByteArray {
         val cache = ByteArray(magnitude.size * Int.SIZE_BYTES).also {
             it.fill(signedNumber.signed.toByte()) }
         magnitude.indices.forEach {idx ->
@@ -132,6 +141,27 @@ public class BigInt(
                 }
             }
         }
+    }
+
+    public fun toByteArray(): ByteArray {
+        val byteLen: Int = bitLength() / 8 + 1
+        val byteArray = ByteArray(byteLen)
+        var i = byteLen - 1
+        var bytesCopied = 4
+        var nextInt = 0
+        var intIndex = 0
+        while (i >= 0) {
+            if (bytesCopied == 4) {
+                nextInt = getInt(intIndex++)
+                bytesCopied = 1
+            } else {
+                nextInt = nextInt ushr 8
+                bytesCopied++
+            }
+            byteArray[i] = nextInt.toByte()
+            i--
+        }
+        return byteArray
     }
 
     public companion object {
@@ -226,14 +256,7 @@ public class BigInt(
     }
 }
 
-public inline fun BigInt.negate(): BigInt {
-    val negated = when (signedNumber) {
-        BigSignedInt.POSITIVE -> BigSignedInt.NEGATIVE
-        BigSignedInt.NEGATIVE -> BigSignedInt.POSITIVE
-        else -> signedNumber
-    }
-    return fromIntArrayAndSigNum(magnitude, negated)
-}
+public inline fun BigInt.negate(): BigInt = fromIntArrayAndSigNum(magnitude, signedNumber.negate())
 
 public inline fun BigInt.abs(): BigInt = when(signedNumber) {
     BigSignedInt.NEGATIVE -> negate()

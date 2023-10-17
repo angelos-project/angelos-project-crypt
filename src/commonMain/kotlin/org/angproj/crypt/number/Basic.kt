@@ -18,7 +18,8 @@ import org.angproj.crypt.dsa.BigInt
 import org.angproj.crypt.dsa.BigSignedInt
 import kotlin.math.max
 
-private fun BigInt.trustedStripLeadingZeroInts(value: IntArray): IntArray {
+
+private fun BigInt.trustedStripLeadingZeroInts1(value: IntArray): IntArray {
     val vlen = value.size
     var keep: Int
 
@@ -30,7 +31,7 @@ private fun BigInt.trustedStripLeadingZeroInts(value: IntArray): IntArray {
     return if (keep == 0) value else value.copyOfRange(keep, vlen)
 }
 
-private fun BigInt.makePositive(a: IntArray): IntArray {
+private fun BigInt.makePositive1(a: IntArray): IntArray {
     var keep: Int
     var j: Int
 
@@ -62,7 +63,7 @@ private fun BigInt.makePositive(a: IntArray): IntArray {
 }
 
 public fun bitLengthForInt(n: Int): Int {
-    return 32 - n.countTrailingZeroBits()
+    return 32 - n.countLeadingZeroBits()
 }
 
 public fun BigInt.bitLength(): Int {
@@ -108,7 +109,7 @@ public fun BigInt.bitCount(): Int {
                 magTrailingZeroCount += 32
                 j--
             }
-            magTrailingZeroCount += magnitude.get(j).countTrailingZeroBits()
+            magTrailingZeroCount += magnitude.get(j).countLeadingZeroBits()
             bc += magTrailingZeroCount - 1
         }
         bitCountPlusOne = bc + 1
@@ -116,11 +117,27 @@ public fun BigInt.bitCount(): Int {
     return bc
 }
 
+public fun BigInt.firstNonzeroIntNum(): Int {
+    var fn: Int = firstNonzeroIntNumPlusTwo - 2
+    if (fn == -2) { // firstNonzeroIntNum not initialized yet
+        // Search for the first nonzero int
+        var i: Int
+        val mlen: Int = magnitude.size
+        i = mlen - 1
+        while (i >= 0 && magnitude.get(i) == 0) {
+            i--
+        }
+        fn = mlen - i - 1
+        firstNonzeroIntNumPlusTwo = fn + 2 // offset by two to initialize
+    }
+    return fn
+}
+
 public fun BigInt.getInt(n: Int): Int {
     if (n < 0) return 0
     if (n >= magnitude.size) return signedNumber.signed
     val magInt: Int = magnitude.get(magnitude.size - n - 1)
-    return if (signedNumber.state >= 0) magInt else if (n <= firstNonzeroIntNum) -magInt else magInt.inv()
+    return if (signedNumber.state >= 0) magInt else if (n <= firstNonzeroIntNum()) -magInt else magInt.inv()
 }
 
 public fun BigInt.intLength(): Int {
@@ -133,9 +150,9 @@ public fun BigInt.fromIntArray(value: IntArray): BigInt {
 
     val magnitude = if (value[0] < 0) {
         signum = BigSignedInt.NEGATIVE
-        makePositive(value)
+        makePositive1(value)
     } else {
-        val newMag = trustedStripLeadingZeroInts(magnitude)
+        val newMag = trustedStripLeadingZeroInts1(value)
         signum = if (newMag.size == 0) BigSignedInt.ZERO else BigSignedInt.POSITIVE
         newMag
     }
@@ -161,11 +178,3 @@ public fun BigInt.longValue(): Long {
 }
 
 public fun BigInt.longValueExact(): Long = if (magnitude.size <= 2 && bitLength() <= 63) longValue() else error("BigInteger out of long range")
-
-public fun BigInt.and(value: BigInt): BigInt {
-    val result = IntArray(max(intLength(), value.intLength()))
-    for (i in result.indices) result[i] = (getInt(result.size - i - 1)
-            and value.getInt(result.size - i - 1))
-
-    return valueOf(result)
-}

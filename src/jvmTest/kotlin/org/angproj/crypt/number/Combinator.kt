@@ -41,13 +41,17 @@ object Combinator {
     fun generateLongValueVector(): List<Long>{
         val vector = mutableListOf<Long>()
 
-            vector.add(positiveMaxRange())
-            vector.add(positiveLongRange())
+        //vector.add(Long.MAX_VALUE ushr 2-1)
+        //vector.add(Random.nextLong(Int.MAX_VALUE.toLong(), Long.MAX_VALUE ushr 2 -1))
+        vector.add(positiveMaxRange())
+        vector.add(positiveLongRange())
             vector.add(positiveIntRange())
-        vector.add(zero())
+        vector.add(zero()) //-8388608..8388607
             vector.add(negativeIntRange())
-            vector.add(negativeLongRange())
-            vector.add(negativeMinRange())
+        vector.add(negativeLongRange())
+        vector.add(negativeMinRange())
+        //vector.add(Random.nextLong(Int.MIN_VALUE.toLong(), Long.MIN_VALUE ushr 2+1))
+        //vector.add(Random.nextLong(Long.MIN_VALUE ushr 2+1))
         return vector.toList()
     }
 
@@ -68,9 +72,9 @@ object Combinator {
             println("D: ${result.second}")
             println("K: ${BinHex.encodeToHex(result.first.toByteArray())}")
             println("J: ${BinHex.encodeToHex( stripLeadingZeroBytesCorrection(result.second.toByteArray()))}\n")
-            //println("J: ${BinHex.encodeToHex(result.second.toByteArray())}\n")
-            assertContentEquals(result.first.toByteArray(), stripLeadingZeroBytesCorrection(result.second.toByteArray()))
-            //assertContentEquals(result.first.toByteArray(), result.second.toByteArray())
+            /*println("J: ${BinHex.encodeToHex(result.second.toByteArray())}\n")
+            assertContentEquals(result.first.toByteArray(), stripLeadingZeroBytesCorrection(result.second.toByteArray()))*/
+            assertContentEquals(result.first.toByteArray(), result.second.toByteArray())
 
         }
     }
@@ -89,7 +93,7 @@ object Combinator {
             println("K: ${BinHex.encodeToHex(result.first.toByteArray())}")
             //println("J: ${BinHex.encodeToHex( stripLeadingZeroBytesCorrection(result.second.toByteArray()))}\n")
             println("J: ${BinHex.encodeToHex(result.second.toByteArray())}\n")
-            //assertContentEquals(result.first.toByteArray(), stripLeadingZeroBytesCorrection(result.second.toByteArray()))
+            assertContentEquals(result.first.toByteArray(), stripLeadingZeroBytesCorrection(result.second.toByteArray()))
             //assertContentEquals(result.first.toByteArray(), result.second.toByteArray())
             //assertEquals(result.first.longValueExact(), result.second.longValueExact())
         }
@@ -104,10 +108,19 @@ object Combinator {
             val xbi = BigInt.fromByteArray(x.toByteArray())
             vector2.forEach { y ->
                 val ybi = BigInt.fromByteArray(y.toByteArray())
+                println("Jx: ${BinHex.encodeToHex(x.toByteArray())}")
+                println("Jy: ${BinHex.encodeToHex(y.toByteArray())}")
+                println("Hx: ${BinHex.encodeToHex(xbi.toByteArray())}")
+                println("Hy: ${BinHex.encodeToHex(ybi.toByteArray())}")
                 val result: Pair<BigInt, BigInteger> = action(xbi, ybi, x, y)
                 println("D: ${result.second}")
                 println("K: ${BinHex.encodeToHex(result.first.toByteArray())}")
                 println("J: ${BinHex.encodeToHex( stripLeadingZeroBytesCorrection(result.second.toByteArray()))}\n")
+                /*assertContentEquals(result.first.toByteArray(), stripLeadingZeroBytesCorrection(result.second.toByteArray()))
+                assertContentEquals(
+                    stripLeadingZeroBytesCorrection(result.first.toByteArray()),
+                    stripLeadingZeroBytesCorrection(result.second.toByteArray())
+                )*/
                 assertContentEquals(result.first.toByteArray(), result.second.toByteArray())
             }
         }

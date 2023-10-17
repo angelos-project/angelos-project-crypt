@@ -1,9 +1,6 @@
 package org.angproj.crypt.dsa
 
-import org.angproj.aux.util.BinHex
-import org.angproj.crypt.number.Combinator
-import org.angproj.crypt.number.and
-import org.angproj.crypt.number.bitLength
+import org.angproj.crypt.number.*
 import org.angproj.crypt.sec.*
 import java.math.BigInteger
 import kotlin.test.Test
@@ -67,12 +64,40 @@ class BigIntBinaryTest {
     }
 
     @Test
+    fun orTest() {
+        Combinator.doMatrixTests(vectorList1, vectorList2) { xbi, ybi, x, y ->
+            Pair(xbi.or(ybi), x.or(y))
+        }
+    }
+
+    @Test
+    fun xorTest() {
+        Combinator.doMatrixTests(vectorList1, vectorList2) { xbi, ybi, x, y ->
+            Pair(xbi.xor(ybi), x.xor(y))
+        }
+    }
+
+    @Test
+    fun notTest() {
+        Combinator.doVectorTests(vectorList1) { xbi, x ->
+            Pair(xbi.not(), x.not())
+        }
+    }
+
+    @Test
+    fun andNotTest() {
+        Combinator.doMatrixTests(vectorList1, vectorList2) { xbi, ybi, x, y ->
+            Pair(xbi.andNot(ybi), x.andNot(y))
+        }
+    }
+
+    /*@Test
     fun fromLongTest() {
         Combinator.doLongVectorTests(vectcorListLong) { xbi, x ->
             println(xbi.bitLength())
             Pair(xbi, x)
         }
-    }
+    }*/
 
     @Test
     fun compareToTest() {
