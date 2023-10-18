@@ -16,7 +16,6 @@ package org.angproj.crypt.number
 
 import org.angproj.crypt.dsa.BigInt
 import org.angproj.crypt.dsa.BigSignedInt
-import kotlin.math.max
 
 
 private fun BigInt.trustedStripLeadingZeroInts1(value: IntArray): IntArray {
@@ -117,27 +116,12 @@ public fun BigInt.bitCount(): Int {
     return bc
 }
 
-public fun BigInt.firstNonzeroIntNum(): Int {
-    var fn: Int = firstNonzeroIntNumPlusTwo - 2
-    if (fn == -2) { // firstNonzeroIntNum not initialized yet
-        // Search for the first nonzero int
-        var i: Int
-        val mlen: Int = magnitude.size
-        i = mlen - 1
-        while (i >= 0 && magnitude.get(i) == 0) {
-            i--
-        }
-        fn = mlen - i - 1
-        firstNonzeroIntNumPlusTwo = fn + 2 // offset by two to initialize
-    }
-    return fn
-}
-
 public fun BigInt.getInt(n: Int): Int {
+    println(magnitude.size - n - 1)
     if (n < 0) return 0
     if (n >= magnitude.size) return signedNumber.signed
     val magInt: Int = magnitude.get(magnitude.size - n - 1)
-    return if (signedNumber.state >= 0) magInt else if (n <= firstNonzeroIntNum()) -magInt else magInt.inv()
+    return if (signedNumber.state >= 0) magInt else if (n <= firstNonZero) -magInt else magInt.inv()
 }
 
 public fun BigInt.intLength(): Int {

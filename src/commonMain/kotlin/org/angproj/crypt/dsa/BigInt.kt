@@ -70,18 +70,22 @@ public class BigInt(
     // will be removed
     public var bitCountPlusOne: Int = 0
     public var bitLengthPlusOne: Int = 0
-    public var firstNonzeroIntNumPlusTwo: Int = 0
 
-    public val bitSize: Int by lazy { usedIntBits(magnitude[0]) + (magnitude.size - 1) * Int.SIZE_BITS }
-    /* public val firstNonzeroIntNum: Int by lazy {
-        magnitude.size - magnitude.indices.reversed().indexOfFirst { it != 0} - 1 + 2} */
+    public val firstNonZero: Int by lazy {
+        (magnitude.indices.reversed().indexOfFirst { magnitude[it] != 0 }).let { if(it == -1) 0 else it } }
 
-    init {
-        /*require((
-                magnitude.isEmpty() && !signedNumber.isNonZero()) || (
-                magnitude.isNotEmpty() && signedNumber.isNonZero())) {
-            "Zero misconfiguration"
-        }*/
+    public val size: Int
+        get() = magnitude.size
+
+    public val indices: IntRange
+        get() = magnitude.indices
+
+    public operator fun get(index: Int): Int = when {
+        index < 0 -> 0
+        index >= magnitude.size -> signedNumber.signed
+        signedNumber.isNonNegative() -> magnitude[magnitude.size - index - 1]
+        index <= firstNonZero -> -magnitude[magnitude.size - index - 1]
+        else -> magnitude[magnitude.size - index - 1].inv()
     }
 
     public fun compareTo(other: BigInt): BigCompare = when {
