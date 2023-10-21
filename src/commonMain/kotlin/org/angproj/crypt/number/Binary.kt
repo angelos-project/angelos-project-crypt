@@ -17,32 +17,58 @@ package org.angproj.crypt.number
 import org.angproj.crypt.dsa.BigInt
 import kotlin.math.max
 
-public fun BigInt.and0(value: BigInt): BigInt {
-    val result = IntArray(max(size, value.size)+1).apply {
-        indices.forEach { this[it] = this@and0[this.size - it - 1] and value[this.size - it - 1] } }
+
+public inline fun maxOfArrays(a: IntArray, b: IntArray, extra: Int = 1): IntArray = IntArray(max(a.size, b.size) + extra)
+
+public inline fun revIdx(idx: Int, arr: IntArray): Int = arr.lastIndex - idx
+
+public inline fun BigInt.getIdx(idx: Int): Int = when {
+    idx < 0 -> 0
+    idx >= mag.size -> sigNum.signed
+    else -> {
+        val num = mag[revIdx(idx, mag)]
+        when {
+            sigNum.isNonNegative() -> num
+            idx <= firstNonZero -> -num
+            else -> num.inv()
+        }
+    }
+}
+
+public infix fun BigInt.and(value: BigInt): BigInt {
+    val result = maxOfArrays(mag, value.mag).apply {
+        indices.forEach {
+            val idx = revIdx(it, this)
+            this[it] = this@and.getIdx(idx) and value.getIdx(idx) } }
     return valueOf(result)
 }
 
-public fun BigInt.or(value: BigInt): BigInt {
-    val result = IntArray(max(size, value.size)+1).apply {
-        indices.forEach { this[it] = this@or[this.size - it - 1] or value[this.size - it - 1] } }
+public infix fun BigInt.or(value: BigInt): BigInt {
+    val result = maxOfArrays(mag, value.mag).apply {
+        indices.forEach {
+            val idx = revIdx(it, this)
+            this[it] = this@or.getIdx(idx) or value.getIdx(idx) } }
     return valueOf(result)
 }
 
-public fun BigInt.xor(value: BigInt): BigInt {
-    val result = IntArray(max(size, value.size)+1).apply {
-        indices.forEach { this[it] = this@xor[this.size - it - 1] xor value[this.size - it - 1] } }
+public infix fun BigInt.xor(value: BigInt): BigInt {
+    val result = maxOfArrays(mag, value.mag).apply {
+        indices.forEach {
+            val idx = revIdx(it, this)
+            this[it] = this@xor.getIdx(idx) xor value.getIdx(idx) } }
     return valueOf(result)
 }
 
 public fun BigInt.not(): BigInt {
     val result = IntArray(size+1).apply {
-        indices.forEach { this[it] = this@not[this.size - it - 1].inv() } }
+        indices.forEach { this[it] = this@not[revIdx(it, this)].inv() } }
     return valueOf(result)
 }
 
 public fun BigInt.andNot(value: BigInt): BigInt {
-    val result = IntArray(max(size, value.size)+1).apply {
-        indices.forEach { this[it] = this@andNot[this.size - it - 1] and value[this.size - it - 1].inv() } }
+    val result = maxOfArrays(mag, value.mag).apply {
+        indices.forEach {
+            val idx = revIdx(it, this)
+            this[it] = this@andNot.getIdx(idx) and value.getIdx(idx).inv() } }
     return valueOf(result)
 }

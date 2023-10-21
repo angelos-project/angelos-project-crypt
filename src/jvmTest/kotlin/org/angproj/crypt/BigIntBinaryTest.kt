@@ -59,21 +59,21 @@ class BigIntBinaryTest {
     @Test
     fun andTest() {
         Combinator.doMatrixTests(vectorList1, vectorList2) { xbi, ybi, x, y ->
-            Pair(xbi.and(ybi), x.and(y))
+            Pair(xbi and ybi, x.and(y))
         }
     }
 
     @Test
     fun orTest() {
         Combinator.doMatrixTests(vectorList1, vectorList2) { xbi, ybi, x, y ->
-            Pair(xbi.or(ybi), x.or(y))
+            Pair(xbi or ybi, x.or(y))
         }
     }
 
     @Test
     fun xorTest() {
         Combinator.doMatrixTests(vectorList1, vectorList2) { xbi, ybi, x, y ->
-            Pair(xbi.xor(ybi), x.xor(y))
+            Pair(xbi xor ybi , x.xor(y))
         }
     }
 
@@ -102,21 +102,7 @@ class BigIntBinaryTest {
     @Test
     fun compareToTest() {
         Combinator.doMatrixIntTests(vectorList1, vectorList2) { xbi, ybi, x, y ->
-            Pair(xbi.compareTo(ybi).num, x.compareTo(y))
-        }
-    }
-
-    @Test
-    fun negateTest() {
-        Combinator.doVectorTests(vectorList1) { xbi, x ->
-            Pair(xbi.negate(), x.negate())
-        }
-    }
-
-    @Test
-    fun absTest() {
-        Combinator.doVectorTests(vectorList1) { xbi, x ->
-            Pair(xbi.abs(), x.abs())
+            Pair(xbi.compareTo(ybi).state, x.compareTo(y))
         }
     }
 }

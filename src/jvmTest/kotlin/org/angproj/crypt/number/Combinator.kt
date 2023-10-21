@@ -115,7 +115,7 @@ object Combinator {
                 val result: Pair<BigInt, BigInteger> = action(xbi, ybi, x, y)
                 println("D: ${result.second}")
                 println("K: ${BinHex.encodeToHex(result.first.toByteArray())}")
-                println("J: ${BinHex.encodeToHex( stripLeadingZeroBytesCorrection(result.second.toByteArray()))}\n")
+                println("J: ${BinHex.encodeToHex(result.second.toByteArray())}\n")
                 /*assertContentEquals(result.first.toByteArray(), stripLeadingZeroBytesCorrection(result.second.toByteArray()))
                 assertContentEquals(
                     stripLeadingZeroBytesCorrection(result.first.toByteArray()),
