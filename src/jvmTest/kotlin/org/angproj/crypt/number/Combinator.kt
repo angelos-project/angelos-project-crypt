@@ -6,6 +6,7 @@ import org.angproj.aux.util.writeLongAt
 import org.angproj.crypt.dsa.BigInt
 import java.math.BigInteger
 import kotlin.random.Random
+import kotlin.random.nextInt
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 
@@ -35,6 +36,21 @@ object Combinator {
             vector.add(produceFilledVector(negativeLongRange(), it))
             vector.add(produceFilledVector(negativeMinRange(), it))
         }
+        return vector.toList()
+    }
+
+    fun generateSizeVector(): List<Int> {
+        val vector = mutableListOf<Int>()
+
+        vector.add(Random.nextInt(1 until 8))
+        vector.add(Random.nextInt(9 until 16))
+        vector.add(Random.nextInt(17 until 24))
+        vector.add(Random.nextInt(25 until 32))
+        vector.add(Random.nextInt(33 until 40))
+        vector.add(Random.nextInt(41 until 48))
+        vector.add(Random.nextInt(49 until 56))
+        vector.add(Random.nextInt(57 until 64))
+
         return vector.toList()
     }
 
@@ -140,6 +156,26 @@ object Combinator {
                 //println("K: ${BinHex.encodeToHex(result.first.toByteArray())}")
                 //println("J: ${BinHex.encodeToHex( stripLeadingZeroBytesCorrection(result.second.toByteArray()))}\n")
                 assertEquals(result.first, result.second)
+            }
+        }
+    }
+
+    fun doMatrixIntTests2(
+        vector1: List<BigInteger>,
+        vector2: List<Int>,
+        action: (xbi: BigInt, x: BigInteger, s: Int) -> Pair<BigInt, BigInteger>
+    ) {
+        vector1.forEach { x ->
+            val xbi = BigInt.fromByteArray(x.toByteArray())
+            vector2.forEach {s ->
+                println("J: ${BinHex.encodeToHex(x.toByteArray())}")
+                println("H: ${BinHex.encodeToHex(xbi.toByteArray())}")
+                println("S: $s")
+                val result: Pair<BigInt, BigInteger> = action(xbi, x, s)
+                println("D: ${result.second}")
+                println("K: ${BinHex.encodeToHex(result.first.toByteArray())}")
+                println("J: ${BinHex.encodeToHex(result.second.toByteArray())}\n")
+                assertContentEquals(result.first.toByteArray(), result.second.toByteArray())
             }
         }
     }
