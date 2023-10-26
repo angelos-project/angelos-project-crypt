@@ -12,6 +12,7 @@ class BigIntBinaryTest {
     val vectorList2 = Combinator.generateValueVector()
     val vectcorListLong = Combinator.generateLongValueVector()
     val vectorListSizes = Combinator.generateSizeVector()
+    val vectorPositiveListSizes = Combinator.generatePositiveSizeVector()
 
     val dp: List<SecDomainParameters> = listOf(
         Secp192Koblitz1,
@@ -92,17 +93,45 @@ class BigIntBinaryTest {
         }
     }
 
-    /*@Test
+    @Test
     fun shiftLeftTest() {
         Combinator.doMatrixIntTests2(vectorList1, vectorListSizes) { xbi, x, s ->
             Pair(xbi.shiftLeft(s), x.shiftLeft(s))
         }
-    }*/
+    }
 
     @Test
     fun shiftRightTest() {
         Combinator.doMatrixIntTests2(vectorList1, vectorListSizes) { xbi, x, s ->
             Pair(xbi.shiftRight(s), x.shiftRight(s))
+        }
+    }
+
+    @Test
+    fun clearBitTest() {
+        Combinator.doMatrixIntTests2(vectorList1, vectorPositiveListSizes) { xbi, x, s ->
+            Pair(xbi.clearBit(s), x.clearBit(s))
+        }
+    }
+
+    @Test
+    fun setBitTest() {
+        Combinator.doMatrixIntTests2(vectorList1, vectorPositiveListSizes) { xbi, x, s ->
+            Pair(xbi.setBit(s), x.setBit(s))
+        }
+    }
+
+    @Test
+    fun testBitTest() {
+        Combinator.doMatrixIntTests3(vectorList1, vectorPositiveListSizes) { xbi, x, s ->
+            Pair(xbi.testBit(s), x.testBit(s))
+        }
+    }
+
+    @Test
+    fun flipBitTest() {
+        Combinator.doMatrixIntTests2(vectorList1, vectorPositiveListSizes) { xbi, x, s ->
+            Pair(xbi.flipBit(s), (x.flipBit(s)))
         }
     }
 

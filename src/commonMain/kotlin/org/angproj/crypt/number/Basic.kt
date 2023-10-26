@@ -17,6 +17,7 @@ package org.angproj.crypt.number
 import org.angproj.crypt.dsa.*
 
 
+internal val one: BigInt = BigInt(intArrayOf(1), BigSigned.POSITIVE)
 internal val zero: BigInt = BigInt(intArrayOf(0), BigSigned.ZERO)
 internal val minusOne: BigInt by lazy { BigInt(intArrayOf(1), BigSigned.NEGATIVE) }
 
@@ -28,7 +29,7 @@ public inline fun BigInt.abs(): BigInt = when(sigNum) {
 }
 
 private fun BigInt.Companion.trustedStripLeadingZeroInts1(value: IntArray): IntArray {
-    val vlen = value.size
+    /*val vlen = value.size
     var keep: Int
 
     // Find first nonzero byte
@@ -37,6 +38,15 @@ private fun BigInt.Companion.trustedStripLeadingZeroInts1(value: IntArray): IntA
         keep++
     }
     //value.indexOfFirst { it != 0 }
+    return if (keep == 0) value else value.copyOfRange(keep, vlen)*/
+    val vlen: Int = value.size
+    var keep: Int
+
+    keep = 0
+    while (keep < vlen && value[keep] == 0) {
+        keep++
+    }
+
     return if (keep == 0) value else value.copyOfRange(keep, vlen)
 }
 

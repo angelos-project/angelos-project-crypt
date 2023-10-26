@@ -163,6 +163,7 @@ public class BigInt(
             byteArray[i] = nextInt.toByte()
             i--
         }
+
         return byteArray
     }
 

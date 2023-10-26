@@ -16,19 +16,20 @@ package org.angproj.crypt.number
 
 import org.angproj.crypt.dsa.BigInt
 import kotlin.math.max
-import kotlin.math.min
 
 
 public inline fun maxOfArrays(a: IntArray, b: IntArray, extra: Int = 1): IntArray =
     IntArray(max(a.size, b.size) + extra)
 
 public inline fun revIdx(idx: Int, arr: IntArray): Int = arr.lastIndex - idx
+public inline fun revGet(idx: Int, arr: IntArray): Int = arr[revIdx(idx, arr)]
+public inline fun revSet(idx: Int, arr: IntArray, value: Int) { arr[revIdx(idx, arr)] = value }
 
 public inline fun BigInt.getIdx(idx: Int): Int = when {
     idx < 0 -> 0
     idx >= mag.size -> sigNum.signed
     else -> {
-        val num = mag[revIdx(idx, mag)]
+        val num = revGet(idx, mag)
         when {
             sigNum.isNonNegative() -> num
             idx <= firstNonZero -> -num
@@ -96,58 +97,49 @@ public fun BigInt.andNot(value: BigInt): BigInt {
     return valueOf(result)
 }
 
-public fun BigInt.Companion.shiftLeft(mag: IntArray, count: Int): IntArray {
-    val bigShift = count.floorDiv(Int.SIZE_BITS)
-    val tinyShift = count.mod(Int.SIZE_BITS)
-    val tinyShiftOpposite = Int.SIZE_BITS - tinyShift
+public fun BigInt.clearBit(pos: Int): BigInt {
+    check(pos >= 0) { "Negative position" }
 
-    val extra = if (mag[0].countLeadingZeroBits() <= tinyShift) 1 else 0
-    val result = IntArray(mag.size + bigShift + extra)
+    val bigCnt = pos.floorDiv(Int.SIZE_BITS)
+    val result = IntArray(max(intLength(), (pos + 1).floorDiv(Int.SIZE_BITS) + 1))
 
-    (result.size - bigShift until result.size).forEach { result[it] = 0 }
-    if (extra == 1) result[0] = mag.first() ushr tinyShiftOpposite
-    (0 until mag.lastIndex).forEach {
-        result[it + extra] = (mag[it] shl tinyShift) or (mag[it + 1] ushr tinyShiftOpposite)
-    }
-    result[result.lastIndex - bigShift] = mag.last() shl tinyShift
+    result.indices.forEach { revSet(it, result, getIdx(it))  }
+    revSet(bigCnt, result, revGet(bigCnt, result) and (1 shl (pos and Int.SIZE_BITS - 1)).inv())
 
-    return result
+    TODO("Doesn't replicate original")
+    return valueOf(result)
+    //return and(one.shiftLeft(pos).not())
 }
 
-public fun BigInt.shiftRight(count: Int): BigInt {
-    val bigShift: Int = count.floorDiv(Int.SIZE_BITS)
-    val tinyShift: Int = count.mod(Int.SIZE_BITS)
+public fun BigInt.setBit(pos: Int): BigInt {
+    check(pos >= 0) { "Negative position" }
 
-    if (bigShift >= mag.size) return if (sigNum.isNonNegative()) zero else minusOne
+    val bigCnt = pos.floorDiv(Int.SIZE_BITS)
+    val result = IntArray(max(intLength(), bigCnt + 2))
 
-    var result = when (tinyShift) {
-        0 -> mag.copyOf(mag.size - bigShift)
-        else -> {
-            val highBits = mag[0] ushr tinyShift
-            val extra = min(highBits, 1)
-            val remove = if (extra == 1) 0 else 1
-            when (highBits) {
-                0 -> IntArray(mag.lastIndex - bigShift)
-                else -> IntArray(mag.size - bigShift).also { it[0] = highBits }
-            }.also { result ->
-                val tinyshiftOpposite = Int.SIZE_BITS - tinyShift
-                (mag.lastIndex - bigShift - remove downTo extra).forEach {
-                    val idx = it + remove
-                    result[it] = mag[idx] ushr tinyShift or (mag[idx - 1] shl tinyshiftOpposite)
-                }
-            }
-        }
-    }
+    result.indices.forEach { revSet(it, result, getIdx(it)) }
+    revSet(bigCnt, result, revGet(bigCnt, result) or (1 shl (pos and Int.SIZE_BITS - 1)))
 
-    if (sigNum.isNegative()) when (tinyShift != 0) {
-        true -> mag[mag.lastIndex - bigShift] shl Int.SIZE_BITS - tinyShift != 0
-        else -> (mag.lastIndex downTo mag.size - bigShift).all { mag[it] == 0 }.not()
-    }.takeIf { it }?.let {
-        (result.lastIndex downTo 0).indexOfFirst {
-            result[it] += 1
-            result[it] != 0
-        }
-    }.takeIf { it == -1 }?.let { return BigInt(intArrayOf(1) + IntArray(result.size), sigNum) }
+    return valueOf(result)
+    //return or(one.shiftLeft(pos))
+}
 
-    return BigInt(result, sigNum)
+public fun BigInt.testBit(pos: Int): Boolean {
+    check(pos >= 0) { "Negative position" }
+    return getIdx(pos.floorDiv(Int.SIZE_BITS)) and (1 shl (pos and Int.SIZE_BITS - 1)) != 0
+    //return !and(one.shiftLeft(pos)).sigNum.isZero()
+}
+
+public fun BigInt.flipBit(pos: Int): BigInt {
+    check(pos >= 0) { "Negative position" }
+
+    val bigCnt = pos.floorDiv(Int.SIZE_BITS)
+    val result = IntArray(max(intLength(), bigCnt + 2))
+
+    result.indices.forEach { revSet(it, result, getIdx(it)) }
+    revSet(bigCnt, result, revGet(bigCnt, result) xor (1 shl (pos and Int.SIZE_BITS - 1)))
+
+    TODO("Doesn't replicate original")
+    return valueOf(result)
+    //return xor(one.shiftLeft(pos))
 }
