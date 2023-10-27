@@ -25,6 +25,9 @@ public inline fun revIdx(idx: Int, arr: IntArray): Int = arr.lastIndex - idx
 public inline fun revGet(idx: Int, arr: IntArray): Int = arr[revIdx(idx, arr)]
 public inline fun revSet(idx: Int, arr: IntArray, value: Int) { arr[revIdx(idx, arr)] = value }
 
+public inline fun bigMask(pos: Int): Int = 1 shl (pos and Int.SIZE_BITS - 1)
+
+
 public inline fun BigInt.getIdx(idx: Int): Int = when {
     idx < 0 -> 0
     idx >= mag.size -> sigNum.signed
@@ -104,7 +107,8 @@ public fun BigInt.clearBit(pos: Int): BigInt {
     val result = IntArray(max(intLength(), (pos + 1).floorDiv(Int.SIZE_BITS) + 1))
 
     result.indices.forEach { revSet(it, result, getIdx(it))  }
-    revSet(bigCnt, result, revGet(bigCnt, result) and (1 shl (pos and Int.SIZE_BITS - 1)).inv())
+    revSet(bigCnt, result,
+        revGet(bigCnt, result) and bigMask(pos).inv())
 
     TODO("Doesn't replicate original")
     return valueOf(result)
@@ -118,7 +122,8 @@ public fun BigInt.setBit(pos: Int): BigInt {
     val result = IntArray(max(intLength(), bigCnt + 2))
 
     result.indices.forEach { revSet(it, result, getIdx(it)) }
-    revSet(bigCnt, result, revGet(bigCnt, result) or (1 shl (pos and Int.SIZE_BITS - 1)))
+    revSet(bigCnt, result,
+        revGet(bigCnt, result) or bigMask(pos))
 
     return valueOf(result)
     //return or(one.shiftLeft(pos))
@@ -126,7 +131,7 @@ public fun BigInt.setBit(pos: Int): BigInt {
 
 public fun BigInt.testBit(pos: Int): Boolean {
     check(pos >= 0) { "Negative position" }
-    return getIdx(pos.floorDiv(Int.SIZE_BITS)) and (1 shl (pos and Int.SIZE_BITS - 1)) != 0
+    return getIdx(pos.floorDiv(Int.SIZE_BITS)) and bigMask(pos) != 0
     //return !and(one.shiftLeft(pos)).sigNum.isZero()
 }
 
@@ -137,7 +142,8 @@ public fun BigInt.flipBit(pos: Int): BigInt {
     val result = IntArray(max(intLength(), bigCnt + 2))
 
     result.indices.forEach { revSet(it, result, getIdx(it)) }
-    revSet(bigCnt, result, revGet(bigCnt, result) xor (1 shl (pos and Int.SIZE_BITS - 1)))
+    revSet(bigCnt, result,
+        revGet(bigCnt, result) xor bigMask(pos))
 
     TODO("Doesn't replicate original")
     return valueOf(result)

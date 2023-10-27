@@ -51,7 +51,13 @@ public enum class BigSigned(public val state: Int, public val signed: Int) {
 public enum class BigCompare(public val state: Int) {
     GREATER(1),
     EQUAL(0),
-    LESSER(-1)
+    LESSER(-1);
+
+    public fun isGreater(): Boolean = this == GREATER
+
+    public fun isEqual(): Boolean = this == EQUAL
+
+    public fun isLesser(): Boolean = this == LESSER
 }
 
 /**

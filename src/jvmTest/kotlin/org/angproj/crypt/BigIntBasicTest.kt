@@ -16,19 +16,19 @@ class BigIntBasicTest {
         assertContentEquals(cbi.toByteArray(), jbi.toByteArray())
     }
 
-    /*@Test
+    @Test
     fun plusTest() {
         Combinator.doMatrixTests(vectorList1, vectorList2) { xbi, ybi, x, y ->
             Pair(xbi.add(ybi), x.add(y))
         }
-    }*/
+    }
 
-    /*@Test
+    @Test
     fun minusTest() {
         Combinator.doMatrixTests(vectorList1, vectorList2) { xbi, ybi, x, y ->
-            Pair(xbi - ybi, x.subtract(y))
+            Pair(xbi.subtract(ybi), x.subtract(y))
         }
-    }*/
+    }
 
     @Test
     fun compareToTest() {
