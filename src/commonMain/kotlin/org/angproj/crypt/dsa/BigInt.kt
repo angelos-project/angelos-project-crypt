@@ -16,9 +16,9 @@ package org.angproj.crypt.dsa
 
 import org.angproj.aux.util.readIntAt
 import org.angproj.aux.util.swapEndian
-import org.angproj.aux.util.writeIntAt
 import org.angproj.crypt.number.bitLengthForInt
 import org.angproj.crypt.number.getIdx
+import kotlin.math.min
 
 public enum class BigSigned(public val state: Int, public val signed: Int) {
     POSITIVE(1, 0),
@@ -69,7 +69,6 @@ public enum class BigCompare(public val state: Int) {
 public class BigInt(
     public val mag: IntArray,
     public val sigNum: BigSigned,
-    public val fullSize: Int = 0
 ) {
 
     public var bitCountPlusOne: Int = 0
@@ -119,7 +118,7 @@ public class BigInt(
         }
     }
 
-    public fun toByteArray0(): ByteArray {
+    /*public fun toByteArray1(): ByteArray {
         val cache = ByteArray(mag.size * Int.SIZE_BYTES).also {
             it.fill(sigNum.signed.toByte()) }
         mag.indices.forEach { idx ->
@@ -149,9 +148,9 @@ public class BigInt(
                 }
             }
         }
-    }
+    }*/
 
-    public fun toByteArray(): ByteArray {
+    public fun toByteArray0(): ByteArray {
         val byteLen: Int = bitLength / 8 + 1
         val byteArray = ByteArray(byteLen)
         var i = byteLen - 1
@@ -171,6 +170,37 @@ public class BigInt(
         }
 
         return byteArray
+    }
+
+    public fun toByteArray(): ByteArray {
+        var byteLen = bitLength / 8 + 1
+        val byteArray = ByteArray(byteLen)
+
+        var bytesCopied=4
+        var nextInt = 0
+        var intIndex = 0
+        for(i in byteLen-1 downTo 0) {
+            if (bytesCopied == 4) {
+                nextInt = getIdx(intIndex++)
+                bytesCopied = 1
+            } else {
+                nextInt = nextInt ushr 8
+                bytesCopied++
+            }
+            byteArray[i] = nextInt.toByte()
+        }
+
+        // Compatability adjustment compared to JAVA implementation, is it really necessary?
+        return when(byteArray[0].toInt() == 127 && sigNum.isNegative()) {
+            true -> byteArrayOf(-1) + byteArray
+            else -> byteArray
+        }
+        //return byteArray
+    }
+
+    public fun toByteArrayPaddedWithLeadingZeros(totSize: Int): ByteArray {
+        val byteArray = toByteArray()
+        return ByteArray(totSize - byteArray.size).also { it.fill(sigNum.signed.toByte()) } + byteArray
     }
 
     public companion object {
@@ -209,28 +239,109 @@ public class BigInt(
             return used
         }
 
-        public fun fromByteArray(value: ByteArray, withLeadingZeros: Boolean = false): BigInt {
-            val keep = keepIndex(value)
-            val mag = when {
-                value[0].toInt() < 0 -> makePositive(value, keep)
-                else -> stripLeadingZeroBytes(value, keep)
-            }
-            val signed = signed(value, mag)
-            return BigInt(mag, signed, if(withLeadingZeros) value.size else 0)
-        }
-
-        private fun keepIndex(data: ByteArray): Int = when {
-            data[0].toInt() < 0 -> data.indexOfFirst { it.toInt() != -1 }
-            else -> when(val idx = data.indexOfFirst { it.toInt() != 0 }) {
-                -1 -> data.size
-                else -> idx
+        private fun keep(value: ByteArray, sigNum: BigSigned): Int {
+            val keep = value.indexOfFirst { it.toInt() != sigNum.signed }
+            return when (keep) {
+                -1 -> value.size
+                else -> keep
             }
         }
 
-        private fun signed(data: ByteArray, magnitude: IntArray): BigSigned = when {
-            data[0].toInt() < 0 -> BigSigned.NEGATIVE
-            magnitude.isEmpty() -> BigSigned.ZERO
-            else -> BigSigned.POSITIVE
+        public fun fromByteArray(value: ByteArray): BigInt {
+            check(value.isNotEmpty()) { "Zero length" }
+            val negative = value[0].toInt() < 0
+
+            val sigNum = when(negative) {
+                true -> BigSigned.NEGATIVE
+                else -> BigSigned.POSITIVE
+            }
+            val mag = when(negative) {
+                true -> makePositive(value)
+                else -> stripLeadingZeroBytes(value)
+            }
+
+            return BigInt(mag, sigNumZeroAdjust(mag, sigNum))
+        }
+
+        private fun makePositive(value: ByteArray): IntArray {
+            println("MAKE POSITIVE")
+            var keep: Int
+            var k: Int
+            val indexBound: Int = value.size
+
+            // Find first non-sign (0xff) byte of input
+
+            // Find first non-sign (0xff) byte of input
+                keep = 0
+                while (keep < indexBound && value.get(keep).toInt() == -1) {
+                    keep++
+                }
+
+            /* Allocate output array.  If all non-sign bytes are 0x00, we must
+         * allocate space for one extra output byte. */
+                k = keep
+                while (k < indexBound && value.get(k).toInt() == 0) {
+                    k++
+                }
+
+            val extraByte = if (k == indexBound) 1 else 0
+            val intLength = indexBound - keep + extraByte + 3 ushr 2
+            val result = IntArray(intLength)
+
+
+            /* Copy one's complement of input into output, leaving extra
+         * byte (if it exists) == 0x00 */
+            var b = indexBound - 1
+            for (i in intLength - 1 downTo 0) {
+                result[i] = value.get(b--).toInt() and 0xff
+                var numBytesToTransfer = min(3.0, (b - keep + 1).toDouble()).toInt()
+                if (numBytesToTransfer < 0) numBytesToTransfer = 0
+                var j = 8
+                while (j <= 8 * numBytesToTransfer) {
+                    result[i] = result[i] or (value.get(b--).toInt() and 0xff shl j)
+                    j += 8
+                }
+
+                // Mask indicates which bits must be complemented
+                val mask = -1 ushr 8 * (3 - numBytesToTransfer)
+                result[i] = result[i].inv() and mask
+            }
+
+            // Add one to one's complement to generate two's complement
+
+            // Add one to one's complement to generate two's complement
+            for (i in result.indices.reversed()) {
+                result[i] = ((result[i].toLong() and 0xffffffffL) + 1).toInt()
+                if (result[i] != 0) break
+            }
+
+            return result
+        }
+
+        private fun stripLeadingZeroBytes(value: ByteArray): IntArray {
+            val indexBound: Int = value.size
+            var keep: Int
+            // Find first nonzero byte
+                keep = 0
+                while (keep < indexBound && value.get(keep).toInt() == 0) {
+                    keep++
+                }
+
+            // Allocate new array and copy relevant part of input array
+            val intLength = indexBound - keep + 3 ushr 2
+            val result = IntArray(intLength)
+            var b = indexBound - 1
+            for (i in intLength - 1 downTo 0) {
+                result[i] = value.get(b--).toInt() and 0xff
+                val bytesRemaining = b - keep + 1
+                val bytesToTransfer = min(3.0, bytesRemaining.toDouble()).toInt()
+                var j = 8
+                while (j <= bytesToTransfer shl 3) {
+                    result[i] = result[i] or (value.get(b--).toInt() and 0xff shl j)
+                    j += 8
+                }
+            }
+            return result
         }
 
         private fun makePositive(value: ByteArray, keep: Int): IntArray {
@@ -266,20 +377,25 @@ public class BigInt(
 }
 
 public fun BigInt.Companion.bitLength(mag: IntArray, sigNum: BigSigned): Int = if (mag.isNotEmpty()) {
-    val magSize: Int = bitLengthForInt(mag[0]) + ((mag.size - 1) * 32)
+    val size: Int = bitLengthForInt(mag[0]) + ((mag.size - 1) * Int.SIZE_BITS)
     if (sigNum.isNegative()) {
         if (mag.first().countOneBits() == 1) {
-            if ((1 until mag.lastIndex).indexOfFirst { mag[it] != 0 } == -1) magSize - 1 else magSize
-        } else magSize
-    } else magSize
+            if ((1 until mag.lastIndex).indexOfFirst { mag[it] != 0 } == -1) size - 1 else size
+        } else size
+    } else size
 } else 0
 
 public fun BigInt.Companion.bitCount(mag: IntArray, sigNum: BigSigned): Int = mag.sumOf {
     it.countOneBits() } + if (sigNum.isNegative()) {
     var i: Int = mag.lastIndex
     while (mag[i] == 0) i--
-    32 * (mag.lastIndex - i) + mag[i].countLeadingZeroBits() - 1
+    Int.SIZE_BITS * (mag.lastIndex - i) + mag[i].countLeadingZeroBits() - 1
 } else 0
 
 public inline fun BigInt.Companion.firstNonZero(mag: IntArray): Int = (
         mag.indices.reversed().indexOfFirst { mag[it] != 0 }).let { if(it == -1) 0 else it }
+
+public fun sigNumZeroAdjust(mag: IntArray, sigNum: BigSigned): BigSigned = when {
+    mag.isEmpty() -> BigSigned.ZERO
+    else -> sigNum
+}

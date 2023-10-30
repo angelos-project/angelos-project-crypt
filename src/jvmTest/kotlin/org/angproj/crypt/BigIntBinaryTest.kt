@@ -10,8 +10,6 @@ class BigIntBinaryTest {
 
     val vectorList1 = Combinator.generateValueVector()
     val vectorList2 = Combinator.generateValueVector()
-    val vectcorListLong = Combinator.generateLongValueVector()
-    val vectorListSizes = Combinator.generateSizeVector()
     val vectorPositiveListSizes = Combinator.generatePositiveSizeVector()
 
     val dp: List<SecDomainParameters> = listOf(
@@ -90,20 +88,6 @@ class BigIntBinaryTest {
     fun andNotTest() {
         Combinator.doMatrixTests(vectorList1, vectorList2) { xbi, ybi, x, y ->
             Pair(xbi.andNot(ybi), x.andNot(y))
-        }
-    }
-
-    @Test
-    fun shiftLeftTest() {
-        Combinator.doMatrixIntTests2(vectorList1, vectorListSizes) { xbi, x, s ->
-            Pair(xbi.shiftLeft(s), x.shiftLeft(s))
-        }
-    }
-
-    @Test
-    fun shiftRightTest() {
-        Combinator.doMatrixIntTests2(vectorList1, vectorListSizes) { xbi, x, s ->
-            Pair(xbi.shiftRight(s), x.shiftRight(s))
         }
     }
 

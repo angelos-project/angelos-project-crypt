@@ -110,7 +110,6 @@ public fun BigInt.clearBit(pos: Int): BigInt {
     revSet(bigCnt, result,
         revGet(bigCnt, result) and bigMask(pos).inv())
 
-    TODO("Doesn't replicate original")
     return valueOf(result)
     //return and(one.shiftLeft(pos).not())
 }
@@ -145,7 +144,6 @@ public fun BigInt.flipBit(pos: Int): BigInt {
     revSet(bigCnt, result,
         revGet(bigCnt, result) xor bigMask(pos))
 
-    TODO("Doesn't replicate original")
     return valueOf(result)
     //return xor(one.shiftLeft(pos))
 }

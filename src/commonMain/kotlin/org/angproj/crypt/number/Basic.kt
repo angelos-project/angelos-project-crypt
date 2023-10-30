@@ -20,7 +20,6 @@ internal val one: BigInt by lazy { BigInt(intArrayOf(1), BigSigned.POSITIVE) }
 internal val zero: BigInt by lazy { BigInt(intArrayOf(0), BigSigned.ZERO) }
 internal val minusOne: BigInt by lazy { BigInt(intArrayOf(1), BigSigned.NEGATIVE) }
 
-
 public fun compare2sign(sigNum: BigSigned, cmp: BigCompare): BigSigned = when (cmp.state == sigNum.state) {
     true -> BigSigned.POSITIVE
     else -> BigSigned.NEGATIVE
@@ -153,15 +152,26 @@ private fun BigInt.Companion.trustedStripLeadingZeroInts1(value: IntArray): IntA
     return if (keep == 0) value else value.copyOfRange(keep, vlen)
 }
 
+internal fun keep(value: IntArray, sigNum: BigSigned): Int {
+    val keep = value.indexOfFirst { it != sigNum.signed }
+    return when (keep) {
+        -1 -> value.size
+        else -> keep
+    }
+}
+
+internal fun keepStripZero(value: IntArray): Int = keep(value, BigSigned.ZERO)
+internal fun keepMakePositive(value: IntArray): Int = keep(value, BigSigned.NEGATIVE)
+
 private fun BigInt.Companion.makePositive1(a: IntArray): IntArray {
-    var keep: Int
+    var keep: Int = keepMakePositive(a)
     var j: Int
 
     // Find first non-sign (0xffffffff) int of input
-    keep = 0
+    /*keep = 0
     while (keep < a.size && a[keep] == -1) {
         keep++
-    }
+    }*/
 
     /* Allocate output array.  If all non-sign ints are 0x00, we must
          * allocate space for one extra output int. */j = keep
@@ -192,7 +202,7 @@ public fun BigInt.intLength(): Int {
     return (bitLength ushr 5) + 1
 }
 
-public fun BigInt.Companion.fromIntArray(value: IntArray): BigInt {
+public fun BigInt.Companion.fromIntArray0(value: IntArray): BigInt {
     if (value.size == 0) error("Zero length BigInteger")
     var signum: BigSigned
 
@@ -207,16 +217,53 @@ public fun BigInt.Companion.fromIntArray(value: IntArray): BigInt {
     return fromIntArrayAndSigNum(magnitude, signum)
 }
 
+public fun BigInt.Companion.fromIntArray2(value: IntArray): BigInt {
+    if (value.size == 0) error("Zero length BigInteger")
+    var sigNum: BigSigned
+
+    val magnitude = if (value[0] < 0) {
+        sigNum = BigSigned.NEGATIVE
+        makePositive1(value)
+    } else {
+        val newMag = trustedStripLeadingZeroInts1(value)
+        sigNum = if (newMag.size == 0) BigSigned.ZERO else BigSigned.POSITIVE
+        newMag
+    }
+    //return BigInt(magnitude, sigNum)
+    return fromIntArrayAndSigNum2(magnitude, sigNum)
+}
+
 public fun BigInt.Companion.fromIntArrayAndSigNum(magnitude: IntArray, signum: BigSigned): BigInt {
-    val newSigNum = if (magnitude.size == 0) BigSigned.ZERO else signum
+    val newSigNum = if (magnitude.isEmpty()) BigSigned.ZERO else signum
     return BigInt(magnitude, newSigNum)
 }
 
-public fun BigInt.valueOf(value: IntArray): BigInt {
+/*
+BigInteger(int[] magnitude, int signum) {
+        this.signum = (magnitude.length == 0 ? 0 : signum);
+        this.mag = magnitude;
+        if (mag.length >= MAX_MAG_LENGTH) {
+            checkRange();
+        }
+    }
+* */
+
+public fun BigInt.Companion.fromIntArrayAndSigNum2(magnitude: IntArray, signum: BigSigned): BigInt {
+    val newSigNum = if (magnitude.isEmpty()) BigSigned.ZERO else signum
+    return BigInt(magnitude, newSigNum)
+}
+
+// return (val[0] > 0 ? new BigInteger(val, 1) : new BigInteger(val));
+public fun BigInt.valueOf(value: IntArray): BigInt = when {
+    value.first() > 0 -> BigInt(value, BigSigned.POSITIVE)
+    else -> BigInt.fromIntArray2(value)
+}
+
+/*{
     return if (value[0] > 0) BigInt(value, BigSigned.POSITIVE) else {
         BigInt.fromIntArray(value)
     }
-}
+}*/
 
 public fun BigInt.getInt(n: Int): Int {
     if (n < 0) return 0
@@ -233,3 +280,24 @@ public fun BigInt.longValue(): Long {
 
 public fun BigInt.longValueExact(): Long =
     if (mag.size <= 2 && bitLength <= 63) longValue() else error("BigInteger out of long range")
+
+
+public fun BigInt.Companion.fromIntArray3(value: IntArray): BigInt {
+    checkZeroSize(value)
+    val sigNum = sigNumFromValue(value)
+    val mag = magFromValue(value)
+    return BigInt(mag, sigNumZeroAdjust(mag, sigNum))
+}
+
+public fun checkZeroSize(mag: IntArray): Unit = check(mag.isEmpty()) { "Zero length" }
+
+public fun sigNumFromValue(value: IntArray): BigSigned = when(value.first() < 0) {
+    true -> BigSigned.NEGATIVE
+    else -> BigSigned.POSITIVE
+}
+
+public fun BigInt.Companion.magFromValue(value: IntArray): IntArray = when(value.first() < 0) {
+    true -> makePositive1(value)
+    else -> trustedStripLeadingZeroInts1(value)
+}
+

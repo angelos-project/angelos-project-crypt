@@ -16,6 +16,8 @@ package org.angproj.crypt.number
 
 import org.angproj.crypt.dsa.BigInt
 
+public infix fun BigInt.shl(count: Int): BigInt = shiftLeft(count)
+
 public fun BigInt.shiftLeft(n: Int): BigInt = when {
     sigNum.isZero() -> zero
     n > 0 -> BigInt(BigInt.shiftLeftBits(mag, n), sigNum)
@@ -40,6 +42,8 @@ internal fun BigInt.Companion.shiftLeftBits(mag: IntArray, count: Int): IntArray
 
     return result
 }
+
+public infix fun BigInt.shr(count: Int): BigInt = shiftRight(count)
 
 public fun BigInt.shiftRight(n: Int): BigInt = when {
     sigNum.isZero() -> zero
