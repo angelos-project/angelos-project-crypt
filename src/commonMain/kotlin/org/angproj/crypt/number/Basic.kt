@@ -26,7 +26,7 @@ public fun compare2sign(sigNum: BigSigned, cmp: BigCompare): BigSigned = when (c
 }
 
 public fun packMagSigNum(mag: IntArray, sigNum: BigSigned, cmp: BigCompare): BigInt = BigInt(
-    BigInt.trustedStripLeadingZeroInts1(mag), compare2sign(sigNum, cmp)
+    stripLeadingZero(mag), compare2sign(sigNum, cmp)
 )
 
 internal fun biggerFirst(x: IntArray, y: IntArray, block: (x: IntArray, y: IntArray) -> IntArray): IntArray =
@@ -130,26 +130,23 @@ public fun BigInt.abs(): BigInt = when (sigNum) {
     else -> this
 }
 
-private fun BigInt.Companion.trustedStripLeadingZeroInts1(value: IntArray): IntArray {
-    /*val vlen = value.size
-    var keep: Int
+private fun stripLeadingZero(value: IntArray): IntArray {
+    val keep = keep(value, BigSigned.POSITIVE)
+    return if (keep == 0) value else value.copyOfRange(keep, value.size)
+}
 
-    // Find first nonzero byte
-    keep = 0
-    while (keep < vlen && value[keep] == 0) {
-        keep++
+internal fun makePositive(value: IntArray): IntArray {
+    val keep: Int = keep(value, BigSigned.NEGATIVE)
+    val extra = (keep until value.size).indexOfFirst { value[it] != 0 }.let { if(it == -1) 1 else 0 }
+    val result = IntArray(value.size - keep + extra)
+
+    (keep until value.size).forEach { result[it - keep + extra] = value[it].inv() }
+
+    (result.lastIndex downTo 0).indexOfFirst {
+        result[it] = ((result[it].toLong() and 0xffffffffL) + 1).toInt()
+        result[it] != 0
     }
-    //value.indexOfFirst { it != 0 }
-    return if (keep == 0) value else value.copyOfRange(keep, vlen)*/
-    val vlen: Int = value.size
-    var keep: Int
-
-    keep = 0
-    while (keep < vlen && value[keep] == 0) {
-        keep++
-    }
-
-    return if (keep == 0) value else value.copyOfRange(keep, vlen)
+    return result
 }
 
 internal fun keep(value: IntArray, sigNum: BigSigned): Int {
@@ -162,37 +159,6 @@ internal fun keep(value: IntArray, sigNum: BigSigned): Int {
 
 internal fun keepStripZero(value: IntArray): Int = keep(value, BigSigned.ZERO)
 internal fun keepMakePositive(value: IntArray): Int = keep(value, BigSigned.NEGATIVE)
-
-private fun BigInt.Companion.makePositive1(a: IntArray): IntArray {
-    var keep: Int = keepMakePositive(a)
-    var j: Int
-
-    // Find first non-sign (0xffffffff) int of input
-    /*keep = 0
-    while (keep < a.size && a[keep] == -1) {
-        keep++
-    }*/
-
-    /* Allocate output array.  If all non-sign ints are 0x00, we must
-         * allocate space for one extra output int. */j = keep
-    while (j < a.size && a[j] == 0) {
-        j++
-    }
-    val extraInt = if (j == a.size) 1 else 0
-    val result = IntArray(a.size - keep + extraInt)
-
-    /* Copy one's complement of input into output, leaving extra
-         * int (if it exists) == 0x00 */
-    for (i in keep until a.size)
-        result[i - keep + extraInt] = a[i].inv()
-
-    // Add one to one's complement to generate two's complement
-    var i = result.size - 1
-    while (++result[i] == 0) {
-        i--
-    }
-    return result
-}
 
 public fun bitLengthForInt(n: Int): Int {
     return 32 - n.countLeadingZeroBits()
@@ -208,9 +174,9 @@ public fun BigInt.Companion.fromIntArray0(value: IntArray): BigInt {
 
     val magnitude = if (value[0] < 0) {
         signum = BigSigned.NEGATIVE
-        makePositive1(value)
+        makePositive(value)
     } else {
-        val newMag = trustedStripLeadingZeroInts1(value)
+        val newMag = stripLeadingZero(value)
         signum = if (newMag.size == 0) BigSigned.ZERO else BigSigned.POSITIVE
         newMag
     }
@@ -218,14 +184,14 @@ public fun BigInt.Companion.fromIntArray0(value: IntArray): BigInt {
 }
 
 public fun BigInt.Companion.fromIntArray2(value: IntArray): BigInt {
-    if (value.size == 0) error("Zero length BigInteger")
+    check(value.isNotEmpty()) { "Zero length" }
     var sigNum: BigSigned
 
     val magnitude = if (value[0] < 0) {
         sigNum = BigSigned.NEGATIVE
-        makePositive1(value)
+        makePositive(value)
     } else {
-        val newMag = trustedStripLeadingZeroInts1(value)
+        val newMag = stripLeadingZero(value)
         sigNum = if (newMag.size == 0) BigSigned.ZERO else BigSigned.POSITIVE
         newMag
     }
@@ -258,6 +224,7 @@ public fun BigInt.valueOf(value: IntArray): BigInt = when {
     value.first() > 0 -> BigInt(value, BigSigned.POSITIVE)
     else -> BigInt.fromIntArray2(value)
 }
+
 
 /*{
     return if (value[0] > 0) BigInt(value, BigSigned.POSITIVE) else {
@@ -297,7 +264,7 @@ public fun sigNumFromValue(value: IntArray): BigSigned = when(value.first() < 0)
 }
 
 public fun BigInt.Companion.magFromValue(value: IntArray): IntArray = when(value.first() < 0) {
-    true -> makePositive1(value)
-    else -> trustedStripLeadingZeroInts1(value)
+    true -> makePositive(value)
+    else -> stripLeadingZero(value)
 }
 

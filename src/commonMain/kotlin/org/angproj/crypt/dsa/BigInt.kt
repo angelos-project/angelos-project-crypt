@@ -16,9 +16,10 @@ package org.angproj.crypt.dsa
 
 import org.angproj.aux.util.readIntAt
 import org.angproj.aux.util.swapEndian
+import org.angproj.aux.util.writeIntAt
 import org.angproj.crypt.number.bitLengthForInt
 import org.angproj.crypt.number.getIdx
-import kotlin.math.min
+import org.angproj.crypt.number.revGet
 
 public enum class BigSigned(public val state: Int, public val signed: Int) {
     POSITIVE(1, 0),
@@ -70,9 +71,6 @@ public class BigInt(
     public val mag: IntArray,
     public val sigNum: BigSigned,
 ) {
-
-    public var bitCountPlusOne: Int = 0
-
     public val bitCount: Int by lazy { bitCount(mag, sigNum) }
     public val bitLength: Int by lazy { bitLength(mag, sigNum) }
     public val firstNonZero: Int by lazy { firstNonZero(mag) }
@@ -118,60 +116,6 @@ public class BigInt(
         }
     }
 
-    /*public fun toByteArray1(): ByteArray {
-        val cache = ByteArray(mag.size * Int.SIZE_BYTES).also {
-            it.fill(sigNum.signed.toByte()) }
-        mag.indices.forEach { idx ->
-            val complimented = when (sigNum) {
-                BigSigned.NEGATIVE -> mag[idx].swapEndian().inv()
-                else -> mag[idx].swapEndian()
-            }
-            cache.writeIntAt(idx * Int.SIZE_BYTES, complimented)
-        }
-        if (sigNum == BigSigned.NEGATIVE) cache[cache.lastIndex] = (
-                cache.last() + 1).toByte() // Could be dangerous
-        return when(fullSize) {
-           0 -> when (cache.size) {
-                0 -> byteArrayOf(0)
-                else -> cache.copyOfRange(unusedIntBytes(mag[0]), cache.size)
-            }
-            else -> {
-                val value = when {
-                    cache.size > fullSize -> cache.copyOfRange(unusedIntBytes(mag[0]), cache.size)
-                    else -> cache
-                }
-                when {
-                    value.size == fullSize -> value
-                    value.size < fullSize -> ByteArray(fullSize - value.size).also {
-                        it.fill(sigNum.signed.toByte()) } + value
-                    else -> error("Can't pad value larger than full size")
-                }
-            }
-        }
-    }*/
-
-    public fun toByteArray0(): ByteArray {
-        val byteLen: Int = bitLength / 8 + 1
-        val byteArray = ByteArray(byteLen)
-        var i = byteLen - 1
-        var bytesCopied = 4
-        var nextInt = 0
-        var intIndex = 0
-        while (i >= 0) {
-            if (bytesCopied == 4) {
-                nextInt = getIdx(intIndex++)
-                bytesCopied = 1
-            } else {
-                nextInt = nextInt ushr 8
-                bytesCopied++
-            }
-            byteArray[i] = nextInt.toByte()
-            i--
-        }
-
-        return byteArray
-    }
-
     public fun toByteArray(): ByteArray {
         var byteLen = bitLength / 8 + 1
         val byteArray = ByteArray(byteLen)
@@ -190,7 +134,7 @@ public class BigInt(
             byteArray[i] = nextInt.toByte()
         }
 
-        // Compatability adjustment compared to JAVA implementation, is it really necessary?
+        // Compatibility adjustment compared to JAVA implementation, is it really necessary?
         return when(byteArray[0].toInt() == 127 && sigNum.isNegative()) {
             true -> byteArrayOf(-1) + byteArray
             else -> byteArray
@@ -220,25 +164,6 @@ public class BigInt(
             else -> intArrayOf((value ushr 32).toInt(), value.toInt())
         }
 
-        private fun unusedIntBytes(value: Int): Int = when(value) {
-            0 -> 4
-            in Byte.MIN_VALUE..Byte.MAX_VALUE -> 3
-            in Short.MIN_VALUE..Short.MAX_VALUE -> 2
-            in -8388608..8388607 -> 1
-            else-> 0
-        }
-
-        private fun usedIntBits(value: Int): Int {
-            var temp = value
-            var used = 0
-
-            while(temp != 0) {
-                temp = temp ushr 1
-                used += 1
-            }
-            return used
-        }
-
         private fun keep(value: ByteArray, sigNum: BigSigned): Int {
             val keep = value.indexOfFirst { it.toInt() != sigNum.signed }
             return when (keep) {
@@ -249,7 +174,7 @@ public class BigInt(
 
         public fun fromByteArray(value: ByteArray): BigInt {
             check(value.isNotEmpty()) { "Zero length" }
-            val negative = value[0].toInt() < 0
+            val negative = value.first().toInt() < 0
 
             val sigNum = when(negative) {
                 true -> BigSigned.NEGATIVE
@@ -257,121 +182,44 @@ public class BigInt(
             }
             val mag = when(negative) {
                 true -> makePositive(value)
-                else -> stripLeadingZeroBytes(value)
+                else -> stripLeadingZeros(value)
             }
 
             return BigInt(mag, sigNumZeroAdjust(mag, sigNum))
         }
 
         private fun makePositive(value: ByteArray): IntArray {
-            println("MAKE POSITIVE")
-            var keep: Int
-            var k: Int
-            val indexBound: Int = value.size
+            val keep = keep(value, BigSigned.NEGATIVE)
+            val extra = (keep downTo 0).indexOfFirst {
+                value[it].toInt() != 0 }.let { if(it == value.size) 1 else 0 }
+            val result = IntArray((value.size - keep + extra + 3).floorDiv(Int.SIZE_BYTES))
+            val cache = ByteArray(result.size * Int.SIZE_BYTES - (value.size - keep)).also {
+                it.fill(BigSigned.NEGATIVE.signed.toByte()) } + value.copyOfRange(keep, value.size)
 
-            // Find first non-sign (0xff) byte of input
-
-            // Find first non-sign (0xff) byte of input
-                keep = 0
-                while (keep < indexBound && value.get(keep).toInt() == -1) {
-                    keep++
-                }
-
-            /* Allocate output array.  If all non-sign bytes are 0x00, we must
-         * allocate space for one extra output byte. */
-                k = keep
-                while (k < indexBound && value.get(k).toInt() == 0) {
-                    k++
-                }
-
-            val extraByte = if (k == indexBound) 1 else 0
-            val intLength = indexBound - keep + extraByte + 3 ushr 2
-            val result = IntArray(intLength)
-
-
-            /* Copy one's complement of input into output, leaving extra
-         * byte (if it exists) == 0x00 */
-            var b = indexBound - 1
-            for (i in intLength - 1 downTo 0) {
-                result[i] = value.get(b--).toInt() and 0xff
-                var numBytesToTransfer = min(3.0, (b - keep + 1).toDouble()).toInt()
-                if (numBytesToTransfer < 0) numBytesToTransfer = 0
-                var j = 8
-                while (j <= 8 * numBytesToTransfer) {
-                    result[i] = result[i] or (value.get(b--).toInt() and 0xff shl j)
-                    j += 8
-                }
-
-                // Mask indicates which bits must be complemented
-                val mask = -1 ushr 8 * (3 - numBytesToTransfer)
-                result[i] = result[i].inv() and mask
-            }
-
-            // Add one to one's complement to generate two's complement
-
-            // Add one to one's complement to generate two's complement
-            for (i in result.indices.reversed()) {
-                result[i] = ((result[i].toLong() and 0xffffffffL) + 1).toInt()
-                if (result[i] != 0) break
-            }
-
-            return result
-        }
-
-        private fun stripLeadingZeroBytes(value: ByteArray): IntArray {
-            val indexBound: Int = value.size
-            var keep: Int
-            // Find first nonzero byte
-                keep = 0
-                while (keep < indexBound && value.get(keep).toInt() == 0) {
-                    keep++
-                }
-
-            // Allocate new array and copy relevant part of input array
-            val intLength = indexBound - keep + 3 ushr 2
-            val result = IntArray(intLength)
-            var b = indexBound - 1
-            for (i in intLength - 1 downTo 0) {
-                result[i] = value.get(b--).toInt() and 0xff
-                val bytesRemaining = b - keep + 1
-                val bytesToTransfer = min(3.0, bytesRemaining.toDouble()).toInt()
-                var j = 8
-                while (j <= bytesToTransfer shl 3) {
-                    result[i] = result[i] or (value.get(b--).toInt() and 0xff shl j)
-                    j += 8
-                }
-            }
-            return result
-        }
-
-        private fun makePositive(value: ByteArray, keep: Int): IntArray {
-            val k = value.slice(keep until value.size).indexOfFirst { it.toInt() != 0 }
-            val extraByte = if (k == value.size) 1 else 0
-            val mag = IntArray((value.size - keep + extraByte + 3).floorDiv(Int.SIZE_BYTES))
-            val cache = ByteArray(mag.size * Int.SIZE_BYTES - (value.size - keep)).also {
-                it.fill(-1) } + value.copyOfRange(keep, value.size)
-            var addCompliment = true
-            mag.indices.reversed().forEach { idx ->
-                val num = cache.readIntAt(idx * Int.SIZE_BYTES)
-                val uncomplimented = when {
+            (result.lastIndex downTo 0).forEach {
+                val num = cache.readIntAt(it * Int.SIZE_BYTES)
+                result[it] = when {
                     num < 0 -> num.inv().swapEndian()
                     else -> num.swapEndian().inv()
                 }
-                mag[idx] = when (addCompliment) {
-                    true -> ((uncomplimented.toLong() and 0xffffffff) + 1).toInt().also {
-                        if(it != 0) addCompliment = false }
-                    else -> uncomplimented
-                }
             }
-            return mag
+
+            (result.lastIndex downTo 0).indexOfFirst {
+                result[it] = ((result[it].toLong() and 0xffffffffL) + 1).toInt()
+                result[it] != 0
+            }
+            return result
         }
 
-        private fun stripLeadingZeroBytes(value: ByteArray, keep: Int): IntArray {
-            val mag = IntArray((value.size - keep + 3).floorDiv(Int.SIZE_BYTES))
-            val cache = ByteArray(mag.size * Int.SIZE_BYTES - (
+        private fun stripLeadingZeros(value: ByteArray): IntArray {
+            val keep = keep(value, BigSigned.POSITIVE)
+            val result = IntArray((value.size - keep + 3).floorDiv(Int.SIZE_BYTES))
+            val cache = ByteArray(result.size * Int.SIZE_BYTES - (
                     value.size - keep)) + value.copyOfRange(keep, value.size)
-            mag.indices.reversed().forEach { mag[it] = cache.readIntAt(it * Int.SIZE_BYTES).swapEndian() }
-            return mag
+
+            (result.lastIndex downTo 0).forEach {
+                result[it] = cache.readIntAt(it * Int.SIZE_BYTES).swapEndian() }
+            return result
         }
     }
 }
@@ -393,7 +241,7 @@ public fun BigInt.Companion.bitCount(mag: IntArray, sigNum: BigSigned): Int = ma
 } else 0
 
 public inline fun BigInt.Companion.firstNonZero(mag: IntArray): Int = (
-        mag.indices.reversed().indexOfFirst { mag[it] != 0 }).let { if(it == -1) 0 else it }
+        mag.lastIndex downTo 0).indexOfFirst { mag[it] != 0 }.let { if(it == -1) 0 else it }
 
 public fun sigNumZeroAdjust(mag: IntArray, sigNum: BigSigned): BigSigned = when {
     mag.isEmpty() -> BigSigned.ZERO
