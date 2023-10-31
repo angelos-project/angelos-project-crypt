@@ -26,7 +26,7 @@ class BigIntBasicTest {
     @Test
     fun minusTest() {
         Combinator.doMatrixTests(vectorList1, vectorList2) { xbi, ybi, x, y ->
-            Pair(xbi.subtract(ybi), x.subtract(y))
+            Pair(xbi - ybi, x.subtract(y))
         }
     }
 

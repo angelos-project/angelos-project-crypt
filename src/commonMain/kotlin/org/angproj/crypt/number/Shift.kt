@@ -19,7 +19,7 @@ import org.angproj.crypt.dsa.BigInt
 public infix fun BigInt.shl(count: Int): BigInt = shiftLeft(count)
 
 public fun BigInt.shiftLeft(n: Int): BigInt = when {
-    sigNum.isZero() -> zero
+    sigNum.isZero() -> BigInt.zero
     n > 0 -> BigInt(BigInt.shiftLeftBits(mag, n), sigNum)
     n == 0 -> this
     else -> shiftRightBits(-n)
@@ -46,7 +46,7 @@ internal fun BigInt.Companion.shiftLeftBits(mag: IntArray, count: Int): IntArray
 public infix fun BigInt.shr(count: Int): BigInt = shiftRight(count)
 
 public fun BigInt.shiftRight(n: Int): BigInt = when {
-    sigNum.isZero() -> zero
+    sigNum.isZero() -> BigInt.zero
     n > 0 -> shiftRightBits(n)
     n == 0 -> this
     else -> BigInt(BigInt.shiftLeftBits(mag, -n), sigNum)
@@ -57,7 +57,7 @@ internal fun BigInt.shiftRightBits(count: Int): BigInt {
     val tinyShift: Int = count.mod(Int.SIZE_BITS)
     val tinyShiftOpposite = Int.SIZE_BITS - tinyShift
 
-    if (bigShift >= mag.size) return if (sigNum.isNonNegative()) zero else minusOne
+    if (bigShift >= mag.size) return if (sigNum.isNonNegative()) BigInt.zero else BigInt.minusOne
 
     val highBits = mag[0] ushr tinyShift
     val extra = if(highBits == 0) 0 else 1

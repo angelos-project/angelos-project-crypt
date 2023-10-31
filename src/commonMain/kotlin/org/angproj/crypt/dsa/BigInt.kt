@@ -16,10 +16,7 @@ package org.angproj.crypt.dsa
 
 import org.angproj.aux.util.readIntAt
 import org.angproj.aux.util.swapEndian
-import org.angproj.aux.util.writeIntAt
-import org.angproj.crypt.number.bitLengthForInt
-import org.angproj.crypt.number.getIdx
-import org.angproj.crypt.number.revGet
+import kotlin.math.max
 
 public enum class BigSigned(public val state: Int, public val signed: Int) {
     POSITIVE(1, 0),
@@ -59,6 +56,11 @@ public enum class BigCompare(public val state: Int) {
     public fun isEqual(): Boolean = this == EQUAL
 
     public fun isLesser(): Boolean = this == LESSER
+
+    public fun withSigned(sigNum: BigSigned): BigSigned = when (state == sigNum.state) {
+        true -> BigSigned.POSITIVE
+        else -> BigSigned.NEGATIVE
+    }
 }
 
 /**
@@ -75,18 +77,19 @@ public class BigInt(
     public val bitLength: Int by lazy { bitLength(mag, sigNum) }
     public val firstNonZero: Int by lazy { firstNonZero(mag) }
 
-    public val size: Int
-        get() = mag.size
+    public fun intSize(): Int = bitLength.floorDiv(Int.SIZE_BITS) + 1
 
-    public val indices: IntRange
-        get() = mag.indices
-
-    public operator fun get(index: Int): Int = when {
-        index < 0 -> 0
-        index >= mag.size -> sigNum.signed
-        sigNum.isNonNegative() -> mag[mag.size - index - 1]
-        index <= firstNonZero -> -mag[mag.size - index - 1]
-        else -> mag[mag.size - index - 1].inv()
+    public fun getIdx(idx: Int): Int = when {
+        idx < 0 -> 0
+        idx >= mag.size -> sigNum.signed
+        else -> {
+            val num = revGet(idx, mag)
+            when {
+                sigNum.isNonNegative() -> num
+                idx <= firstNonZero -> -num
+                else -> num.inv()
+            }
+        }
     }
 
     public fun compareTo(other: BigInt): BigCompare = when {
@@ -142,35 +145,16 @@ public class BigInt(
         //return byteArray
     }
 
-    public fun toByteArrayPaddedWithLeadingZeros(totSize: Int): ByteArray {
+    public fun toPaddedByteArray(totSize: Int): ByteArray {
         val byteArray = toByteArray()
         return ByteArray(totSize - byteArray.size).also { it.fill(sigNum.signed.toByte()) } + byteArray
     }
 
     public companion object {
 
-        public inline fun stripLeadingZeroInts(value: IntArray): IntArray = value.copyOfRange(
-            value.indexOfFirst { it != 0 }, value.size)
-
-        public fun fromLong(value: Long): BigInt = when {
-            value == 0L -> BigInt(intArrayOf(), BigSigned.ZERO)
-            //value < 0 -> BigInt(long2IntArray(-value), BigSignedInt.NEGATIVE)
-            value < 0 -> BigInt(long2IntArray(value.inv()), BigSigned.NEGATIVE)
-            else -> BigInt(long2IntArray(value), BigSigned.POSITIVE)
-        }
-
-        public fun long2IntArray(value: Long): IntArray = when(value) {
-            in Int.MIN_VALUE..Int.MAX_VALUE -> intArrayOf(value.toInt())
-            else -> intArrayOf((value ushr 32).toInt(), value.toInt())
-        }
-
-        private fun keep(value: ByteArray, sigNum: BigSigned): Int {
-            val keep = value.indexOfFirst { it.toInt() != sigNum.signed }
-            return when (keep) {
-                -1 -> value.size
-                else -> keep
-            }
-        }
+        public val one: BigInt by lazy { BigInt(intArrayOf(1), BigSigned.POSITIVE) }
+        public val zero: BigInt by lazy { BigInt(intArrayOf(0), BigSigned.ZERO) }
+        public val minusOne: BigInt by lazy { BigInt(intArrayOf(1), BigSigned.NEGATIVE) }
 
         public fun fromByteArray(value: ByteArray): BigInt {
             check(value.isNotEmpty()) { "Zero length" }
@@ -186,6 +170,27 @@ public class BigInt(
             }
 
             return BigInt(mag, sigNumZeroAdjust(mag, sigNum))
+        }
+
+        public fun fromIntArray(value: IntArray): BigInt {
+            check(value.isNotEmpty()) { "Zero length" }
+            val negative = value.first() < 0
+
+            val sigNum = when(negative) {
+                true -> BigSigned.NEGATIVE
+                else -> BigSigned.POSITIVE
+            }
+            val mag = when(negative) {
+                true -> makePositive(value)
+                else -> stripLeadingZeros(value)
+            }
+
+            return BigInt(mag, sigNumZeroAdjust(mag, sigNum))
+        }
+
+        private fun sigNumZeroAdjust(mag: IntArray, sigNum: BigSigned): BigSigned = when {
+            mag.isEmpty() -> BigSigned.ZERO
+            else -> sigNum
         }
 
         private fun makePositive(value: ByteArray): IntArray {
@@ -211,6 +216,20 @@ public class BigInt(
             return result
         }
 
+        private fun makePositive(value: IntArray): IntArray {
+            val keep: Int = keep(value, BigSigned.NEGATIVE)
+            val extra = (keep until value.size).indexOfFirst { value[it] != 0 }.let { if(it == -1) 1 else 0 }
+            val result = IntArray(value.size - keep + extra)
+
+            (keep until value.size).forEach { result[it - keep + extra] = value[it].inv() }
+
+            (result.lastIndex downTo 0).indexOfFirst {
+                result[it] = ((result[it].toLong() and 0xffffffffL) + 1).toInt()
+                result[it] != 0
+            }
+            return result
+        }
+
         private fun stripLeadingZeros(value: ByteArray): IntArray {
             val keep = keep(value, BigSigned.POSITIVE)
             val result = IntArray((value.size - keep + 3).floorDiv(Int.SIZE_BYTES))
@@ -221,29 +240,79 @@ public class BigInt(
                 result[it] = cache.readIntAt(it * Int.SIZE_BYTES).swapEndian() }
             return result
         }
+
+        public fun stripLeadingZeros(value: IntArray): IntArray {
+            val keep = keep(value, BigSigned.POSITIVE)
+            return if (keep == 0) value else value.copyOfRange(keep, value.size)
+        }
+
+        private fun keep(value: ByteArray, sigNum: BigSigned): Int {
+            val keep = value.indexOfFirst { it.toInt() != sigNum.signed }
+            return when (keep) {
+                -1 -> value.size
+                else -> keep
+            }
+        }
+
+        private fun keep(value: IntArray, sigNum: BigSigned): Int {
+            val keep = value.indexOfFirst { it != sigNum.signed }
+            return when (keep) {
+                -1 -> value.size
+                else -> keep
+            }
+        }
+
+        public fun bitSizeForInt(n: Int): Int = Int.SIZE_BITS - n.countLeadingZeroBits()
+
+        public fun bitLength(mag: IntArray, sigNum: BigSigned): Int = if (mag.isNotEmpty()) {
+            val size: Int = bitSizeForInt(mag[0]) + ((mag.size - 1) * Int.SIZE_BITS)
+            if (sigNum.isNegative()) {
+                if (mag.first().countOneBits() == 1) {
+                    if ((1 until mag.lastIndex).indexOfFirst { mag[it] != 0 } == -1) size - 1 else size
+                } else size
+            } else size
+        } else 0
+
+        public fun bitCount(mag: IntArray, sigNum: BigSigned): Int = mag.sumOf {
+            it.countOneBits() } + if (sigNum.isNegative()) {
+            var i: Int = mag.lastIndex
+            while (mag[i] == 0) i--
+            Int.SIZE_BITS * (mag.lastIndex - i) + mag[i].countLeadingZeroBits() - 1
+        } else 0
+
+        public fun firstNonZero(mag: IntArray): Int = (
+                mag.lastIndex downTo 0).indexOfFirst { mag[it] != 0 }.let { if(it == -1) 0 else it }
+
+        internal fun fromLong(value: Long): BigInt = when {
+            value == 0L -> BigInt(intArrayOf(), BigSigned.ZERO)
+            //value < 0 -> BigInt(long2IntArray(-value), BigSignedInt.NEGATIVE)
+            value < 0 -> BigInt(long2IntArray(value.inv()), BigSigned.NEGATIVE)
+            else -> BigInt(long2IntArray(value), BigSigned.POSITIVE)
+        }
+
+        internal fun long2IntArray(value: Long): IntArray = when(value) {
+            in Int.MIN_VALUE..Int.MAX_VALUE -> intArrayOf(value.toInt())
+            else -> intArrayOf((value ushr 32).toInt(), value.toInt())
+        }
+
     }
 }
 
-public fun BigInt.Companion.bitLength(mag: IntArray, sigNum: BigSigned): Int = if (mag.isNotEmpty()) {
-    val size: Int = bitLengthForInt(mag[0]) + ((mag.size - 1) * Int.SIZE_BITS)
-    if (sigNum.isNegative()) {
-        if (mag.first().countOneBits() == 1) {
-            if ((1 until mag.lastIndex).indexOfFirst { mag[it] != 0 } == -1) size - 1 else size
-        } else size
-    } else size
-} else 0
+internal fun packMagSigNum(mag: IntArray, sigNum: BigSigned, cmp: BigCompare): BigInt = BigInt(
+    BigInt.stripLeadingZeros(mag), cmp.withSigned(sigNum)
+)
 
-public fun BigInt.Companion.bitCount(mag: IntArray, sigNum: BigSigned): Int = mag.sumOf {
-    it.countOneBits() } + if (sigNum.isNegative()) {
-    var i: Int = mag.lastIndex
-    while (mag[i] == 0) i--
-    Int.SIZE_BITS * (mag.lastIndex - i) + mag[i].countLeadingZeroBits() - 1
-} else 0
+internal fun biggerFirst(x: IntArray, y: IntArray, block: (x: IntArray, y: IntArray) -> IntArray): IntArray =
+    when (x.size < y.size) {
+        true -> block(y, x)
+        else -> block(x, y)
+    }
 
-public inline fun BigInt.Companion.firstNonZero(mag: IntArray): Int = (
-        mag.lastIndex downTo 0).indexOfFirst { mag[it] != 0 }.let { if(it == -1) 0 else it }
+internal inline fun maxOfArrays(a: IntArray, b: IntArray, extra: Int = 1): IntArray =
+    IntArray(max(a.size, b.size) + extra)
 
-public fun sigNumZeroAdjust(mag: IntArray, sigNum: BigSigned): BigSigned = when {
-    mag.isEmpty() -> BigSigned.ZERO
-    else -> sigNum
-}
+internal inline fun revIdx(idx: Int, arr: IntArray): Int = arr.lastIndex - idx
+internal inline fun revGet(idx: Int, arr: IntArray): Int = arr[revIdx(idx, arr)]
+internal inline fun revSet(idx: Int, arr: IntArray, value: Int) { arr[revIdx(idx, arr)] = value }
+
+internal inline fun bigMask(pos: Int): Int = 1 shl (pos and Int.SIZE_BITS - 1)
