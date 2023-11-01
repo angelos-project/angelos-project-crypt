@@ -79,14 +79,14 @@ public class BigInt(
 
     public fun intSize(): Int = bitLength.floorDiv(Int.SIZE_BITS) + 1
 
-    public fun getIdx(idx: Int): Int = when {
-        idx < 0 -> 0
-        idx >= mag.size -> sigNum.signed
+    public fun getIdx(index: Int): Int = when {
+        index < 0 -> 0
+        index >= mag.size -> sigNum.signed
         else -> {
-            val num = revGet(idx, mag)
+            val num = mag.revGet(index)
             when {
                 sigNum.isNonNegative() -> num
-                idx <= firstNonZero -> -num
+                index <= firstNonZero -> -num
                 else -> num.inv()
             }
         }
@@ -119,6 +119,13 @@ public class BigInt(
         }
     }
 
+    public fun negate(): BigInt = BigInt(mag, sigNum.negate())
+
+    public fun abs(): BigInt = when (sigNum) {
+        BigSigned.NEGATIVE -> negate()
+        else -> this
+    }
+
     public fun toByteArray(): ByteArray {
         var byteLen = bitLength / 8 + 1
         val byteArray = ByteArray(byteLen)
@@ -145,9 +152,9 @@ public class BigInt(
         //return byteArray
     }
 
-    public fun toPaddedByteArray(totSize: Int): ByteArray {
+    public fun toZeroFilledByteArray(totalSize: Int): ByteArray {
         val byteArray = toByteArray()
-        return ByteArray(totSize - byteArray.size).also { it.fill(sigNum.signed.toByte()) } + byteArray
+        return ByteArray(totalSize - byteArray.size).also { it.fill(sigNum.signed.toByte()) } + byteArray
     }
 
     public companion object {
@@ -155,6 +162,10 @@ public class BigInt(
         public val one: BigInt by lazy { BigInt(intArrayOf(1), BigSigned.POSITIVE) }
         public val zero: BigInt by lazy { BigInt(intArrayOf(0), BigSigned.ZERO) }
         public val minusOne: BigInt by lazy { BigInt(intArrayOf(1), BigSigned.NEGATIVE) }
+
+        public inline fun IntArray.revIdx(index: Int): Int = this.lastIndex - index
+        public inline fun IntArray.revGet(index: Int): Int = this[lastIndex - index]
+        public inline fun IntArray.revSet(index: Int, value: Int) { this[lastIndex - index] = value }
 
         public fun fromByteArray(value: ByteArray): BigInt {
             check(value.isNotEmpty()) { "Zero length" }
@@ -294,7 +305,6 @@ public class BigInt(
             in Int.MIN_VALUE..Int.MAX_VALUE -> intArrayOf(value.toInt())
             else -> intArrayOf((value ushr 32).toInt(), value.toInt())
         }
-
     }
 }
 
@@ -308,11 +318,13 @@ internal fun biggerFirst(x: IntArray, y: IntArray, block: (x: IntArray, y: IntAr
         else -> block(x, y)
     }
 
+internal fun biggerFirst(x: BigInt, y: BigInt, block: (x: BigInt, y: BigInt) -> BigInt): BigInt =
+    when (x.mag.size < y.mag.size) {
+        true -> block(y, x)
+        else -> block(x, y)
+    }
+
 internal inline fun maxOfArrays(a: IntArray, b: IntArray, extra: Int = 1): IntArray =
     IntArray(max(a.size, b.size) + extra)
-
-internal inline fun revIdx(idx: Int, arr: IntArray): Int = arr.lastIndex - idx
-internal inline fun revGet(idx: Int, arr: IntArray): Int = arr[revIdx(idx, arr)]
-internal inline fun revSet(idx: Int, arr: IntArray, value: Int) { arr[revIdx(idx, arr)] = value }
 
 internal inline fun bigMask(pos: Int): Int = 1 shl (pos and Int.SIZE_BITS - 1)

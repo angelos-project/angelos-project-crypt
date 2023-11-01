@@ -31,6 +31,13 @@ class BigIntBasicTest {
     }
 
     @Test
+    fun timesTest() {
+        Combinator.doMatrixTests(vectorList1, vectorList2) { xbi, ybi, x, y ->
+            Pair(xbi * ybi, x.multiply(y))
+        }
+    }
+
+    @Test
     fun compareToTest() {
         Combinator.doMatrixIntTests(vectorList1, vectorList2) { xbi, ybi, x, y ->
             Pair(xbi.compareTo(ybi).state, x.compareTo(y))
