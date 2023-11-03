@@ -172,6 +172,37 @@ object Combinator {
         }
     }
 
+    fun doMatrixPairTests(
+        vector1: List<BigInteger>,
+        vector2: List<BigInteger>,
+        action: (xbi: BigInt, ybi: BigInt, x: BigInteger, y: BigInteger) -> Pair<Pair<BigInt,BigInt>, Array<BigInteger>>
+    ) {
+        vector1.forEach { x ->
+            val xbi = BigInt.fromByteArray(x.toByteArray())
+            vector2.forEach { y ->
+                val ybi = BigInt.fromByteArray(y.toByteArray())
+                println("Jx: ${BinHex.encodeToHex(x.toByteArray())}")
+                println("Jy: ${BinHex.encodeToHex(y.toByteArray())}")
+                println("Hx: ${BinHex.encodeToHex(xbi.toByteArray())}")
+                println("Hy: ${BinHex.encodeToHex(ybi.toByteArray())}")
+                val result = action(xbi, ybi, x, y)
+                println("Dq: ${result.second[0]}")
+                println("Dr: ${result.second[1]}")
+                println("Kq: ${BinHex.encodeToHex(result.first.first.toByteArray())}")
+                println("Jq: ${BinHex.encodeToHex(result.second[0].toByteArray())}")
+                println("Kr: ${BinHex.encodeToHex(result.first.second.toByteArray())}")
+                println("Jr: ${BinHex.encodeToHex(result.second[1].toByteArray())}\n")
+                /*assertContentEquals(result.first.toByteArray(), stripLeadingZeroBytesCorrection(result.second.toByteArray()))
+                assertContentEquals(
+                    stripLeadingZeroBytesCorrection(result.first.toByteArray()),
+                    stripLeadingZeroBytesCorrection(result.second.toByteArray())
+                )*/
+                assertContentEquals(result.first.first.toByteArray(), result.second[0].toByteArray())
+                assertContentEquals(result.first.second.toByteArray(), result.second[1].toByteArray())
+            }
+        }
+    }
+
     fun doMatrixIntTests(
         vector1: List<BigInteger>,
         vector2: List<BigInteger>,

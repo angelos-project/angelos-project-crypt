@@ -92,6 +92,8 @@ public class BigInt(
         }
     }
 
+    public fun getIdxL(index: Int): Long = getIdx(index).toLong() and 0xffffffffL
+
     public fun compareTo(other: BigInt): BigCompare = when {
         sigNum.state > other.sigNum.state -> BigCompare.GREATER
         sigNum.state < other.sigNum.state -> BigCompare.LESSER
@@ -157,6 +159,8 @@ public class BigInt(
         return ByteArray(totalSize - byteArray.size).also { it.fill(sigNum.signed.toByte()) } + byteArray
     }
 
+    public fun copyOf(): BigInt = BigInt(mag.copyOf(), sigNum)
+
     public companion object {
 
         public val one: BigInt by lazy { BigInt(intArrayOf(1), BigSigned.POSITIVE) }
@@ -165,7 +169,9 @@ public class BigInt(
 
         public inline fun IntArray.revIdx(index: Int): Int = this.lastIndex - index
         public inline fun IntArray.revGet(index: Int): Int = this[lastIndex - index]
+        public inline fun IntArray.revGetL(index: Int): Long = this[lastIndex - index].toLong() and 0xffffffffL
         public inline fun IntArray.revSet(index: Int, value: Int) { this[lastIndex - index] = value }
+        public inline fun IntArray.revSetL(index: Int, value: Long) { this[lastIndex - index] = value.toInt() }
 
         public fun fromByteArray(value: ByteArray): BigInt {
             check(value.isNotEmpty()) { "Zero length" }
@@ -307,10 +313,6 @@ public class BigInt(
         }
     }
 }
-
-internal fun packMagSigNum(mag: IntArray, sigNum: BigSigned, cmp: BigCompare): BigInt = BigInt(
-    BigInt.stripLeadingZeros(mag), cmp.withSigned(sigNum)
-)
 
 internal fun biggerFirst(x: IntArray, y: IntArray, block: (x: IntArray, y: IntArray) -> IntArray): IntArray =
     when (x.size < y.size) {
