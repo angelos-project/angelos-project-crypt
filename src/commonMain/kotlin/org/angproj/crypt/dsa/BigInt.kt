@@ -18,64 +18,21 @@ import org.angproj.aux.util.readIntAt
 import org.angproj.aux.util.swapEndian
 import kotlin.math.max
 
-public enum class BigSigned(public val state: Int, public val signed: Int) {
-    POSITIVE(1, 0),
-    ZERO(0, 0),
-    NEGATIVE(-1, -1);
-
-    public fun negate(): BigSigned = when (this) {
-        POSITIVE -> NEGATIVE
-        NEGATIVE -> POSITIVE
-        else -> this
-    }
-
-    public fun isPositive(): Boolean = this == POSITIVE
-
-    public fun isZero(): Boolean = this == ZERO
-
-    public fun isNegative(): Boolean = this == NEGATIVE
-
-    public fun isNonZero(): Boolean = when(this) {
-        ZERO -> false
-        else -> true
-    }
-
-    public fun isNonNegative(): Boolean = when(this) {
-        NEGATIVE -> false
-        else -> true
-    }
-}
-
-public enum class BigCompare(public val state: Int) {
-    GREATER(1),
-    EQUAL(0),
-    LESSER(-1);
-
-    public fun isGreater(): Boolean = this == GREATER
-
-    public fun isEqual(): Boolean = this == EQUAL
-
-    public fun isLesser(): Boolean = this == LESSER
-
-    public fun withSigned(sigNum: BigSigned): BigSigned = when (state == sigNum.state) {
-        true -> BigSigned.POSITIVE
-        else -> BigSigned.NEGATIVE
-    }
-}
-
 /**
  * pow mod log sqrt abs ceil floor lt gt le ge ne odd even
  * pow2 log2 sqrt2
  * addition subtraction multiplication division
  */
 
-public class BigInt(
-    public val mag: IntArray,
+public abstract class AbstractBigInt<E: List<Int>>(
+    public val mag: E,
     public val sigNum: BigSigned,
-) {
+){
     public val bitCount: Int by lazy { bitCount(mag, sigNum) }
     public val bitLength: Int by lazy { bitLength(mag, sigNum) }
     public val firstNonZero: Int by lazy { firstNonZero(mag) }
+
+    //public abstract fun fromIntArray(value: IntArray): E
 
     public fun intSize(): Int = bitLength.floorDiv(Int.SIZE_BITS) + 1
 
@@ -94,7 +51,22 @@ public class BigInt(
 
     public fun getIdxL(index: Int): Long = getIdx(index).toLong() and 0xffffffffL
 
-    public fun compareTo(other: BigInt): BigCompare = when {
+    /*fun cmpMag(x: BigInt, y: BigInt): BigCompare {
+        (x.mag.lastIndex downTo 0).forEach { idx ->
+            val xNum = x.getIdx(idx)
+            val yNum = y.getIdx(idx)
+            if (xNum != yNum) {
+                return if (xNum xor -0x80000000 > yNum xor -0x80000000) BigCompare.GREATER else BigCompare.LESSER
+            }
+        }
+        return BigCompare.EQUAL
+    }
+
+    fun cmpSize(x: BigInt, y: BigInt): BigCompare {
+        return if (x.mag.size > x.mag.size) BigCompare.GREATER else if (x.mag.size < x.mag.size) BigCompare.LESSER else cmpMag(x, y)
+    }*/
+
+    public fun compareTo(other: AbstractBigInt<E>): BigCompare = when {
         sigNum.state > other.sigNum.state -> BigCompare.GREATER
         sigNum.state < other.sigNum.state -> BigCompare.LESSER
         sigNum == BigSigned.POSITIVE -> compareMagnitude(other)
@@ -102,7 +74,7 @@ public class BigInt(
         else -> BigCompare.EQUAL
     }
 
-    public fun compareMagnitude(other: BigInt): BigCompare = when {
+    public fun compareMagnitude(other: AbstractBigInt<E>): BigCompare = when {
         mag.size < other.mag.size -> BigCompare.LESSER
         mag.size > other.mag.size -> BigCompare.GREATER
         else -> {
@@ -121,9 +93,9 @@ public class BigInt(
         }
     }
 
-    public fun negate(): BigInt = BigInt(mag, sigNum.negate())
+    public abstract fun negate(): AbstractBigInt<E>
 
-    public fun abs(): BigInt = when (sigNum) {
+    public fun abs(): AbstractBigInt<E> = when (sigNum) {
         BigSigned.NEGATIVE -> negate()
         else -> this
     }
@@ -159,21 +131,26 @@ public class BigInt(
         return ByteArray(totalSize - byteArray.size).also { it.fill(sigNum.signed.toByte()) } + byteArray
     }
 
-    public fun copyOf(): BigInt = BigInt(mag.copyOf(), sigNum)
+    public abstract fun copyOf(): AbstractBigInt<E> //BigInt = BigInt(mag.copyOf(), sigNum)
+
+    public abstract fun of(value: IntArray): AbstractBigInt<E>
+    public abstract fun of(value: IntArray, sigNum: BigSigned): AbstractBigInt<E>
 
     public companion object {
 
-        public val one: BigInt by lazy { BigInt(intArrayOf(1), BigSigned.POSITIVE) }
-        public val zero: BigInt by lazy { BigInt(intArrayOf(0), BigSigned.ZERO) }
-        public val minusOne: BigInt by lazy { BigInt(intArrayOf(1), BigSigned.NEGATIVE) }
-
-        public inline fun IntArray.revIdx(index: Int): Int = this.lastIndex - index
+        public inline fun IntArray.revIdx(index: Int): Int = lastIndex - index
         public inline fun IntArray.revGet(index: Int): Int = this[lastIndex - index]
         public inline fun IntArray.revGetL(index: Int): Long = this[lastIndex - index].toLong() and 0xffffffffL
         public inline fun IntArray.revSet(index: Int, value: Int) { this[lastIndex - index] = value }
         public inline fun IntArray.revSetL(index: Int, value: Long) { this[lastIndex - index] = value.toInt() }
 
-        public fun fromByteArray(value: ByteArray): BigInt {
+        public inline fun <E: List<Int>> E.revIdx(index: Int): Int = lastIndex - index
+        public inline fun <E: List<Int>> E.revGet(index: Int): Int = this[lastIndex - index]
+        public inline fun <E: List<Int>> E.revGetL(index: Int): Long = this[lastIndex - index].toLong() and 0xffffffffL
+        public inline fun <E: MutableList<Int>> E.revSet(index: Int, value: Int) { this[lastIndex - index] = value }
+        public inline fun <E: MutableList<Int>> E.revSetL(index: Int, value: Long) { this[lastIndex - index] = value.toInt() }
+
+        public fun <T: AbstractBigInt<*>> fromByteArray(value: ByteArray, build: (IntArray, BigSigned) -> T): T {
             check(value.isNotEmpty()) { "Zero length" }
             val negative = value.first().toInt() < 0
 
@@ -186,10 +163,10 @@ public class BigInt(
                 else -> stripLeadingZeros(value)
             }
 
-            return BigInt(mag, sigNumZeroAdjust(mag, sigNum))
+            return build(mag, sigNumZeroAdjust(mag, sigNum))
         }
 
-        public fun fromIntArray(value: IntArray): BigInt {
+        public fun <T: AbstractBigInt<*>> fromIntArray(value: IntArray, build: (IntArray, BigSigned) -> T): T  {
             check(value.isNotEmpty()) { "Zero length" }
             val negative = value.first() < 0
 
@@ -202,7 +179,7 @@ public class BigInt(
                 else -> stripLeadingZeros(value)
             }
 
-            return BigInt(mag, sigNumZeroAdjust(mag, sigNum))
+            return build(mag, sigNumZeroAdjust(mag, sigNum))
         }
 
         private fun sigNumZeroAdjust(mag: IntArray, sigNum: BigSigned): BigSigned = when {
@@ -281,7 +258,7 @@ public class BigInt(
 
         public fun bitSizeForInt(n: Int): Int = Int.SIZE_BITS - n.countLeadingZeroBits()
 
-        public fun bitLength(mag: IntArray, sigNum: BigSigned): Int = if (mag.isNotEmpty()) {
+        public fun <E: List<Int>> bitLength(mag: E, sigNum: BigSigned): Int = if (mag.isNotEmpty()) {
             val size: Int = bitSizeForInt(mag[0]) + ((mag.size - 1) * Int.SIZE_BITS)
             if (sigNum.isNegative()) {
                 if (mag.first().countOneBits() == 1) {
@@ -290,17 +267,17 @@ public class BigInt(
             } else size
         } else 0
 
-        public fun bitCount(mag: IntArray, sigNum: BigSigned): Int = mag.sumOf {
+        public fun <E: List<Int>> bitCount(mag: E, sigNum: BigSigned): Int = mag.sumOf {
             it.countOneBits() } + if (sigNum.isNegative()) {
             var i: Int = mag.lastIndex
             while (mag[i] == 0) i--
             Int.SIZE_BITS * (mag.lastIndex - i) + mag[i].countLeadingZeroBits() - 1
         } else 0
 
-        public fun firstNonZero(mag: IntArray): Int = (
+        public fun <E: List<Int>> firstNonZero(mag: E): Int = (
                 mag.lastIndex downTo 0).indexOfFirst { mag[it] != 0 }.let { if(it == -1) 0 else it }
 
-        internal fun fromLong(value: Long): BigInt = when {
+        /*internal fun fromLong(value: Long): BigInt = when {
             value == 0L -> BigInt(intArrayOf(), BigSigned.ZERO)
             //value < 0 -> BigInt(long2IntArray(-value), BigSignedInt.NEGATIVE)
             value < 0 -> BigInt(long2IntArray(value.inv()), BigSigned.NEGATIVE)
@@ -310,7 +287,7 @@ public class BigInt(
         internal fun long2IntArray(value: Long): IntArray = when(value) {
             in Int.MIN_VALUE..Int.MAX_VALUE -> intArrayOf(value.toInt())
             else -> intArrayOf((value ushr 32).toInt(), value.toInt())
-        }
+        }*/
     }
 }
 
@@ -320,13 +297,47 @@ internal fun biggerFirst(x: IntArray, y: IntArray, block: (x: IntArray, y: IntAr
         else -> block(x, y)
     }
 
-internal fun biggerFirst(x: BigInt, y: BigInt, block: (x: BigInt, y: BigInt) -> BigInt): BigInt =
+internal fun biggerFirst(x: AbstractBigInt<*>, y: AbstractBigInt<*>, block: (x: AbstractBigInt<*>, y: AbstractBigInt<*>) -> AbstractBigInt<*>): AbstractBigInt<*> =
     when (x.mag.size < y.mag.size) {
         true -> block(y, x)
         else -> block(x, y)
     }
 
-internal inline fun maxOfArrays(a: IntArray, b: IntArray, extra: Int = 1): IntArray =
-    IntArray(max(a.size, b.size) + extra)
+internal inline fun <A: List<Int>, B: List<Int>> maxOfArrays(x: A, y: B, extra: Int = 1): IntArray =
+    IntArray(max(x.size, y.size) + extra)
 
 internal inline fun bigMask(pos: Int): Int = 1 shl (pos and Int.SIZE_BITS - 1)
+
+
+public class BigInt internal constructor(magnitude: List<Int>, sigNum: BigSigned): AbstractBigInt<List<Int>>(magnitude, sigNum) {
+    public constructor(magnitude: IntArray, sigNum: BigSigned): this(magnitude.asList(), sigNum)
+
+    override fun negate(): BigInt = BigInt(mag, sigNum.negate())
+
+    override fun copyOf(): BigInt = BigInt(mag, sigNum)
+    override fun of(value: IntArray): BigInt = bigIntOf(value)
+    override fun of(value: IntArray, sigNum: BigSigned): BigInt = BigInt(value, sigNum)
+
+    public companion object {
+        public val one: BigInt by lazy { BigInt(intArrayOf(1), BigSigned.POSITIVE) }
+        public val zero: BigInt by lazy { BigInt(intArrayOf(0), BigSigned.ZERO) }
+        public val minusOne: BigInt by lazy { BigInt(intArrayOf(1), BigSigned.NEGATIVE) }
+    }
+}
+
+public fun bigIntOf(value: IntArray): BigInt = AbstractBigInt.fromIntArray(value) { a, b -> BigInt(a, b) }
+public fun bigIntOf(value: ByteArray): BigInt = AbstractBigInt.fromByteArray(value) { a, b -> BigInt(a, b) }
+
+
+public class MutableBigInt internal constructor(magnitude: MutableList<Int>, sigNum: BigSigned): AbstractBigInt<MutableList<Int>>(magnitude, sigNum) {
+    public constructor(magnitude: IntArray, sigNum: BigSigned): this(magnitude.toMutableList(), sigNum)
+
+    override fun negate(): MutableBigInt = MutableBigInt(mag, sigNum.negate())
+
+    override fun copyOf(): MutableBigInt = MutableBigInt(mag, sigNum)
+    override fun of(value: IntArray): MutableBigInt = mutableBigIntOf(value)
+    override fun of(value: IntArray, sigNum: BigSigned): MutableBigInt = MutableBigInt(value, sigNum)
+}
+
+public fun mutableBigIntOf(value: IntArray): MutableBigInt = AbstractBigInt.fromIntArray(value) { a, b -> MutableBigInt(a, b) }
+public fun mutableBigIntOf(value: ByteArray): MutableBigInt = AbstractBigInt.fromByteArray(value) { a, b -> MutableBigInt(a, b) }

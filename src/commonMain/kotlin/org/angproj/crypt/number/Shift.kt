@@ -14,18 +14,19 @@
  */
 package org.angproj.crypt.number
 
+import org.angproj.crypt.dsa.AbstractBigInt
 import org.angproj.crypt.dsa.BigInt
 
-public infix fun BigInt.shl(count: Int): BigInt = shiftLeft(count)
+public infix fun AbstractBigInt<*>.shl(count: Int): AbstractBigInt<*> = shiftLeft(count)
 
-public fun BigInt.shiftLeft(n: Int): BigInt = when {
+public fun AbstractBigInt<*>.shiftLeft(n: Int): AbstractBigInt<*> = when {
     sigNum.isZero() -> BigInt.zero
-    n > 0 -> BigInt(BigInt.shiftLeftBits(mag, n), sigNum)
+    n > 0 -> BigInt(shiftLeftBits(mag, n), sigNum)
     n == 0 -> this
     else -> shiftRightBits(-n)
 }
 
-internal fun BigInt.Companion.shiftLeftBits(mag: IntArray, count: Int): IntArray {
+internal fun shiftLeftBits(mag: List<Int>, count: Int): IntArray {
     val bigShift = count.floorDiv(Int.SIZE_BITS)
     val tinyShift = count.mod(Int.SIZE_BITS)
     val tinyShiftOpposite = Int.SIZE_BITS - tinyShift
@@ -43,16 +44,16 @@ internal fun BigInt.Companion.shiftLeftBits(mag: IntArray, count: Int): IntArray
     return result
 }
 
-public infix fun BigInt.shr(count: Int): BigInt = shiftRight(count)
+public infix fun AbstractBigInt<*>.shr(count: Int): AbstractBigInt<*> = shiftRight(count)
 
-public fun BigInt.shiftRight(n: Int): BigInt = when {
+public fun AbstractBigInt<*>.shiftRight(n: Int): AbstractBigInt<*> = when {
     sigNum.isZero() -> BigInt.zero
     n > 0 -> shiftRightBits(n)
     n == 0 -> this
-    else -> BigInt(BigInt.shiftLeftBits(mag, -n), sigNum)
+    else -> of(shiftLeftBits(mag, -n), sigNum)
 }
 
-internal fun BigInt.shiftRightBits(count: Int): BigInt {
+internal fun AbstractBigInt<*>.shiftRightBits(count: Int): AbstractBigInt<*> {
     val bigShift: Int = count.floorDiv(Int.SIZE_BITS)
     val tinyShift: Int = count.mod(Int.SIZE_BITS)
     val tinyShiftOpposite = Int.SIZE_BITS - tinyShift
@@ -83,5 +84,5 @@ internal fun BigInt.shiftRightBits(count: Int): BigInt {
         }
     }
 
-    return BigInt(result, sigNum)
+    return of(result, sigNum)
 }

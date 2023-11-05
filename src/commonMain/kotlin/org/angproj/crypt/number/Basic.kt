@@ -15,24 +15,23 @@
 package org.angproj.crypt.number
 
 import org.angproj.crypt.dsa.*
-import org.angproj.crypt.dsa.BigInt.Companion.revGet
-import org.angproj.crypt.dsa.BigInt.Companion.revGetL
-import org.angproj.crypt.dsa.BigInt.Companion.revSet
-import org.angproj.crypt.dsa.BigInt.Companion.revSetL
+import org.angproj.crypt.dsa.AbstractBigInt.Companion.revGetL
+import org.angproj.crypt.dsa.AbstractBigInt.Companion.revSet
+import org.angproj.crypt.dsa.AbstractBigInt.Companion.revSetL
 
-public operator fun BigInt.unaryMinus(): BigInt = negate()
+public operator fun AbstractBigInt<*>.unaryMinus(): AbstractBigInt<*> = negate()
 
-public operator fun BigInt.plus(other: BigInt): BigInt = add(other)
+public operator fun AbstractBigInt<*>.plus(other: BigInt): AbstractBigInt<*> = add(other)
 
-public fun BigInt.add(value: BigInt): BigInt = when {
+public fun AbstractBigInt<*>.add(value: AbstractBigInt<*>): AbstractBigInt<*> = when {
     sigNum.isZero() -> value
     value.sigNum.isZero() -> this
     else -> biggerFirst(this, value) { big, little ->
-        return@biggerFirst BigInt.fromIntArray(BigInt.add(big, little))
+        return@biggerFirst of(add(big, little))
     }
 }
 
-internal fun BigInt.Companion.add(x: BigInt, y: BigInt): IntArray {
+internal fun add(x: AbstractBigInt<*>, y: AbstractBigInt<*>): IntArray {
     val result = IntArray(x.mag.size+1)
 
     var carry: Long = 0
@@ -45,15 +44,15 @@ internal fun BigInt.Companion.add(x: BigInt, y: BigInt): IntArray {
 }
 
 
-public operator fun BigInt.minus(other: BigInt): BigInt = subtract(other)
+public operator fun AbstractBigInt<*>.minus(other: AbstractBigInt<*>): AbstractBigInt<*> = subtract(other)
 
-public fun BigInt.subtract(value: BigInt): BigInt = when {
+public fun AbstractBigInt<*>.subtract(value: AbstractBigInt<*>): AbstractBigInt<*> = when {
     value.sigNum.isZero() -> this
     sigNum.isZero() -> value.negate()
-    else -> BigInt.fromIntArray(BigInt.subtract(this, value))
+    else -> of(subtract(this, value))
 }
 
-internal fun BigInt.Companion.subtract(x: BigInt, y: BigInt): IntArray {
+internal fun subtract(x: AbstractBigInt<*>, y: AbstractBigInt<*>): IntArray {
     val result = maxOfArrays(x.mag, y.mag)
     var carry = 0
     result.indices.forEach { idr ->
@@ -67,18 +66,18 @@ internal fun BigInt.Companion.subtract(x: BigInt, y: BigInt): IntArray {
     return result
 }
 
-public operator fun BigInt.times(other: BigInt): BigInt = multiply(other)
+public operator fun AbstractBigInt<*>.times(other: AbstractBigInt<*>): AbstractBigInt<*> = multiply(other)
 
-private fun BigInt.multiply(value: BigInt): BigInt = when {
+internal fun AbstractBigInt<*>.multiply(value: AbstractBigInt<*>): AbstractBigInt<*> = when {
     sigNum.isZero() || value.sigNum.isZero() -> BigInt.zero
     else -> biggerFirst(this, value) { big, little ->
         val negative = big.sigNum.isNegative().let { if(little.sigNum.isNegative()) !it else it }
-        val result = BigInt(BigInt.multiply(big.abs(), little.abs()), BigSigned.POSITIVE)
+        val result = of(multiply(big.abs(), little.abs()), BigSigned.POSITIVE)
         return@biggerFirst if(negative) result.negate() else result
     }
 }
 
-internal fun BigInt.Companion.multiply(x: BigInt, y: BigInt): IntArray {
+internal fun multiply(x: AbstractBigInt<*>, y: AbstractBigInt<*>): IntArray {
     val result = IntArray(x.mag.size + y.mag.size)
     result.revSet(x.mag.size, multiply(result, x, y.getIdx(0)))
     (1 until y.mag.size).forEach { idy ->
@@ -94,7 +93,7 @@ internal fun BigInt.Companion.multiply(x: BigInt, y: BigInt): IntArray {
     return result
 }
 
-internal fun BigInt.Companion.multiply(result: IntArray, x: BigInt, y: Int): Int {
+internal fun multiply(result: IntArray, x: AbstractBigInt<*>, y: Int): Int {
     val first = y.toLong() and 0xffffffffL
     var carry: Long = 0
     x.mag.indices.forEach { idx ->
@@ -122,17 +121,18 @@ public fun remainder(value: BigInt): BigInt {
 
 public fun BigInt.divideAndRemainder(value: BigInt): Pair<BigInt, BigInt> = when {
     value.sigNum.isZero() -> error { "Divisor is zero" }
-    sigNum.isZero() -> Pair(BigInt.zero, BigInt.zero)
+    sigNum.isZero() -> {println("Dividend is zero"); Pair(BigInt.zero, BigInt.zero)}
     else -> {
         val cmp = this.compareTo(value)
         when {
-            cmp.isLesser() -> Pair(BigInt.zero, this)
-            cmp.isEqual() -> Pair(BigInt.one, BigInt.zero)
+            cmp.isLesser() -> {println("Dividend in smaller"); Pair(BigInt.zero, this)}
+            cmp.isEqual() -> {println("Dividend is equal"); Pair(BigInt.one, BigInt.zero)}
             else -> {
-                val result = divmnu(this, value,)
+                val result = divmnu(this, value)
+                println("Do Knuth")
                 Pair(
-                    BigInt.fromIntArray(result.first),
-                    BigInt.fromIntArray(result.second)
+                    BigInt(result.first, if (this.sigNum == value.sigNum) BigSigned.POSITIVE else BigSigned.NEGATIVE),
+                    BigInt(result.second, this.sigNum)
                 )
             }
         }
@@ -180,10 +180,10 @@ m >= 0 (unstated).  Therefore m+n >= n.) */
 
 // https://raw.githubusercontent.com/hcs0/Hackers-Delight/master/divmnu64.c.txt
 public fun divmnu(dividend: BigInt, divisor: BigInt, m: Int = dividend.mag.size, n: Int = divisor.mag.size): Pair<IntArray, IntArray> {
-    val b: Long = 0xffffffffL // Number base (2**32).
-    var qhat: Long // Estimated quotient digit.
-    var rhat: Long // A remainder.
-    var p: Long // Product of two digits.
+    val base32 = 0xffffffffL // Number base (2**32).
+    var quotHat: Long // Estimated quotient digit.
+    var remHat: Long // A remainder.
+    var product: Long // Product of two digits.
     var t: Long
     var k: Long
     var i: Int
@@ -198,8 +198,8 @@ public fun divmnu(dividend: BigInt, divisor: BigInt, m: Int = dividend.mag.size,
         j = m - 1
         while (j >= 0) { // single-digit
             //q[j] = ((k * b + u[j]) / v[0].toLong()).toInt() // divisor here.
-            quotient.revSetL(j, (k * b + dividend.getIdxL(j)) / divisor.getIdxL(0)) // divisor here.
-            k = (k * b + dividend.getIdxL(j)) - quotient.revGetL(j) * divisor.getIdxL(0)
+            quotient.revSetL(j, (k * base32 + dividend.getIdxL(j)) / divisor.getIdxL(0)) // divisor here.
+            k = (k * base32 + dividend.getIdxL(j)) - quotient.revGetL(j) * divisor.getIdxL(0)
             j--
         }
         if (remainder.isNotEmpty()) remainder.revSetL(0, k)
@@ -229,34 +229,28 @@ public fun divmnu(dividend: BigInt, divisor: BigInt, m: Int = dividend.mag.size,
     j = m - n // Main loop.
     while (j >= 0) {
         // Compute estimate qhat of q[j].
-        qhat = (un.revGetL(j + n) * b + un.revGetL(j + n - 1)) / vn.revGetL(n - 1)
-        rhat = (un.revGetL(j + n) * b + un.revGetL(j + n - 1)) - qhat * vn.revGetL(n - 1)
-        /*again:
-        if (qhat >= b || qhat * vn[n - 2] > b * rhat + un[j + n - 2]) {
-            qhat = qhat - 1uL
-            rhat = rhat + vn[n - 1]
-            if (rhat < b) goto@again
-        }*/
+        quotHat = (un.revGetL(j + n) * base32 + un.revGetL(j + n - 1)) / vn.revGetL(n - 1)
+        remHat = (un.revGetL(j + n) * base32 + un.revGetL(j + n - 1)) - quotHat * vn.revGetL(n - 1)
 
-        while (qhat >= b || qhat * vn.revGetL(n - 2) > b * rhat + un.revGetL(j + n - 2)) {
-            qhat -= 1L
-            rhat += vn.revGetL(n - 1)
-            if(rhat >= b) break
+        while (quotHat >= base32 || quotHat * vn.revGetL(n - 2) > base32 * remHat + un.revGetL(j + n - 2)) {
+            quotHat -= 1L
+            remHat += vn.revGetL(n - 1)
+            if(remHat >= base32) break
         }
 
         // Multiply and subtract.
         k = 0
         i = 0
         while (i < n) {
-            p = qhat * vn.revGetL(i)
-            t = un.revGetL(i + j) - k - (p and 0xFFFFFFFFL)
+            product = quotHat * vn.revGetL(i)
+            t = un.revGetL(i + j) - k - (product and 0xFFFFFFFFL)
             un.revSetL(i + j, t)
-            k = (p shr Int.SIZE_BITS) - (t shr Int.SIZE_BITS)
+            k = (product shr Int.SIZE_BITS) - (t shr Int.SIZE_BITS)
             i++
         }
         t = un.revGetL(j + n) - k
         un.revSetL(j + n, t)
-        quotient.revSetL(j, qhat) // Store quotient digit.
+        quotient.revSetL(j, quotHat) // Store quotient digit.
         if (t < 0) { // If we subtracted too
             quotient.revSetL(j, quotient.revGetL(j) - 1) // much, add back.
             k = 0
