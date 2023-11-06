@@ -38,7 +38,7 @@ class BigIntBinaryTest {
 
     fun compareImport(value: ByteArray) {
         val jbi = BigInteger(value)
-        val cbi = BigInt.fromByteArray(value)
+        val cbi = bigIntOf(value)
         assertContentEquals(cbi.toByteArray(), jbi.toByteArray())
     }
 

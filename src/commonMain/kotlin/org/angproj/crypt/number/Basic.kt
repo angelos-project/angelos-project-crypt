@@ -119,11 +119,11 @@ public fun remainder(value: BigInt): BigInt {
     return rem.canonicalize()
 }*/
 
-public fun BigInt.divideAndRemainder(value: BigInt): Pair<BigInt, BigInt> = when {
+public fun AbstractBigInt<*>.divideAndRemainder(value: AbstractBigInt<*>): Pair<AbstractBigInt<*>, AbstractBigInt<*>> = when {
     value.sigNum.isZero() -> error { "Divisor is zero" }
     sigNum.isZero() -> {println("Dividend is zero"); Pair(BigInt.zero, BigInt.zero)}
     else -> {
-        val cmp = this.compareTo(value)
+        val cmp = compareTo(value)
         when {
             cmp.isLesser() -> {println("Dividend in smaller"); Pair(BigInt.zero, this)}
             cmp.isEqual() -> {println("Dividend is equal"); Pair(BigInt.one, BigInt.zero)}
@@ -131,8 +131,8 @@ public fun BigInt.divideAndRemainder(value: BigInt): Pair<BigInt, BigInt> = when
                 val result = divmnu(this, value)
                 println("Do Knuth")
                 Pair(
-                    BigInt(result.first, if (this.sigNum == value.sigNum) BigSigned.POSITIVE else BigSigned.NEGATIVE),
-                    BigInt(result.second, this.sigNum)
+                    of(result.first, if (this.sigNum == value.sigNum) BigSigned.POSITIVE else BigSigned.NEGATIVE),
+                    of(result.second, this.sigNum)
                 )
             }
         }
@@ -179,7 +179,7 @@ that the dividend be at least as long as the divisor.  (In his terms,
 m >= 0 (unstated).  Therefore m+n >= n.) */
 
 // https://raw.githubusercontent.com/hcs0/Hackers-Delight/master/divmnu64.c.txt
-public fun divmnu(dividend: BigInt, divisor: BigInt, m: Int = dividend.mag.size, n: Int = divisor.mag.size): Pair<IntArray, IntArray> {
+public fun divmnu(dividend: AbstractBigInt<*>, divisor: AbstractBigInt<*>, m: Int = dividend.mag.size, n: Int = divisor.mag.size): Pair<IntArray, IntArray> {
     val base32 = 0xffffffffL // Number base (2**32).
     var quotHat: Long // Estimated quotient digit.
     var remHat: Long // A remainder.

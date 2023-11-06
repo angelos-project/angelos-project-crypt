@@ -66,7 +66,7 @@ public abstract class AbstractBigInt<E: List<Int>>(
         return if (x.mag.size > x.mag.size) BigCompare.GREATER else if (x.mag.size < x.mag.size) BigCompare.LESSER else cmpMag(x, y)
     }*/
 
-    public fun compareTo(other: AbstractBigInt<E>): BigCompare = when {
+    public fun compareTo(other: AbstractBigInt<*>): BigCompare = when {
         sigNum.state > other.sigNum.state -> BigCompare.GREATER
         sigNum.state < other.sigNum.state -> BigCompare.LESSER
         sigNum == BigSigned.POSITIVE -> compareMagnitude(other)
@@ -74,7 +74,7 @@ public abstract class AbstractBigInt<E: List<Int>>(
         else -> BigCompare.EQUAL
     }
 
-    public fun compareMagnitude(other: AbstractBigInt<E>): BigCompare = when {
+    public fun compareMagnitude(other: AbstractBigInt<*>): BigCompare = when {
         mag.size < other.mag.size -> BigCompare.LESSER
         mag.size > other.mag.size -> BigCompare.GREATER
         else -> {
