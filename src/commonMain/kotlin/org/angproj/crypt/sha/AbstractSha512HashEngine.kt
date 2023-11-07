@@ -14,17 +14,17 @@
  */
 package org.angproj.crypt.sha
 
+import org.angproj.aux.util.EndianAware
 import org.angproj.aux.util.readLongAt
-import org.angproj.aux.util.swapEndian
 import org.angproj.aux.util.writeLongAt
 
-public abstract class AbstractSha512HashEngine : AbstractShaHashEngine() {
+public abstract class AbstractSha512HashEngine : AbstractShaHashEngine(), EndianAware {
     abstract override val h: LongArray
 
     override val w: LongArray = LongArray(k.size)
 
     private fun push(chunk: ByteArray) = (0 until 16).forEach { i ->
-        w[i] = chunk.readLongAt(i * wordSize).swapEndian()
+        w[i] = chunk.readLongAt(i * wordSize).asBig()
     }
 
     private fun push(block: LongArray) = block.copyInto(w, 0, 0, 16)
@@ -72,13 +72,13 @@ public abstract class AbstractSha512HashEngine : AbstractShaHashEngine() {
         val end = LongArray(blocksNeeded * 16)
 
         (0 until blockLength).forEach { i ->
-            end[i] = lasting.readLongAt(i * wordSize).swapEndian()
+            end[i] = lasting.readLongAt(i * wordSize).asBig()
         }
 
         val remainder = (lasting.copyOfRange(
             blockLength * wordSize, lasting.size
         ) + 128.toByte()).copyOf(wordSize)
-        end[blockLength] = remainder.readLongAt(0).swapEndian()
+        end[blockLength] = remainder.readLongAt(0).asBig()
 
         val totalSize = count * 8L
         end[end.size - 1] = totalSize
@@ -94,7 +94,7 @@ public abstract class AbstractSha512HashEngine : AbstractShaHashEngine() {
         }
 
         val hash = ByteArray(h.size * wordSize)
-        h.indices.forEach { hash.writeLongAt(it * wordSize, h[it].swapEndian()) }
+        h.indices.forEach { hash.writeLongAt(it * wordSize, h[it].asBig()) }
         return truncate(hash)
     }
 

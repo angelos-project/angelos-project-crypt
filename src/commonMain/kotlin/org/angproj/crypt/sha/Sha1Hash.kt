@@ -14,12 +14,12 @@
  */
 package org.angproj.crypt.sha
 
+import org.angproj.aux.util.EndianAware
 import org.angproj.aux.util.readIntAt
-import org.angproj.aux.util.swapEndian
 import org.angproj.aux.util.writeIntAt
 import org.angproj.crypt.Hash
 
-internal class Sha1Hash: AbstractShaHashEngine() {
+internal class Sha1Hash: AbstractShaHashEngine(), EndianAware {
 
     override val h: IntArray = intArrayOf(
         0x67452301, -0x10325477, -0x67452302, 0x10325476, -0x3c2d1e10
@@ -28,7 +28,7 @@ internal class Sha1Hash: AbstractShaHashEngine() {
     override val w: IntArray = IntArray(80)
 
     private fun push(chunk: ByteArray) = (0 until 16).forEach { i ->
-        w[i] = chunk.readIntAt(i * wordSize).swapEndian()
+        w[i] = chunk.readIntAt(i * wordSize).asBig()
     }
 
     private fun push(block: IntArray) = block.copyInto(w, 0, 0, 16)
@@ -84,13 +84,13 @@ internal class Sha1Hash: AbstractShaHashEngine() {
         val end = IntArray(blocksNeeded * 16)
 
         (0 until blockLength).forEach { i ->
-            end[i] = lasting.readIntAt(i * wordSize).swapEndian()
+            end[i] = lasting.readIntAt(i * wordSize).asBig()
         }
 
         val remainder = (lasting.copyOfRange(
             blockLength * wordSize, lasting.size
         ) + 128.toByte()).copyOf(wordSize)
-        end[blockLength] = remainder.readIntAt(0).swapEndian()
+        end[blockLength] = remainder.readIntAt(0).asBig()
 
         val totalSize = count * 8L
         end[end.size - 2] = ((totalSize) ushr 32).toInt()
@@ -107,7 +107,7 @@ internal class Sha1Hash: AbstractShaHashEngine() {
         }
 
         val hash = ByteArray(h.size * wordSize)
-        h.indices.forEach { hash.writeIntAt(it * wordSize, h[it].swapEndian()) }
+        h.indices.forEach { hash.writeIntAt(it * wordSize, h[it].asBig()) }
         return truncate(hash)
     }
 

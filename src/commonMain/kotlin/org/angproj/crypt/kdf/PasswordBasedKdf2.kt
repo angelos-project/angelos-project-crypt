@@ -14,6 +14,7 @@
  */
 package org.angproj.crypt.kdf
 
+import org.angproj.aux.util.EndianAware
 import org.angproj.aux.util.swapEndian
 import org.angproj.aux.util.writeIntAt
 import org.angproj.crypt.Hash
@@ -23,7 +24,7 @@ import org.angproj.crypt.hmac.KeyHashedMac
 import org.angproj.crypt.sha.Sha256Hash
 import kotlin.math.ceil
 
- public class PasswordBasedKdf2(algo: Hash, public val keySize: Int, public val count: Int = 1000): PasswordBasedKeyDerivation {
+ public class PasswordBasedKdf2(algo: Hash, public val keySize: Int, public val count: Int = 1000): PasswordBasedKeyDerivation, EndianAware {
 
     init {
         require(keySize >= 14) { "Key length to small" }
@@ -55,7 +56,7 @@ import kotlin.math.ceil
     override val type: String
         get() = "PBKDF2-${KeyHashedMac.name}-${algo.name}"
 
-    public companion object: Pbkd {
+    public companion object: Pbkd, EndianAware {
         override val name: String = "PBKDF2"
 
         override fun create(): PasswordBasedKeyDerivation = create(Sha256Hash, Sha256Hash.messageDigestSize, 1)
@@ -71,7 +72,7 @@ import kotlin.math.ceil
         private fun initU(s: ByteArray, i: Int): ByteArray {
             val u = ByteArray(s.size + Int.SIZE_BYTES)
             s.copyInto(u)
-            u.writeIntAt(s.size, i.swapEndian())
+            u.writeIntAt(s.size, i.asBig())
             return u
         }
     }
