@@ -15,7 +15,6 @@
 package org.angproj.crypt.kdf
 
 import org.angproj.aux.util.EndianAware
-import org.angproj.aux.util.swapEndian
 import org.angproj.aux.util.writeIntAt
 import org.angproj.crypt.Hash
 import org.angproj.crypt.Pbkd
