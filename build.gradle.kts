@@ -38,6 +38,7 @@ kotlin {
         val commonMain by getting {
             dependencies {
                 implementation("org.angproj.aux.util:angelos-project-aux:0.1.0")
+                implementation("com.ionspin.kotlin:bignum:0.3.8")
             }
         }
         val commonTest by getting {

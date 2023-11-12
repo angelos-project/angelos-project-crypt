@@ -16,7 +16,6 @@ package org.angproj.crypt.sha
 
 import org.angproj.aux.util.EndianAware
 import org.angproj.aux.util.readIntAt
-import org.angproj.aux.util.swapEndian
 import org.angproj.aux.util.writeIntAt
 
 public abstract class AbstractSha256HashEngine : AbstractShaHashEngine(), EndianAware {
