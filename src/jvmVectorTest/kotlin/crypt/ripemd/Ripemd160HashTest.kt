@@ -21,9 +21,6 @@ val testVectorsRipemd160 = mapOf(
     "a".repeat(1_000_000).encodeToByteArray() to	"52783243c1697bdbe16d37f97f68f08325dc1528"
 )
 
-// 8ba478f28a09f1a589ff676eddc46edd36284264
-// 1637539be8c3df62ee7d9f560343efea1e2d3289
-
 
 class Ripemd160HashTest {
 
@@ -33,7 +30,6 @@ class Ripemd160HashTest {
             val algo = Ripemd160Hash()
             algo.update(msg)
             assertEquals(BinHex.encodeToHex(algo.final()), md.lowercase())
-            println(md.uppercase())
         }
     }
 
