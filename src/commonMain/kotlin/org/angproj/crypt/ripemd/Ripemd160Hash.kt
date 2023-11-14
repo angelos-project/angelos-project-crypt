@@ -20,6 +20,15 @@ import org.angproj.aux.util.writeIntAt
 import org.angproj.crypt.Hash
 import org.angproj.crypt.HashEngine
 
+/**
+ * https://homes.esat.kuleuven.be/~bosselae/ripemd160.html
+ *
+ * https://homes.esat.kuleuven.be/~bosselae/ripemd/rmd128.txt
+ * https://homes.esat.kuleuven.be/~bosselae/ripemd/rmd160.txt
+ * https://homes.esat.kuleuven.be/~bosselae/ripemd/rmd256.txt
+ * https://homes.esat.kuleuven.be/~bosselae/ripemd/rmd320.txt
+ */
+
 internal class Ripemd160Hash: HashEngine, EndianAware {
 
     val h: IntArray = intArrayOf(
@@ -470,7 +479,7 @@ internal class Ripemd160Hash: HashEngine, EndianAware {
             0x6d703ef3, -0x70e44324, 0x7a6d76e9, -0x56ac02b2
         )
 
-        private fun rlmd(x: Int, n: Int) = x shl n or x.ushr(32 - n)
+        private fun rlmd(x: Int, n: Int) = x.rotateLeft(n) // x shl n or x.ushr(32 - n)
         private fun aa(x: Int, y: Int, z: Int) = x xor y xor z
         private fun bb(x: Int, y: Int, z: Int) = x and y or (x.inv() and z)
         private fun cc(x: Int, y: Int, z: Int) = x or y.inv() xor z
