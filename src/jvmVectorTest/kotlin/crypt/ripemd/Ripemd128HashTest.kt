@@ -32,5 +32,4 @@ class Ripemd128HashTest {
             assertEquals(BinHex.encodeToHex(algo.final()), testVectorsDigest[idx].lowercase())
         }
     }
-
 }
