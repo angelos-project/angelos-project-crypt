@@ -29,36 +29,34 @@ import org.angproj.crypt.HashEngine
  * https://homes.esat.kuleuven.be/~bosselae/ripemd/rmd320.txt
  */
 
-internal class Ripemd160Hash: HashEngine, EndianAware {
+internal class Ripemd320Hash: HashEngine, EndianAware {
 
     val h: IntArray = intArrayOf(
-        0x67452301, -0x10325477, -0x67452302, 0x10325476, -0x3c2d1e10
+        0x67452301, -0x10325477, -0x67452302, 0x10325476, -0x3c2d1e10,
+        0x76543210, -0x1234568, -0x76543211, 0x01234567, 0x3C2D1E0F
     )
 
     protected var lasting: ByteArray = ByteArray(0)
 
-    protected var count: Int = 0
+    protected var byteCount: Int = 0
+
+    protected var blockCount: Int = 0
 
     private fun push(chunk: ByteArray): IntArray = IntArray(16).also {
         it.indices.forEach { idx -> it[idx] = chunk.readIntAt(idx * wordSize).asLittle() }
     }
 
     private fun transform(x: IntArray) {
-        val h0 = h.copyOf()
-        val h1 = h.copyOf()
+        val h0 = h.copyOfRange(0, 5)
+        val h1 = h.copyOfRange(5, 10)
 
-        round(x, h0, h1, 0..15, k0[0], k1[0])
-        round(x, h0, h1, 16..31, k0[1], k1[1])
-        round(x, h0, h1, 32..47, k0[2], k1[2])
-        round(x, h0, h1, 48..63, k0[3], k1[3])
-        round(x, h0, h1, 64..79, k0[4], k1[4])
+        round(x, h0, h1 , 0..15, k0[0], k1[0])
+        round(x, h0, h1 , 16..31, k0[1], k1[1])
+        round(x, h0, h1 , 32..47, k0[2], k1[2])
+        round(x, h0, h1 , 48..63, k0[3], k1[3])
+        round(x, h0, h1 , 64..79, k0[4], k1[4])
 
-        h1[3] += h0[2] + h[1]
-        h[1] = h[2] + h0[3] + h1[4]
-        h[2] = h[3] + h0[4] + h1[0]
-        h[3] = h[4] + h0[0] + h1[1]
-        h[4] = h[0] + h0[1] + h1[2]
-        h[0] = h1[3]
+        (h0 + h1).forEachIndexed { idx, value -> h[idx] += value }
     }
 
     override fun update(messagePart: ByteArray) {
@@ -76,13 +74,13 @@ internal class Ripemd160Hash: HashEngine, EndianAware {
             }
 
             transform(push(chunk))
-            count += blockSize
+            byteCount += blockSize
         }
     }
 
     override fun final(): ByteArray {
-        count += lasting.size
-        val bitCount: Long = count * 8L // WARNING! It's sensitive that bitCount is a Long.
+        byteCount += lasting.size
+        val bitCount: Long = byteCount * 8L // WARNING! It's sensitive that bitCount is a Long.
         val buffer = lasting + byteArrayOf(128.toByte(), 0, 0, 0).copyOfRange(0, 4 - lasting.size.rem(4))
 
         val x = IntArray(16)
@@ -109,12 +107,12 @@ internal class Ripemd160Hash: HashEngine, EndianAware {
         get() = "RIPEMD"
 
     public companion object: Hash {
-        public override val name: String = "${Hash.TYPE}-160"
+        public override val name: String = "${Hash.TYPE}-320"
         public override val blockSize: Int = 512 / Byte.SIZE_BITS
         public override val wordSize: Int = 32 / Byte.SIZE_BITS
-        public override val messageDigestSize: Int = 160 / Byte.SIZE_BITS
+        public override val messageDigestSize: Int = 320 / Byte.SIZE_BITS
 
-        public override fun create(): Ripemd160Hash = Ripemd160Hash()
+        public override fun create(): Ripemd320Hash = Ripemd320Hash()
 
         private fun round(x: IntArray, h0: IntArray, h1: IntArray, range: IntRange, k0: Int, k1: Int) {
             var t = 0
@@ -126,12 +124,41 @@ internal class Ripemd160Hash: HashEngine, EndianAware {
                 h0[2] = h0[1]
                 h0[1] = t
 
-                t = (h1[0] + f(79 - j, h1[1], h1[2], h1[3]) + x[r1[j]] + k1).rotateLeft(s1[j]) + h1[4]
+                t = (h1[0] + f(79-j, h1[1], h1[2], h1[3]) + x[r1[j]] + k1).rotateLeft(s1[j]) + h1[4]
                 h1[0] = h1[4]
                 h1[4] = h1[3]
                 h1[3] = h1[2].rotateLeft(10)
                 h1[2] = h1[1]
                 h1[1] = t
+            }
+            when(range.last) {
+                15 -> {
+                    t = h0[1]
+                    h0[1] = h1[1]
+                    h1[1] = t
+
+                }
+                31 -> {
+                    t = h0[3]
+                    h0[3] = h1[3]
+                    h1[3] = t
+                }
+                47 -> {
+                    t = h0[0]
+                    h0[0] = h1[0]
+                    h1[0] = t
+                }
+                63 -> {
+                    t = h0[2]
+                    h0[2] = h1[2]
+                    h1[2] = t
+                }
+                79 -> {
+                    t = h0[4]
+                    h0[4] = h1[4]
+                    h1[4] = t
+                }
+                else -> Unit
             }
         }
 
@@ -141,7 +168,7 @@ internal class Ripemd160Hash: HashEngine, EndianAware {
             in 32..47 -> (x or y.inv()) xor z
             in 48..63 -> (x and z) or (y and z.inv())
             in 64..79 -> x xor (y or z.inv())
-            else -> error("Can't happen: $j")
+            else -> error("Can't happen")
         }
 
         private val k0 = intArrayOf(0x00000000, 0x5A827999, 0x6ED9EBA1, -0x70e44324, -0x56ac02b2)
