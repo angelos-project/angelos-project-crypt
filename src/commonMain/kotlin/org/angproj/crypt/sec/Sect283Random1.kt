@@ -1,3 +1,17 @@
+/**
+ * Copyright (c) 2023 by Kristoffer Paulsson <kristoffer.paulsson@talenten.se>.
+ *
+ * This software is available under the terms of the MIT license. Parts are licensed
+ * under different terms if stated. The legal terms are attached to the LICENSE file
+ * and are made available on:
+ *
+ *      https://opensource.org/licenses/MIT
+ *
+ * SPDX-License-Identifier: MIT
+ *
+ * Contributors:
+ *      Kristoffer Paulsson - initial implementation
+ */
 package org.angproj.crypt.sec
 
 import org.angproj.aux.util.BinHex
@@ -7,7 +21,7 @@ public object Sect283Random1 : SecTRandom {
     public override val strength: Int = 128
     public override val size: Int = 283
 
-    private val _a: ByteArray = BinHex.decodeToBin(
+    private val _a: ByteArray by lazy { BinHex.decodeToBin(
         "00000000" +
                 "00000000" +
                 "00000000" +
@@ -17,9 +31,9 @@ public object Sect283Random1 : SecTRandom {
                 "00000000" +
                 "00000000" +
                 "00000001"
-    )
+    ) }
 
-    private val _b: ByteArray = BinHex.decodeToBin(
+    private val _b: ByteArray by lazy { BinHex.decodeToBin(
         "027B680A" +
                 "C8B8596D" +
                 "A5A4AF8A" +
@@ -29,17 +43,17 @@ public object Sect283Random1 : SecTRandom {
                 "A581485A" +
                 "F6263E31" +
                 "3B79A2F5"
-    )
+    ) }
 
-    private val _S: ByteArray = BinHex.decodeToBin(
+    private val _S: ByteArray by lazy { BinHex.decodeToBin(
         "77E2B073" +
                 "70EB0F83" +
                 "2A6DD5B6" +
                 "2DFC88CD" +
                 "06BB84BE"
-    )
+    ) }
 
-    private val _G: ByteArray = BinHex.decodeToBin(
+    private val _G: ByteArray by lazy { BinHex.decodeToBin(
         "03" +
                 "05F93925" +
                 "8DB7DD90" +
@@ -50,9 +64,9 @@ public object Sect283Random1 : SecTRandom {
                 "80E2E198" +
                 "F8CDBECD" +
                 "86B12053"
-    )
+    ) }
 
-    private val _Gc: ByteArray = BinHex.decodeToBin(
+    private val _Gc: ByteArray by lazy { BinHex.decodeToBin(
         "04" +
                 "05F93925" +
                 "8DB7DD90" +
@@ -72,9 +86,9 @@ public object Sect283Random1 : SecTRandom {
                 "826779C8" +
                 "13F0DF45" +
                 "BE8112F4"
-    )
+    ) }
 
-    private val _n: ByteArray = BinHex.decodeToBin(
+    private val _n: ByteArray by lazy { BinHex.decodeToBin(
         "03FFFFFF" +
                 "FFFFFFFF" +
                 "FFFFFFFF" +
@@ -84,7 +98,7 @@ public object Sect283Random1 : SecTRandom {
                 "938A9016" +
                 "5B042A7C" +
                 "EFADB307"
-    )
+    ) }
 
     private val _h: ByteArray = BinHex.decodeToBin(
         "02"

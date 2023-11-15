@@ -1,3 +1,17 @@
+/**
+ * Copyright (c) 2023 by Kristoffer Paulsson <kristoffer.paulsson@talenten.se>.
+ *
+ * This software is available under the terms of the MIT license. Parts are licensed
+ * under different terms if stated. The legal terms are attached to the LICENSE file
+ * and are made available on:
+ *
+ *      https://opensource.org/licenses/MIT
+ *
+ * SPDX-License-Identifier: MIT
+ *
+ * Contributors:
+ *      Kristoffer Paulsson - initial implementation
+ */
 package org.angproj.crypt.sec
 
 import org.angproj.aux.util.BinHex
@@ -7,34 +21,34 @@ public object Sect163Koblitz1 : SecTKoblitz {
     public override val strength: Int = 80
     public override val size: Int = 163
 
-    private val _a: ByteArray = BinHex.decodeToBin(
+    private val _a: ByteArray by lazy { BinHex.decodeToBin(
         "000" +
                 "0000000" +
                 "00000000" +
                 "00000000" +
                 "00000000" +
                 "00000001"
-    )
+    ) }
 
-    private val _b: ByteArray = BinHex.decodeToBin(
+    private val _b: ByteArray by lazy { BinHex.decodeToBin(
         "00" +
                 "00000000" +
                 "00000000" +
                 "00000000" +
                 "00000000" +
                 "00000001"
-    )
+    ) }
 
-    private val _G: ByteArray = BinHex.decodeToBin(
+    private val _G: ByteArray by lazy { BinHex.decodeToBin(
         "0302" +
                 "FE13C053" +
                 "7BBC11AC" +
                 "AA07D793" +
                 "DE4E6D5E" +
                 "5C94EEE8"
-    )
+    ) }
 
-    private val _Gc: ByteArray = BinHex.decodeToBin(
+    private val _Gc: ByteArray by lazy { BinHex.decodeToBin(
         "0402FE" +
                 "13C0537B" +
                 "BC11ACAA" +
@@ -46,16 +60,16 @@ public object Sect163Koblitz1 : SecTKoblitz {
                 "321F2E80" +
                 "0536D538" +
                 "CCDAA3D9"
-    )
+    ) }
 
-    private val _n: ByteArray = BinHex.decodeToBin(
+    private val _n: ByteArray by lazy { BinHex.decodeToBin(
         "04" +
                 "00000000" +
                 "00000000" +
                 "00020108" +
                 "A2E0CC0D" +
                 "99F8A5EF"
-    )
+    ) }
 
     private val _h: ByteArray = BinHex.decodeToBin(
         "02"

@@ -1,3 +1,17 @@
+/**
+ * Copyright (c) 2023 by Kristoffer Paulsson <kristoffer.paulsson@talenten.se>.
+ *
+ * This software is available under the terms of the MIT license. Parts are licensed
+ * under different terms if stated. The legal terms are attached to the LICENSE file
+ * and are made available on:
+ *
+ *      https://opensource.org/licenses/MIT
+ *
+ * SPDX-License-Identifier: MIT
+ *
+ * Contributors:
+ *      Kristoffer Paulsson - initial implementation
+ */
 package org.angproj.crypt.sec
 
 import org.angproj.aux.util.BinHex
@@ -7,42 +21,42 @@ public object Sect163Random1 : SecTRandom {
     public override val strength: Int = 80
     public override val size: Int = 163
 
-    private val _a: ByteArray = BinHex.decodeToBin(
+    private val _a: ByteArray by lazy { BinHex.decodeToBin(
         "07" +
                 "B6882CAA" +
                 "EFA84F95" +
                 "54FF8428" +
                 "BD88E246" +
                 "D2782AE2"
-    )
+    ) }
 
-    private val _b: ByteArray = BinHex.decodeToBin(
+    private val _b: ByteArray by lazy { BinHex.decodeToBin(
         "07" +
                 "13612DCD" +
                 "DCB40AAB" +
                 "946BDA29" +
                 "CA91F73A" +
                 "F958AFD9"
-    )
+    ) }
 
-    private val _S: ByteArray = BinHex.decodeToBin(
+    private val _S: ByteArray by lazy { BinHex.decodeToBin(
         "24B7B137" +
                 "C8A14D69" +
                 "6E676875" +
                 "6151756F" +
                 "D0DA2E5C"
-    )
+    ) }
 
-    private val _G: ByteArray = BinHex.decodeToBin(
+    private val _G: ByteArray by lazy { BinHex.decodeToBin(
         "0303" +
                 "69979697" +
                 "AB438977" +
                 "89566789" +
                 "567F787A" +
                 "7876A654"
-    )
+    ) }
 
-    private val _Gc: ByteArray = BinHex.decodeToBin(
+    private val _Gc: ByteArray by lazy { BinHex.decodeToBin(
         "040369" +
                 "979697AB" +
                 "43897789" +
@@ -54,16 +68,16 @@ public object Sect163Random1 : SecTRandom {
                 "9D51FEFC" +
                 "E3C80988" +
                 "F41FF883"
-    )
+    ) }
 
-    private val _n: ByteArray = BinHex.decodeToBin(
+    private val _n: ByteArray by lazy { BinHex.decodeToBin(
         "03" +
                 "FFFFFFFF" +
                 "FFFFFFFF" +
                 "FFFF48AA" +
                 "B689C29C" +
                 "A710279B"
-    )
+    ) }
 
     private val _h: ByteArray = BinHex.decodeToBin(
         "02"

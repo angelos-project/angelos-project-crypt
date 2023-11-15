@@ -52,10 +52,17 @@ import kotlin.math.ceil
         return mk.copyOfRange(0, keySize)
     }
 
+     private fun initU(s: ByteArray, i: Int): ByteArray {
+         val u = ByteArray(s.size + Int.SIZE_BYTES)
+         s.copyInto(u)
+         u.writeIntAt(s.size, i.asBig())
+         return u
+     }
+
     override val type: String
         get() = "PBKDF2-${KeyHashedMac.name}-${algo.name}"
 
-    public companion object: Pbkd, EndianAware {
+    public companion object: Pbkd {
         override val name: String = "PBKDF2"
 
         override fun create(): PasswordBasedKeyDerivation = create(Sha256Hash, Sha256Hash.messageDigestSize, 1)
@@ -66,13 +73,6 @@ import kotlin.math.ceil
             val prf = KeyHashedMac(prep)
             prf.update(u)
             return prf.final()
-        }
-
-        private fun initU(s: ByteArray, i: Int): ByteArray {
-            val u = ByteArray(s.size + Int.SIZE_BYTES)
-            s.copyInto(u)
-            u.writeIntAt(s.size, i.asBig())
-            return u
         }
     }
 }

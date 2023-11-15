@@ -18,6 +18,15 @@ package org.angproj.crypt.dsa
  * pow mod log sqrt abs ceil floor lt gt le ge ne odd even
  * pow2 log2 sqrt2
  * addition subtraction multiplication division
+ *
+ * mod !
+ * add
+ * multiply
+ * compareTo
+ * divide !
+ * subtract
+ * pow !
+ * equals
  */
 
 public class BigInt internal constructor(magnitude: List<Int>, sigNum: BigSigned): AbstractBigInt<List<Int>>(magnitude, sigNum) {

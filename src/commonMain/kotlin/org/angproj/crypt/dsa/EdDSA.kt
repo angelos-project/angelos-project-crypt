@@ -14,15 +14,5 @@
  */
 package org.angproj.crypt.dsa
 
-
-// https://csrc.nist.gov/files/pubs/fips/186-3/final/docs/fips_186-3.pdf
-// https://datatracker.ietf.org/doc/html/rfc6979
-
-
-// https://csrc.nist.gov/Projects/Cryptographic-Algorithm-Validation-Program/Secure-Hashing
-// https://csrc.nist.gov/Projects/Cryptographic-Algorithm-Validation-Program/Digital-Signatures
-
-// https://github.com/starkbank/ecdsa-java
-
-public class ECDSA {
+public class EdDSA {
 }
