@@ -12,6 +12,8 @@ class BigIntBinaryTest {
     val vectorList2 = Combinator.generateValueVector()
     val vectorPositiveListSizes = Combinator.generatePositiveSizeVector()
 
+    val vectcorListLong = Combinator.generateLongValueVector()
+
     val dp: List<SecDomainParameters> = listOf(
         Secp192Koblitz1,
         Secp192Random1,
@@ -119,13 +121,12 @@ class BigIntBinaryTest {
         }
     }
 
-    /*@Test
+    @Test
     fun fromLongTest() {
         Combinator.doLongVectorTests(vectcorListLong) { xbi, x ->
-            println(xbi.bitLength())
             Pair(xbi, x)
         }
-    }*/
+    }
 
     @Test
     fun compareToTest() {

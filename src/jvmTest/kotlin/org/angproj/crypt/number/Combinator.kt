@@ -125,25 +125,25 @@ object Combinator {
         }
     }
 
-    /*fun doLongVectorTests(
+    fun doLongVectorTests(
         vector: List<Long>,
         action: (cbi: AbstractBigInt<*>, jbi: BigInteger) -> Pair<AbstractBigInt<*>, BigInteger>
     ) {
         vector.forEach { v ->
             println("H: ${BinHex.encodeToHex(ByteArray(8).also{ ba ->
-                ba.writeLongAt(0, it.swapEndian())})}")
-            val bi = bigIntOf(it)
-            val jbi = BigInteger.valueOf(it)
+                ba.writeLongAt(0, v.swapEndian())})}")
+            val bi = bigIntOf(v)
+            val jbi = BigInteger.valueOf(v)
             val result: Pair<AbstractBigInt<*>, BigInteger> = action(bi, jbi)
             println("D: ${result.second}")
             println("K: ${BinHex.encodeToHex(result.first.toByteArray())}")
             //println("J: ${BinHex.encodeToHex( stripLeadingZeroBytesCorrection(result.second.toByteArray()))}\n")
             println("J: ${BinHex.encodeToHex(result.second.toByteArray())}\n")
-            assertContentEquals(result.first.toByteArray(), stripLeadingZeroBytesCorrection(result.second.toByteArray()))
+            assertContentEquals(result.first.toByteArray(), result.second.toByteArray())
             //assertContentEquals(result.first.toByteArray(), result.second.toByteArray())
             //assertEquals(result.first.longValueExact(), result.second.longValueExact())
         }
-    }*/
+    }
 
     fun doMatrixTests(
         vector1: List<BigInteger>,

@@ -14,10 +14,78 @@
  */
 package org.angproj.crypt.number
 
-import org.angproj.crypt.dsa.AbstractBigInt
-import org.angproj.crypt.dsa.BigInt2
+import org.angproj.crypt.dsa.*
 import org.angproj.crypt.dsa.MPN
-import org.angproj.crypt.dsa.biggerFirst
+
+public infix fun AbstractBigInt<*>.pow(exponent: Int): AbstractBigInt<*> = when {
+    exponent < 0 -> error("Negative exponent")
+    exponent == 0 -> BigInt.one
+    sigNum.isZero() -> this
+    else -> {
+        val size = (bitCount * exponent shr 5) + 2 * mag.size
+        check(size < Int.MAX_VALUE) { "Resulting memory to large. Size $size 32-bit integer array is required." }
+        val negative = sigNum.isNegative() && exponent and 1 != 0
+        val result = pow(this.abs(), exponent)
+        if (negative) result.negate() else result
+    }
+}
+
+internal fun pow(base: AbstractBigInt<*>, exponent: Int): AbstractBigInt<*> {
+    var rest = exponent
+    var total = BigInt.zero
+    while(rest > 1) {
+        var square = base
+        val pow2 = AbstractBigInt.bitSizeForInt(rest)
+        rest -= (pow2 shl 0x01)
+        (0 until pow2).forEach { _ -> square *= square }
+        total = total.add(square) as BigInt
+    }
+    if(rest == 1) total = total.add(base) as BigInt
+    return total
+}
+
+/* public fun pow(exponent0: Int): BigInt2? {
+    var exponent = exponent0
+    if (exponent <= 0) {
+        if (exponent == 0) return BigInt2.ONE
+        throw ArithmeticException("negative exponent")
+    }
+    if (isZero) return this
+    var plen = if (words == null) 1 else ival // Length of pow2.
+    val blen = (bitLength() * exponent shr 5) + 2 * plen
+    val negative = isNegative && exponent and 1 != 0
+    var pow2 = IntArray(blen)
+    var rwords = IntArray(blen)
+    var work = IntArray(blen)
+    getAbsolute(pow2) // pow2 = abs(this);
+    var rlen = 1
+    rwords[0] = 1 // rwords = 1;
+    while (true) {
+
+        // pow2 == this**(2**i)
+        // prod = this**(sum(j=0..i-1, (exponent>>j)&1))
+        if (exponent and 1 != 0) { // r *= pow2
+            MPN.mul(work, pow2, plen, rwords, rlen)
+            val temp = work
+            work = rwords
+            rwords = temp
+            rlen += plen
+            while (rwords[rlen - 1] == 0) rlen--
+        }
+        exponent = exponent shr 1
+        if (exponent == 0) break
+        // pow2 *= pow2;
+        MPN.mul(work, pow2, plen, pow2, plen)
+        val temp = work
+        work = pow2
+        pow2 = temp // swap to avoid a copy
+        plen *= 2
+        while (pow2[plen - 1] == 0) plen--
+    }
+    if (rwords[rlen - 1] < 0) rlen++
+    if (negative) BigInt2.negate(rwords, rwords, rlen)
+    return BigInt2.make(rwords, rlen)
+} */
 
 
 /*public fun AbstractBigInt<*>.gcd(value: AbstractBigInt<*>): AbstractBigInt<*> {

@@ -37,6 +37,7 @@ public class BigInt internal constructor(magnitude: List<Int>, sigNum: BigSigned
     override fun copyOf(): BigInt = BigInt(mag, sigNum)
     override fun of(value: IntArray): BigInt = bigIntOf(value)
     override fun of(value: IntArray, sigNum: BigSigned): BigInt = BigInt(value, sigNum)
+    override fun of(value: Long): BigInt = bigIntOf(value)
 
     public companion object {
         public val one: BigInt by lazy { BigInt(intArrayOf(1), BigSigned.POSITIVE) }
@@ -47,3 +48,4 @@ public class BigInt internal constructor(magnitude: List<Int>, sigNum: BigSigned
 
 public fun bigIntOf(value: IntArray): BigInt = AbstractBigInt.fromIntArray(value) { a, b -> BigInt(a, b) }
 public fun bigIntOf(value: ByteArray): BigInt = AbstractBigInt.fromByteArray(value) { a, b -> BigInt(a, b) }
+public fun bigIntOf(value: Long): BigInt = AbstractBigInt.fromLong(value) { a, b -> BigInt(a, b) }

@@ -21,7 +21,7 @@ import org.angproj.crypt.dsa.AbstractBigInt.Companion.revSetL
 
 public operator fun AbstractBigInt<*>.unaryMinus(): AbstractBigInt<*> = negate()
 
-public operator fun AbstractBigInt<*>.plus(other: BigInt): AbstractBigInt<*> = add(other)
+public operator fun AbstractBigInt<*>.plus(other: AbstractBigInt<*>): AbstractBigInt<*> = add(other)
 
 public fun AbstractBigInt<*>.add(value: AbstractBigInt<*>): AbstractBigInt<*> = when {
     sigNum.isZero() -> value

@@ -129,6 +129,7 @@ public abstract class AbstractBigInt<E: List<Int>>(
 
     public abstract fun of(value: IntArray): AbstractBigInt<E>
     public abstract fun of(value: IntArray, sigNum: BigSigned): AbstractBigInt<E>
+    public abstract fun of(value: Long): AbstractBigInt<E>
 
     public companion object {
 
@@ -171,6 +172,22 @@ public abstract class AbstractBigInt<E: List<Int>>(
             val mag = when(negative) {
                 true -> makePositive(value)
                 else -> stripLeadingZeros(value)
+            }
+
+            return build(mag, sigNumZeroAdjust(mag, sigNum))
+        }
+
+        public fun <T: AbstractBigInt<*>> fromLong(value: Long, build: (IntArray, BigSigned) -> T): T  {
+            val negative = value < 0
+
+            val sigNum = when(negative) {
+                true -> BigSigned.NEGATIVE
+                else -> BigSigned.POSITIVE
+            }
+            val tmp =  intArrayOf((value ushr 32).toInt(), value.toInt())
+            val mag = when(negative) {
+                true -> makePositive(tmp)
+                else -> stripLeadingZeros(tmp)
             }
 
             return build(mag, sigNumZeroAdjust(mag, sigNum))

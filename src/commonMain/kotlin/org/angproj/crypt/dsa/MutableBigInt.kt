@@ -22,7 +22,9 @@ public class MutableBigInt internal constructor(magnitude: MutableList<Int>, sig
     override fun copyOf(): MutableBigInt = MutableBigInt(mag, sigNum)
     override fun of(value: IntArray): MutableBigInt = mutableBigIntOf(value)
     override fun of(value: IntArray, sigNum: BigSigned): MutableBigInt = MutableBigInt(value, sigNum)
+    override fun of(value: Long): MutableBigInt = mutableBigIntOf(value)
 }
 
 public fun mutableBigIntOf(value: IntArray): MutableBigInt = AbstractBigInt.fromIntArray(value) { a, b -> MutableBigInt(a, b) }
 public fun mutableBigIntOf(value: ByteArray): MutableBigInt = AbstractBigInt.fromByteArray(value) { a, b -> MutableBigInt(a, b) }
+public fun mutableBigIntOf(value: Long): MutableBigInt = AbstractBigInt.fromLong(value) { a, b -> MutableBigInt(a, b) }
