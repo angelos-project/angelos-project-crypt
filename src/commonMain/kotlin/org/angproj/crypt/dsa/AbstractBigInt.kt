@@ -16,6 +16,7 @@ package org.angproj.crypt.dsa
 
 import org.angproj.aux.util.readIntAt
 import org.angproj.aux.util.swapEndian
+import org.angproj.aux.util.writeIntAt
 import kotlin.math.max
 
 public abstract class AbstractBigInt<E: List<Int>>(
@@ -95,29 +96,22 @@ public abstract class AbstractBigInt<E: List<Int>>(
     }
 
     public fun toByteArray(): ByteArray {
-        var byteLen = bitLength / 8 + 1
-        val byteArray = ByteArray(byteLen)
+        if(sigNum.isZero()) return byteArrayOf(0)
 
-        var bytesCopied=4
-        var nextInt = 0
-        var intIndex = 0
-        for(i in byteLen-1 downTo 0) {
-            if (bytesCopied == 4) {
-                nextInt = getIdx(intIndex++)
-                bytesCopied = 1
-            } else {
-                nextInt = nextInt ushr 8
-                bytesCopied++
-            }
-            byteArray[i] = nextInt.toByte()
-        }
+        val output = ByteArray(mag.size * 4)
+        mag.indices.forEach { output.writeIntAt(it * 4, getIdx(mag.lastIndex - it).swapEndian()) }
+        val keep = keep(output, sigNum)
 
-        // Compatibility adjustment compared to JAVA implementation, is it really necessary?
-        return when(byteArray[0].toInt() == 127 && sigNum.isNegative()) {
-            true -> byteArrayOf(-1) + byteArray
-            else -> byteArray
+        if(keep == output.size) return byteArrayOf(sigNum.signed.toByte())
+
+        val prepend = sigNum.isNonNegative() == output[keep] < 0
+        return when {
+            keep == 0 && prepend -> byteArrayOf(sigNum.signed.toByte()) + output
+            keep == 1 && prepend -> output.also{ it[0] = sigNum.signed.toByte() }
+            keep > 1 && prepend -> byteArrayOf(sigNum.signed.toByte()) + output.copyOfRange(keep, output.size)
+            keep > 0 -> output.copyOfRange(keep, output.size)
+            else -> output
         }
-        //return byteArray
     }
 
     public fun toZeroFilledByteArray(totalSize: Int): ByteArray {

@@ -118,7 +118,7 @@ object Combinator {
             val result: Pair<AbstractBigInt<*>, BigInteger> = action(bi, it)
             println("D: ${result.second} ${result.second.signum()}")
             println("K: ${BinHex.encodeToHex(result.first.toByteArray())}")
-            println("J: ${BinHex.encodeToHex(stripLeadingZeroBytesCorrection(result.second.toByteArray()))}\n")
+            println("J: ${BinHex.encodeToHex(result.second.toByteArray())}\n")
             /*println("J: ${BinHex.encodeToHex(result.second.toByteArray())}\n")
             assertContentEquals(result.first.toByteArray(), stripLeadingZeroBytesCorrection(result.second.toByteArray()))*/
             assertContentEquals(result.first.toByteArray(), result.second.toByteArray())
@@ -159,6 +159,31 @@ object Combinator {
                 println("Hx: ${BinHex.encodeToHex(xbi.toByteArray())}")
                 println("Hy: ${BinHex.encodeToHex(ybi.toByteArray())}")
                 val result: Pair<AbstractBigInt<*>, BigInteger> = action(xbi, ybi, x, y)
+                println("D: ${result.second}")
+                println("K: ${BinHex.encodeToHex(result.first.toByteArray())}")
+                println("J: ${BinHex.encodeToHex(result.second.toByteArray())}\n")
+                /*assertContentEquals(result.first.toByteArray(), stripLeadingZeroBytesCorrection(result.second.toByteArray()))
+                assertContentEquals(
+                    stripLeadingZeroBytesCorrection(result.first.toByteArray()),
+                    stripLeadingZeroBytesCorrection(result.second.toByteArray())
+                )*/
+                assertContentEquals(result.first.toByteArray(), result.second.toByteArray())
+            }
+        }
+    }
+
+    fun doMatrixExpTests(
+        vector1: List<BigInteger>,
+        vector2: List<Int>,
+        action: (xbi: AbstractBigInt<*>, x: BigInteger, e: Int) -> Pair<AbstractBigInt<*>, BigInteger>
+    ) {
+        vector1.forEach { x ->
+            val xbi = bigIntOf(x.toByteArray())
+            vector2.forEach { exp ->
+                println("J: ${BinHex.encodeToHex(x.toByteArray())}")
+                println("H: ${BinHex.encodeToHex(xbi.toByteArray())}")
+                println("E: $exp")
+                val result: Pair<AbstractBigInt<*>, BigInteger> = action(xbi, x, exp)
                 println("D: ${result.second}")
                 println("K: ${BinHex.encodeToHex(result.first.toByteArray())}")
                 println("J: ${BinHex.encodeToHex(result.second.toByteArray())}\n")
