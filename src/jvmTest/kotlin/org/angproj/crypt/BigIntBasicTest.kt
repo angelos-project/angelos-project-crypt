@@ -37,12 +37,13 @@ class BigIntBasicTest {
         }
     }
 
-    /*@Test
+    @Test
     fun divideAndRemainderTest() {
-        Combinator.doMatrixPairTests(vectorList1, vectorList2) { xbi, ybi, x, y ->
+        vectorList2.forEach { println(it) }
+        Combinator.doMatrixPairTests(listOf(vectorList1[11]), listOf(vectorList2[11])) { xbi, ybi, x, y ->
             Pair(xbi.divideAndRemainder(ybi) , x.divideAndRemainder(y))
         }
-    }*/
+    }
 
     @Test
     fun compareToTest() {

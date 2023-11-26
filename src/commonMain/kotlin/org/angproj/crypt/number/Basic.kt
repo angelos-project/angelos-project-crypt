@@ -19,6 +19,7 @@ import org.angproj.crypt.dsa.AbstractBigInt.Companion.revGetL
 import org.angproj.crypt.dsa.AbstractBigInt.Companion.revSet
 import org.angproj.crypt.dsa.AbstractBigInt.Companion.revSetL
 
+
 public operator fun AbstractBigInt<*>.unaryMinus(): AbstractBigInt<*> = negate()
 
 public operator fun AbstractBigInt<*>.plus(other: AbstractBigInt<*>): AbstractBigInt<*> = add(other)
@@ -119,8 +120,12 @@ public fun remainder(value: BigInt): BigInt {
     return rem.canonicalize()
 }*/
 
+// https://github.com/openjdk/jdk/blob/master/src/java.base/share/classes/java/math/MutableBigInteger.java#L1481
+// divideMagnitude here!
+
 public fun AbstractBigInt<*>.divideAndRemainder(value: AbstractBigInt<*>): Pair<AbstractBigInt<*>, AbstractBigInt<*>> = when {
     value.sigNum.isZero() -> error { "Divisor is zero" }
+    value.compareTo(BigInt.one) == BigCompare.EQUAL  -> Pair(this, BigInt.zero)
     sigNum.isZero() -> {println("Dividend is zero"); Pair(BigInt.zero, BigInt.zero)}
     else -> {
         val cmp = compareTo(value)
@@ -128,7 +133,7 @@ public fun AbstractBigInt<*>.divideAndRemainder(value: AbstractBigInt<*>): Pair<
             cmp.isLesser() -> {println("Dividend in smaller"); Pair(BigInt.zero, this)}
             cmp.isEqual() -> {println("Dividend is equal"); Pair(BigInt.one, BigInt.zero)}
             else -> {
-                val result = divmnu(this, value)
+                val result = divideOneWord(value.getIdx(0))
                 println("Do Knuth")
                 Pair(
                     of(result.first, if (this.sigNum == value.sigNum) BigSigned.POSITIVE else BigSigned.NEGATIVE),
@@ -139,435 +144,351 @@ public fun AbstractBigInt<*>.divideAndRemainder(value: AbstractBigInt<*>): Pair<
     }
 }
 
-/* This divides an n-word dividend by an m-word divisor, giving an
-n-m+1-word quotient and m-word remainder. The bignums are in arrays of
-words. Here a "word" is 32 bits. This routine is designed for a 64-bit
-machine which has a 64/64 division instruction. */
+public fun AbstractBigInt<*>.divideOneWord(divisor: Int): Pair<IntArray, IntArray> {
+    val divisorLong = divisor.toLong() and 0xffffffffL
 
-internal fun nlz(x0: Long): Int {
-    var x = x0
-    if (x == 0L) return Int.SIZE_BITS
-    var n = 0
-    if (x <= 0x0000FFFFL) {n += 16; x = x shl 16}
-    if (x <= 0x00FFFFFFL) {n += 8; x = x shl 8}
-    if (x <= 0x0FFFFFFFL) {n += 4; x = x shl 4}
-    if (x <= 0x3FFFFFFFL) {n += 2; x = x shl 2}
-    if (x <= 0x7FFFFFFFL) {n += 1}
-    return n
+    // Special case of one word dividend
+    if (mag.size == 1) {
+        val dividendValue: Long = getUnreversedIdxL(0)
+        val q = (dividendValue / divisorLong).toInt()
+        val r = (dividendValue - q * divisorLong).toInt()
+        return Pair(intArrayOf(q), intArrayOf(r))
+    }
+    val quotient =  IntArray(mag.size)
+
+    // Normalize the divisor
+    val shift: Int = divisor.countLeadingZeroBits()
+    var rem: Int = getUnreversedIdx(0)
+    var remLong = rem.toLong() and 0xffffffffL
+    if (remLong < divisorLong) {
+        quotient[0] = 0
+    } else {
+        quotient[0] = (remLong / divisorLong).toInt()
+        rem = (remLong - quotient[0] * divisorLong).toInt()
+        remLong = rem.toLong() and 0xffffffffL
+    }
+    var xlen: Int = mag.size
+    while (--xlen > 0) {
+        val dividendEstimate = remLong shl 32 or getUnreversedIdxL(mag.size - xlen)
+        var q: Int
+        if (dividendEstimate >= 0) {
+            q = (dividendEstimate / divisorLong).toInt()
+            rem = (dividendEstimate - q * divisorLong).toInt()
+        } else {
+            val tmp = divWord(dividendEstimate, divisor)
+            q = (tmp and 0xffffffffL).toInt()
+            rem = (tmp ushr 32).toInt()
+        }
+        quotient[mag.size - xlen] = q
+        remLong = rem.toLong() and 0xffffffffL
+    }
+    // Unnormalize
+    return when {
+        shift > 0 -> Pair(quotient, intArrayOf(rem % divisor))
+        else -> Pair(quotient, intArrayOf(rem))
+    }
 }
 
-/* q[0], r[0], u[0], and v[0] contain the LEAST significant words.
-(The sequence is in little-endian order).
-
-This is a fairly precise implementation of Knuth's Algorithm D, for a
-binary computer with base b = 2**32. The caller supplies:
-   1. Space q for the quotient, m - n + 1 words (at least one).
-   2. Space r for the remainder (optional), n words.
-   3. The dividend u, m words, m >= 1.
-   4. The divisor v, n words, n >= 2.
-The most significant digit of the divisor, v[n-1], must be nonzero.  The
-dividend u may have leading zeros; this just makes the algorithm take
-longer and makes the quotient contain more leading zeros.  A value of
-NULL may be given for the address of the remainder to signify that the
-caller does not want the remainder.
-   The program does not alter the input parameters u and v.
-   The quotient and remainder returned may have leading zeros.  The
-function itself returns a value of 0 for success and 1 for invalid
-parameters (e.g., division by 0).
-   For now, we must have m >= n.  Knuth's Algorithm D also requires
-that the dividend be at least as long as the divisor.  (In his terms,
-m >= 0 (unstated).  Therefore m+n >= n.) */
-
-// https://raw.githubusercontent.com/hcs0/Hackers-Delight/master/divmnu64.c.txt
-public fun divmnu(dividend: AbstractBigInt<*>, divisor: AbstractBigInt<*>, m: Int = dividend.mag.size, n: Int = divisor.mag.size): Pair<IntArray, IntArray> {
-    val base32 = 0xffffffffL // Number base (2**32).
-    var quotHat: Long // Estimated quotient digit.
-    var remHat: Long // A remainder.
-    var product: Long // Product of two digits.
-    var t: Long
-    var k: Long
-    var i: Int
-    var j: Int
-
-    val quotient = IntArray(m - n + 1)
-    val remainder = IntArray(n)
-    if (m < n || n <= 0 || divisor.getIdx(n - 1) == 0)
-        error("Invalid state")
-    if (n == 1) { // Take care of
-        k = 0 // the case of a
-        j = m - 1
-        while (j >= 0) { // single-digit
-            //q[j] = ((k * b + u[j]) / v[0].toLong()).toInt() // divisor here.
-            quotient.revSetL(j, (k * base32 + dividend.getIdxL(j)) / divisor.getIdxL(0)) // divisor here.
-            k = (k * base32 + dividend.getIdxL(j)) - quotient.revGetL(j) * divisor.getIdxL(0)
-            j--
-        }
-        if (remainder.isNotEmpty()) remainder.revSetL(0, k)
-        return Pair(quotient, remainder)
-    }
-    /* Normalize by shifting v left just enough so that its high-order
-    bit is on, and shift u left the same amount. We may have to append a
-    high-order digit on the dividend; we do that unconditionally. */
-    val s = nlz(divisor.getIdxL(n - 1)) // 0 <= s <= 31.
-    //val vn = IntArray(4 * n)
-    val vn = IntArray(n)
-    i = n - 1
-    while (i > 0) {
-        vn.revSetL(i, (divisor.getIdxL(i) shl s) or (divisor.getIdxL(i - 1) shr (Int.SIZE_BITS - s)))
-        i--
-    }
-    vn.revSetL(0, divisor.getIdxL(0) shl s)
-    //val un = IntArray(4 * (m + 1))
-    val un = IntArray(m + 1)
-    un.revSetL(m, (dividend.getIdxL(m - 1) shr (Int.SIZE_BITS - s)))
-    i = m - 1
-    while (i > 0) {
-        un.revSetL(i, (dividend.getIdxL(i) shl s) or (dividend.getIdxL(i - 1) shr (Int.SIZE_BITS - s)))
-        i--
-    }
-    un.revSetL(0, dividend.getIdxL(0) shl s)
-    j = m - n // Main loop.
-    while (j >= 0) {
-        // Compute estimate qhat of q[j].
-        quotHat = (un.revGetL(j + n) * base32 + un.revGetL(j + n - 1)) / vn.revGetL(n - 1)
-        remHat = (un.revGetL(j + n) * base32 + un.revGetL(j + n - 1)) - quotHat * vn.revGetL(n - 1)
-
-        while (quotHat >= base32 || quotHat * vn.revGetL(n - 2) > base32 * remHat + un.revGetL(j + n - 2)) {
-            quotHat -= 1L
-            remHat += vn.revGetL(n - 1)
-            if(remHat >= base32) break
-        }
-
-        // Multiply and subtract.
-        k = 0
-        i = 0
-        while (i < n) {
-            product = quotHat * vn.revGetL(i)
-            t = un.revGetL(i + j) - k - (product and 0xFFFFFFFFL)
-            un.revSetL(i + j, t)
-            k = (product shr Int.SIZE_BITS) - (t shr Int.SIZE_BITS)
-            i++
-        }
-        t = un.revGetL(j + n) - k
-        un.revSetL(j + n, t)
-        quotient.revSetL(j, quotHat) // Store quotient digit.
-        if (t < 0) { // If we subtracted too
-            quotient.revSetL(j, quotient.revGetL(j) - 1) // much, add back.
-            k = 0
-            i = 0
-            while (i < n) {
-                //t = (un[i + j].toLong() + vn[i] + k).toInt().toLong()
-                t = (un.revGetL(i + j) + vn.revGetL(i) + k)
-                un.revSetL(i + j, t)
-                k = t shr Int.SIZE_BITS
+public fun AbstractBigInt<*>.divideMagnitude(div: MutableBigInt): Pair<IntArray, IntArray> {
+    // assert div.intLen > 1
+    // D1 normalize the divisor
+    //val shift: Int = java.lang.Integer.numberOfLeadingZeros(div.value.get(div.offset))
+    val shift = div.mag.first().countLeadingZeroBits()
+    // Copy divisor value to protect divisor
+    //val dlen: Int = div.intLen
+    val dlen: Int = div.mag.size
+    val divisor: IntArray
+    //val rem: MutableBigInt
+    val remarr: IntArray // Remainder starts as dividend with space for a leading zero
+    if (shift > 0) {
+        divisor = IntArray(dlen)
+        copyAndShift(div.mag.toIntArray(), 0, dlen, divisor, 0, shift)
+        //divisor = div.shiftLeft(shift).toComplementedIntArray()
+        //if (java.lang.Integer.numberOfLeadingZeros(value.get(offset)) >= shift) {
+        if (mag.first().countLeadingZeroBits() >= shift) {
+            remarr = IntArray(mag.size + 1)
+            //rem = mutableBigIntOf(remarr)
+            //rem.intLen = intLen
+            //rem.offset = 1
+            copyAndShift(mag.toIntArray(), 1, mag.size, remarr, 1, shift)
+            remarr[0] = 0
+            //rem = mutableBigIntOf(remarr)
+            //val remarr = intArrayOf(0) + shiftLeft(shift).toComplementedIntArray()
+        } else {
+            remarr = IntArray(mag.size + 2)
+            //rem.intLen = intLen + 1
+            //rem.offset = 1
+            var rFrom: Int = 0
+            var c = 0
+            val n2 = 32 - shift
+            var i = 1
+            while (i < mag.size + 1) {
+                val b = c
+                c = getUnreversedIdx(rFrom)
+                remarr[i] = b shl shift or (c ushr n2)
                 i++
+                rFrom++
             }
-            un.revSetL(j + n, (un.revGetL(j + n) + k))
-        }
-        j--
-    } // End j.
-    // If the caller wants the remainder, unnormalize
-    // it and pass it back.
-    if (remainder.isNotEmpty()) {
-        i = 0
-        while (i < n - 1) {
-            remainder.revSetL(i, (un.revGetL(i) shr s) or (un.revGetL(i + 1) shl (Int.SIZE_BITS - s)))
-            i++
-        }
-        remainder.revSetL(n - 1, un.revGetL(n - 1) shr s)
-    }
-    return Pair(quotient, remainder)
-}
-
-
-/*
-public fun divideAndRemainder(`val`: BigInt2): Array<BigInt2?> {
-    if (`val`.isZero) throw ArithmeticException("divisor is zero")
-    val result = arrayOfNulls<BigInt2>(2)
-    result[0] = BigInt2()
-    result[1] = BigInt2()
-    BigInt2.divide(this, `val`, result[0], result[1], BigInt2.TRUNCATE)
-    result[0]!!.canonicalize()
-    result[1]!!.canonicalize()
-    return result
-}
-
-
-internal fun divide(
-    x: BigInt2?, y: BigInt2?,
-    quotient: BigInt2?, remainder: BigInt2?,
-    rounding_mode: Int
-) {
-    if (((x!!.words == null || x.ival <= 2)
-                && (y!!.words == null || y.ival <= 2))
-    ) {
-        val x_l = x.toLong()
-        val y_l = y.toLong()
-        if (x_l != Long.MIN_VALUE && y_l != Long.MIN_VALUE) {
-            BigInt2.divide(x_l, y_l, quotient, remainder, rounding_mode)
-            return
-        }
-    }
-    val xNegative = x.isNegative
-    val yNegative = y!!.isNegative
-    val qNegative = xNegative xor yNegative
-    var ylen = if (y.words == null) 1 else y.ival
-    var ywords = IntArray(ylen)
-    y.getAbsolute(ywords)
-    while (ylen > 1 && ywords[ylen - 1] == 0) ylen--
-    var xlen = if (x.words == null) 1 else x.ival
-    var xwords = IntArray(xlen + 2)
-    x.getAbsolute(xwords)
-    while (xlen > 1 && xwords[xlen - 1] == 0) xlen--
-    var qlen: Int
-    var rlen: Int
-    val cmpval: Int = MPN.cmp(xwords, xlen, ywords, ylen)
-    if (cmpval < 0) // abs(x) < abs(y)
-    { // quotient = 0;  remainder = num.
-        val rwords = xwords
-        xwords = ywords
-        ywords = rwords
-        rlen = xlen
-        qlen = 1
-        xwords[0] = 0
-    } else if (cmpval == 0) // abs(x) == abs(y)
-    {
-        xwords[0] = 1
-        qlen = 1 // quotient = 1
-        ywords[0] = 0
-        rlen = 1 // remainder = 0;
-    } else if (ylen == 1) {
-        qlen = xlen
-        // Need to leave room for a word of leading zeros if dividing by 1
-        // and the dividend has the high bit set.  It might be safe to
-        // increment qlen in all cases, but it certainly is only necessary
-        // in the following case.
-        if (ywords[0] == 1 && xwords[xlen - 1] < 0) qlen++
-        rlen = 1
-        ywords[0] = MPN.divmod_1(xwords, xwords, xlen, ywords[0])
-    } else  // abs(x) > abs(y)
-    {
-        // Normalize the denominator, i.e. make its most significant bit set by
-        // shifting it normalization_steps bits to the left.  Also shift the
-        // numerator the same number of steps (to keep the quotient the same!).
-        val nshift: Int = MPN.count_leading_zeros(ywords[ylen - 1])
-        if (nshift != 0) {
-            // Shift up the denominator setting the most significant bit of
-            // the most significant word.
-            MPN.lshift(ywords, 0, ywords, ylen, nshift)
-
-            // Shift up the numerator, possibly introducing a new most
-            // significant word.
-            val x_high: Int = MPN.lshift(xwords, 0, xwords, xlen, nshift)
-            xwords[xlen++] = x_high
-        }
-        if (xlen == ylen) xwords[xlen++] = 0
-        MPN.divide(xwords, xlen, ywords, ylen)
-        rlen = ylen
-        MPN.rshift0(ywords, xwords, 0, rlen, nshift)
-        qlen = xlen + 1 - ylen
-        if (quotient != null) {
-            for (i in 0 until qlen) xwords[i] = xwords[i + ylen]
-        }
-    }
-    if (ywords[rlen - 1] < 0) {
-        ywords[rlen] = 0
-        rlen++
-    }
-
-    // Now the quotient is in xwords, and the remainder is in ywords.
-    var add_one = false
-    if (rlen > 1 || ywords[0] != 0) { // Non-zero remainder i.e. in-exact quotient.
-        when (rounding_mode) {
-            BigInt2.TRUNCATE -> {}
-            BigInt2.CEILING, BigInt2.FLOOR -> if (qNegative == (rounding_mode == BigInt2.FLOOR)) add_one = true
-            BigInt2.ROUND -> {
-                // int cmp = compareTo(remainder<<1, abs(y));
-                var tmp: BigInt2? = remainder ?: BigInt2()
-                tmp!![ywords] = rlen
-                tmp = BigInt2.shift(tmp, 1)
-                if (yNegative) tmp!!.setNegative()
-                var cmp = BigInt2.compareTo(tmp, y)
-                // Now cmp == compareTo(sign(y)*(remainder<<1), y)
-                if (yNegative) cmp = -cmp
-                add_one = (cmp == 1) || (cmp == 0 && (xwords[0] and 1) != 0)
-            }
-        }
-    }
-    if (quotient != null) {
-        quotient[xwords] = qlen
-        if (qNegative) {
-            if (add_one) // -(quotient + 1) == ~(quotient)
-                quotient.setInvert() else quotient.setNegative()
-        } else if (add_one) quotient.setAdd(1)
-    }
-    if (remainder != null) {
-        // The remainder is by definition: X-Q*Y
-        remainder[ywords] = rlen
-        if (add_one) {
-            // Subtract the remainder from Y:
-            // abs(R) = abs(Y) - abs(orig_rem) = -(abs(orig_rem) - abs(Y)).
-            val tmp: BigInt2?
-            if (y.words == null) {
-                tmp = remainder
-                tmp.set((if (yNegative) ywords[0] + y.ival else ywords[0] - y.ival).toLong())
-            } else tmp = BigInt2.add(remainder, y, if (yNegative) 1 else -1)
-            // Now tmp <= 0.
-            // In this case, abs(Q) = 1 + floor(abs(X)/abs(Y)).
-            // Hence, abs(Q*Y) > abs(X).
-            // So sign(remainder) = -sign(X).
-            if (xNegative) remainder.setNegative(tmp) else remainder.set(tmp)
-        } else {
-            // If !add_one, then: abs(Q*Y) <= abs(X).
-            // So sign(remainder) = sign(X).
-            if (xNegative) remainder.setNegative()
-        }
-    }
-}
-
-
-internal fun divmod_1(
-    quotient: IntArray, dividend: IntArray,
-    len: Int, divisor: Int
-): Int {
-    var i = len - 1
-    var r = dividend[i].toLong()
-    if (r and 0xffffffffL >= divisor.toLong() and 0xffffffffL) r = 0 else {
-        quotient[i--] = 0
-        r = r shl 32
-    }
-    while (i >= 0) {
-        val n0 = dividend[i]
-        r = r and 0xffffffffL.inv() or (n0.toLong() and 0xffffffffL)
-        r = MPN.udiv_qrnnd(r, divisor)
-        quotient[i] = r.toInt()
-        i--
-    }
-    return (r shr 32).toInt()
-}
-
-
-internal fun udiv_qrnnd(N: Long, D: Int): Long {
-    var q: Long
-    var r: Long
-    val a1 = N ushr 32
-    val a0 = N and 0xffffffffL
-    if (D >= 0) {
-        if (a1 < D - a1 - (a0 ushr 31) and 0xffffffffL) {
-            /* dividend, divisor, and quotient are nonnegative */
-            q = N / D
-            r = N % D
-        } else {
-            /* Compute c1*2^32 + c0 = a1*2^32 + a0 - 2^31*d */
-            val c = N - (D.toLong() shl 31)
-            /* Divide (c1*2^32 + c0) by d */q = c / D
-            r = c % D
-            /* Add 2^31 to quotient */q += (1 shl 31).toLong()
+            remarr[mag.size + 1] = c shl shift
+            //rem = mutableBigIntOf(remarr)
         }
     } else {
-        val b1 = (D ushr 1).toLong() /* d/2, between 2^30 and 2^31 - 1 */
-        //long c1 = (a1 >> 1); /* A/2 */
-        //int c0 = (a1 << 31) + (a0 >> 1);
-        var c = N ushr 1
-        if (a1 < b1 || a1 shr 1 < b1) {
-            if (a1 < b1) {
-                q = c / b1
-                r = c % b1
-            } else  /* c1 < b1, so 2^31 <= (A/2)/b1 < 2^32 */ {
-                c = (c - (b1 shl 32)).inv()
-                q = c / b1 /* (A/2) / (d/2) */
-                r = c % b1
-                q = q.inv() and 0xffffffffL /* (A/2)/b1 */
-                r = b1 - 1 - r /* r < b1 => new r >= 0 */
+        //divisor = java.util.Arrays.copyOfRange<Any>(div.value, div.offset, div.offset + div.intLen)
+        divisor = div.mag.toIntArray()
+        remarr = IntArray(mag.size + 1)
+        //rem = mutableBigIntOf(IntArray(mag.size + 1))
+        //java.lang.System.arraycopy(value, offset, rem.value, 1, intLen)
+        //rem.intLen = intLen
+        //rem.offset = 1
+    }
+    //val nlen: Int = rem.intLen
+    val nlen: Int = remarr.size
+
+    // Set the quotient size
+    val limit = nlen - dlen + 1
+    val quotarr = IntArray(limit)
+    val quotient: MutableBigInt
+    //if (quotient.value.length < limit) {
+    //    quotient.value = IntArray(limit)
+    //    quotient.offset = 0
+    //}
+    //quotient.intLen = limit
+    //val q: IntArray = quotient.value
+    val q: IntArray = quotarr
+
+    // Insert leading 0 in rem
+    //rem.offset = 0
+    //rem.value.get(0) = 0
+    //rem.intLen++
+    remarr[0] = 0
+    val dh = divisor[0]
+    val dhLong = (dh.toLong() and 0xffffffffL)
+    val dl = divisor[1]
+
+    // D2 Initialize j
+    for (j in 0 until limit - 1) {
+        // D3 Calculate qhat
+        // estimate qhat
+        var qhat = 0
+        var qrem = 0
+        var skipCorrection = false
+        //val nh: Int = rem.value.get(j + rem.offset)
+        val nh: Int = remarr[j]
+        val nh2 = nh + -0x80000000
+        //val nm: Int = rem.value.get(j + 1 + rem.offset)
+        val nm: Int = remarr[j + 1]
+        if (nh == dh) {
+            qhat = 0.inv()
+            qrem = nh + nm
+            skipCorrection = qrem + -0x80000000 < nh2
+        } else {
+            val nChunk = nh.toLong() shl 32 or (nm.toLong() and 0xffffffffL)
+            if (nChunk >= 0) {
+                qhat = (nChunk / dhLong).toInt()
+                qrem = (nChunk - qhat * dhLong).toInt()
+            } else {
+                val tmp: Long = divWord(nChunk, dh)
+                qhat = (tmp and 0xffffffffL).toInt()
+                qrem = (tmp ushr 32).toInt()
             }
-            r = 2 * r + (a0 and 1L)
-            if (D and 1 != 0) {
-                if (r >= q) {
-                    r = r - q
-                } else if (q - r <= D.toLong() and 0xffffffffL) {
-                    r = r - q + D
-                    q -= 1
-                } else {
-                    r = r - q + D + D
-                    q -= 2
+        }
+        if (qhat == 0) continue
+        if (!skipCorrection) { // Correct qhat
+            //val nl: Long = rem.value.get(j + 2 + rem.offset) and 0xffffffffL
+            val nl: Long = remarr[j + 2].toLong() and 0xffffffffL
+            var rs = qrem.toLong() and 0xffffffffL shl 32 or nl
+            var estProduct = (dl.toLong() and 0xffffffffL) * (qhat.toLong() and 0xffffffffL)
+            if (unsignedLongCompare(estProduct, rs)) {
+                qhat--
+                qrem = ((qrem.toLong() and 0xffffffffL) + dhLong).toInt()
+                if (qrem.toLong() and 0xffffffffL >= dhLong) {
+                    estProduct -= dl.toLong() and 0xffffffffL
+                    rs = (qrem.toLong() and 0xffffffffL shl 32 or nl)
+                    if (unsignedLongCompare(estProduct, rs)) qhat--
                 }
             }
-        } else  /* Implies c1 = b1 */ {                /* Hence a1 = d - 1 = 2*b1 - 1 */
-            if (a0 >= (-D).toLong() and 0xffffffffL) {
-                q = -1
-                r = a0 + D
-            } else {
-                q = -2
-                r = a0 + D + D
-            }
+        }
+
+        // D4 Multiply and subtract
+        //rem.value.get(j + rem.offset) = 0
+        remarr[j] = 0
+        //val borrow: Int = mulsub(rem.value, divisor, qhat, dlen, j + rem.offset)
+        val borrow: Int = mulsub(remarr, divisor, qhat, dlen, j)
+
+        // D5 Test remainder
+        if (borrow + -0x80000000 > nh2) {
+            // D6 Add back
+            //divadd(divisor, rem.value, j + 1 + rem.offset)
+            divadd(divisor, remarr, j + 1)
+            qhat--
+        }
+
+        // Store the quotient digit
+        q[j] = qhat
+    } // D7 loop on j
+    // D3 Calculate qhat
+    // estimate qhat
+    var qhat = 0
+    var qrem = 0
+    var skipCorrection = false
+    //val nh: Int = rem.value.get(limit - 1 + rem.offset)
+    val nh: Int = remarr[limit - 1]
+    val nh2 = nh + -0x80000000
+    //val nm: Int = rem.value.get(limit + rem.offset)
+    val nm: Int = remarr[limit]
+    if (nh == dh) {
+        qhat = 0.inv()
+        qrem = nh + nm
+        skipCorrection = qrem + -0x80000000 < nh2
+    } else {
+        val nChunk = nh.toLong() shl 32 or (nm.toLong() and 0xffffffffL)
+        if (nChunk >= 0) {
+            qhat = (nChunk / dhLong).toInt()
+            qrem = (nChunk - qhat * dhLong).toInt()
+        } else {
+            val tmp: Long = divWord(nChunk, dh)
+            qhat = (tmp and 0xffffffffL).toInt()
+            qrem = (tmp ushr 32).toInt()
         }
     }
-    return r shl 32 or (q and 0xFFFFFFFFL)
-}
-
-
-internal fun divide(zds: IntArray, nx: Int, y: IntArray, ny: Int) {
-    // This is basically Knuth's formulation of the classical algorithm,
-    // but translated from in scm_divbigbig in Jaffar's SCM implementation.
-
-    // Correspondance with Knuth's notation:
-    // Knuth's u[0:m+n] == zds[nx:0].
-    // Knuth's v[1:n] == y[ny-1:0]
-    // Knuth's n == ny.
-    // Knuth's m == nx-ny.
-    // Our nx == Knuth's m+n.
-
-    // Could be re-implemented using gmp's mpn_divrem:
-    // zds[nx] = mpn_divrem (&zds[ny], 0, zds, nx, y, ny).
-    var j = nx
-    do {                          // loop over digits of quotient
-        // Knuth's j == our nx-j.
-        // Knuth's u[j:j+n] == our zds[j:j-ny].
-        var qhat: Int // treated as unsigned
-        qhat = if (zds[j] == y[ny - 1]) -1 // 0xffffffff
-        else {
-            val w = (zds[j].toLong() shl 32) + (zds[j - 1].toLong() and 0xffffffffL)
-            MPN.udiv_qrnnd(w, y[ny - 1]).toInt()
-        }
-        if (qhat != 0) {
-            val borrow = MPN.submul_1(zds, j - ny, y, ny, qhat)
-            val save = zds[j]
-            var num = (save.toLong() and 0xffffffffL) - (borrow.toLong() and 0xffffffffL)
-            while (num != 0L) {
+    if (qhat != 0) {
+        if (!skipCorrection) { // Correct qhat
+            //val nl: Long = rem.value.get(limit + 1 + rem.offset) and 0xffffffffL
+            val nl: Long = remarr[limit + 1].toLong() and 0xffffffffL
+            var rs = qrem.toLong() and 0xffffffffL shl 32 or nl
+            var estProduct = (dl.toLong() and 0xffffffffL) * (qhat.toLong() and 0xffffffffL)
+            if (unsignedLongCompare(estProduct, rs)) {
                 qhat--
-                var carry: Long = 0
-                for (i in 0 until ny) {
-                    carry += ((zds[j - ny + i].toLong() and 0xffffffffL)
-                            + (y[i].toLong() and 0xffffffffL))
-                    zds[j - ny + i] = carry.toInt()
-                    carry = carry ushr 32
+                qrem = ((qrem.toLong() and 0xffffffffL) + dhLong).toInt()
+                if (qrem.toLong() and 0xffffffffL >= dhLong) {
+                    estProduct -= dl.toLong() and 0xffffffffL
+                    rs = qrem.toLong() and 0xffffffffL shl 32 or nl
+                    if (unsignedLongCompare(estProduct, rs)) qhat--
                 }
-                zds[j] += carry.toInt()
-                num = carry - 1
             }
         }
-        zds[j] = qhat
-    } while (--j >= ny)
+
+
+        // D4 Multiply and subtract
+        val borrow: Int
+        //rem.value.get(limit - 1 + rem.offset) = 0
+        remarr[limit - 1] = 0
+        //if (needRemainder)
+        borrow = mulsub(remarr, divisor, qhat, dlen, limit - 1)
+        //else borrow = mulsubBorrow(remarr, divisor, qhat, dlen, limit - 1)
+
+        // D5 Test remainder
+        if (borrow + -0x80000000 > nh2) {
+            // D6 Add back
+            //if (needRemainder)
+            divadd(divisor, remarr, limit - 1 + 1)
+            qhat--
+        }
+
+        // Store the quotient digit
+        q[limit - 1] = qhat
+    }
+    //if (needRemainder) {
+        // D8 Unnormalize
+        if (shift > 0) //rem.rightShift(shift)
+            primitiveRightShift(remarr, shift)
+        //rem.normalize()
+    //}
+    //quotient.normalize()
+    return Pair(quotarr, remarr)
 }
 
+private fun unsignedLongCompare(one: Long, two: Long): Boolean {
+    return one + Long.MIN_VALUE > two + Long.MIN_VALUE
+}
 
-internal fun submul_1(dest: IntArray, offset: Int, x: IntArray, len: Int, y: Int): Int {
-    val yl = y.toLong() and 0xffffffffL
-    var carry = 0
-    var j = 0
-    do {
-        val prod = (x[j].toLong() and 0xffffffffL) * yl
-        var prod_low = prod.toInt()
-        val prod_high = (prod shr 32).toInt()
-        prod_low += carry
-        // Invert the high-order bit, because: (unsigned) X > (unsigned) Y
-        // iff: (int) (X^0x80000000) > (int) (Y^0x80000000).
-        carry = ((if (prod_low xor -0x80000000 < carry xor -0x80000000) 1 else 0)
-                + prod_high)
-        val x_j = dest[offset + j]
-        prod_low = x_j - prod_low
-        if (prod_low xor -0x80000000 > x_j xor -0x80000000) carry++
-        dest[offset + j] = prod_low
-    } while (++j < len)
-    return carry
-}*/
+private fun mulsub(q: IntArray, a: IntArray, x: Int, len: Int, offset: Int): Int {
+    var offset1 = offset
+    val xLong = x.toLong() and 0xffffffffL
+    var carry: Long = 0
+    offset1 += len
+    for (j in len - 1 downTo 0) {
+        val product = (a[j].toLong() and 0xffffffffL) * xLong + carry
+        val difference = q[offset1] - product
+        q[offset1--] = difference.toInt()
+        carry = ((product ushr 32)
+                + if (difference and 0xffffffffL > product.inv() and 0xffffffffL) 1 else 0)
+    }
+    return carry.toInt()
+}
+
+private fun divadd(a: IntArray, result: IntArray, offset: Int): Int {
+    var carry: Long = 0
+    for (j in a.indices.reversed()) {
+        val sum = (a[j].toLong() and 0xffffffffL) + (result[j + offset].toLong() and 0xffffffffL) + carry
+        result[j + offset] = sum.toInt()
+        carry = sum ushr 32
+    }
+    return carry.toInt()
+}
+
+private fun mulsubBorrow(q: IntArray, a: IntArray, x: Int, len: Int, offset: Int): Int {
+    var offset = offset
+    val xLong = (x.toLong()and 0xffffffffL).toLong()
+    var carry: Long = 0
+    offset += len
+    for (j in len - 1 downTo 0) {
+        val product = (a[j].toLong() and 0xffffffffL) * xLong + carry
+        val difference = q[offset--] - product
+        carry = ((product ushr 32)
+                + if (difference and 0xffffffffL > product.inv() and 0xffffffffL) 1 else 0)
+    }
+    return carry.toInt()
+}
+
+private fun divWord(n: Long, d: Int): Long {
+    val dLong = (d.toLong() and 0xffffffffL)
+    var r: Long
+    var q: Long
+    if (dLong == 1L) {
+        q = n.toInt().toLong()
+        r = 0
+        return r shl 32 or (q and 0xffffffffL)
+    }
+
+    // Approximate the quotient and remainder
+    q = (n ushr 1) / (dLong ushr 1)
+    r = n - q * dLong
+
+    // Correct the approximation
+    while (r < 0) {
+        r += dLong
+        q--
+    }
+    while (r >= dLong) {
+        r -= dLong
+        q++
+    }
+    // n - q*dlong == r && 0 <= r <dLong, hence we're done.
+    return r shl 32 or (q and 0xffffffffL)
+}
+
+private fun copyAndShift(src: IntArray, srcFrom: Int, srcLen: Int, dst: IntArray, dstFrom: Int, shift: Int) {
+    var srcFrom1 = srcFrom
+    val n2 = 32 - shift
+    var c = src[srcFrom1]
+    for (i in 0 until srcLen - 1) {
+        val b = c
+        c = src[++srcFrom1]
+        dst[dstFrom + i] = b shl shift or (c ushr n2)
+    }
+    dst[dstFrom + srcLen - 1] = c shl shift
+}
+
+private fun primitiveRightShift(value: IntArray, n: Int) {
+    val n2 = 32 - n
+    var i: Int = value.lastIndex
+    var c = value[i]
+    while (i > 0) {
+        val b = c
+        c = value[i - 1]
+        value[i] = c shl n2 or (b ushr n)
+        i--
+    }
+    value[0] = value[0] ushr n
+}

@@ -25,7 +25,7 @@ package org.angproj.crypt.dsa
  * compareTo
  * divide !
  * subtract
- * pow !
+ * pow
  * equals
  */
 
@@ -38,6 +38,9 @@ public class BigInt internal constructor(magnitude: List<Int>, sigNum: BigSigned
     override fun of(value: IntArray): BigInt = bigIntOf(value)
     override fun of(value: IntArray, sigNum: BigSigned): BigInt = BigInt(value, sigNum)
     override fun of(value: Long): BigInt = bigIntOf(value)
+
+    override public fun toMutableBigInt(): MutableBigInt = MutableBigInt(mag.toIntArray(), sigNum)
+    override public fun toBigInt(): BigInt = this
 
     public companion object {
         public val one: BigInt by lazy { BigInt(intArrayOf(1), BigSigned.POSITIVE) }

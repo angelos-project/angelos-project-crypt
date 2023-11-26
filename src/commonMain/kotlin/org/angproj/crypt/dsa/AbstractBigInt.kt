@@ -27,8 +27,6 @@ public abstract class AbstractBigInt<E: List<Int>>(
     public val bitLength: Int by lazy { bitLength(mag, sigNum) }
     public val firstNonZero: Int by lazy { firstNonZero(mag) }
 
-    //public abstract fun fromIntArray(value: IntArray): E
-
     public fun intSize(): Int = bitLength.floorDiv(Int.SIZE_BITS) + 1
 
     public fun getIdx(index: Int): Int = when {
@@ -45,6 +43,17 @@ public abstract class AbstractBigInt<E: List<Int>>(
     }
 
     public fun getIdxL(index: Int): Long = getIdx(index).toLong() and 0xffffffffL
+
+    public fun getUnreversedIdx(index: Int): Int {
+        val num = mag[index]
+        return when {
+            sigNum.isNonNegative() -> num
+            index <= firstNonZero -> -num
+            else -> num.inv()
+        }
+    }
+
+    public fun getUnreversedIdxL(index: Int): Long = getUnreversedIdx(index).toLong() and 0xffffffffL
 
     /*fun cmpMag(x: BigInt, y: BigInt): BigCompare {
         (x.mag.lastIndex downTo 0).forEach { idx ->
@@ -114,24 +123,33 @@ public abstract class AbstractBigInt<E: List<Int>>(
         }
     }
 
+    public fun toReversedComplementedIntArray(): IntArray = IntArray(mag.size) { getIdx(it) }
+    public fun toComplementedIntArray(): IntArray = IntArray(mag.size) { getUnreversedIdx(it) }
+    public fun toRawIntArray(): IntArray = mag.toIntArray()
+
     public fun toZeroFilledByteArray(totalSize: Int): ByteArray {
         val byteArray = toByteArray()
         return ByteArray(totalSize - byteArray.size).also { it.fill(sigNum.signed.toByte()) } + byteArray
     }
 
-    public abstract fun copyOf(): AbstractBigInt<E> //BigInt = BigInt(mag.copyOf(), sigNum)
+    public abstract fun copyOf(): AbstractBigInt<E>
 
     public abstract fun of(value: IntArray): AbstractBigInt<E>
     public abstract fun of(value: IntArray, sigNum: BigSigned): AbstractBigInt<E>
     public abstract fun of(value: Long): AbstractBigInt<E>
+
+    public abstract fun toMutableBigInt(): MutableBigInt
+    public abstract fun toBigInt(): BigInt
 
     public companion object {
 
         public inline fun IntArray.revIdx(index: Int): Int = lastIndex - index
         public inline fun IntArray.revGet(index: Int): Int = this[lastIndex - index]
         public inline fun IntArray.revGetL(index: Int): Long = this[lastIndex - index].toLong() and 0xffffffffL
+        public inline fun IntArray.getL(index: Int): Long = this[index].toLong() and 0xffffffffL
         public inline fun IntArray.revSet(index: Int, value: Int) { this[lastIndex - index] = value }
         public inline fun IntArray.revSetL(index: Int, value: Long) { this[lastIndex - index] = value.toInt() }
+        public inline fun IntArray.setL(index: Int, value: Long) { this[index] = value.toInt() }
 
         public inline fun <E: List<Int>> E.revIdx(index: Int): Int = lastIndex - index
         public inline fun <E: List<Int>> E.revGet(index: Int): Int = this[lastIndex - index]
@@ -281,18 +299,6 @@ public abstract class AbstractBigInt<E: List<Int>>(
 
         public fun <E: List<Int>> firstNonZero(mag: E): Int = (
                 mag.lastIndex downTo 0).indexOfFirst { mag[it] != 0 }.let { if(it == -1) 0 else it }
-
-        /*internal fun fromLong(value: Long): BigInt = when {
-            value == 0L -> BigInt(intArrayOf(), BigSigned.ZERO)
-            //value < 0 -> BigInt(long2IntArray(-value), BigSignedInt.NEGATIVE)
-            value < 0 -> BigInt(long2IntArray(value.inv()), BigSigned.NEGATIVE)
-            else -> BigInt(long2IntArray(value), BigSigned.POSITIVE)
-        }
-
-        internal fun long2IntArray(value: Long): IntArray = when(value) {
-            in Int.MIN_VALUE..Int.MAX_VALUE -> intArrayOf(value.toInt())
-            else -> intArrayOf((value ushr 32).toInt(), value.toInt())
-        }*/
     }
 }
 

@@ -107,3 +107,4 @@ public fun AbstractBigInt<*>.flipBit(pos: Int): AbstractBigInt<*> {
 
     return of(result)
 }
+
