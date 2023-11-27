@@ -128,12 +128,12 @@ public fun AbstractBigInt<*>.divideAndRemainder(value: AbstractBigInt<*>): Pair<
     value.compareTo(BigInt.one) == BigCompare.EQUAL  -> Pair(this, BigInt.zero)
     sigNum.isZero() -> {println("Dividend is zero"); Pair(BigInt.zero, BigInt.zero)}
     else -> {
-        val cmp = compareTo(value)
+        val cmp = compareMagnitude(value)
         when {
             cmp.isLesser() -> {println("Dividend in smaller"); Pair(BigInt.zero, this)}
             cmp.isEqual() -> {println("Dividend is equal"); Pair(BigInt.one, BigInt.zero)}
             else -> {
-                val result = divideOneWord(value.getIdx(0))
+                val result = divideOneWord(this.abs(), value.abs().getIdx(0))
                 println("Do Knuth")
                 Pair(
                     of(result.first, if (this.sigNum == value.sigNum) BigSigned.POSITIVE else BigSigned.NEGATIVE),
@@ -144,21 +144,19 @@ public fun AbstractBigInt<*>.divideAndRemainder(value: AbstractBigInt<*>): Pair<
     }
 }
 
-public fun AbstractBigInt<*>.divideOneWord(divisor: Int): Pair<IntArray, IntArray> {
+public fun AbstractBigInt<*>.divideOneWord(dividend: AbstractBigInt<*>, divisor: Int): Pair<IntArray, IntArray> {
     val divisorLong = divisor.toLong() and 0xffffffffL
 
-    // Special case of one word dividend
     if (mag.size == 1) {
-        val dividendValue: Long = getUnreversedIdxL(0)
+        val dividendValue: Long = dividend.getUnreversedIdxL(0)
         val q = (dividendValue / divisorLong).toInt()
         val r = (dividendValue - q * divisorLong).toInt()
         return Pair(intArrayOf(q), intArrayOf(r))
     }
-    val quotient =  IntArray(mag.size)
+    val quotient = IntArray(mag.size)
 
-    // Normalize the divisor
     val shift: Int = divisor.countLeadingZeroBits()
-    var rem: Int = getUnreversedIdx(0)
+    var rem: Int = dividend.getUnreversedIdx(0)
     var remLong = rem.toLong() and 0xffffffffL
     if (remLong < divisorLong) {
         quotient[0] = 0
@@ -169,7 +167,7 @@ public fun AbstractBigInt<*>.divideOneWord(divisor: Int): Pair<IntArray, IntArra
     }
     var xlen: Int = mag.size
     while (--xlen > 0) {
-        val dividendEstimate = remLong shl 32 or getUnreversedIdxL(mag.size - xlen)
+        val dividendEstimate = remLong shl 32 or dividend.getUnreversedIdxL(mag.size - xlen)
         var q: Int
         if (dividendEstimate >= 0) {
             q = (dividendEstimate / divisorLong).toInt()
@@ -182,7 +180,7 @@ public fun AbstractBigInt<*>.divideOneWord(divisor: Int): Pair<IntArray, IntArra
         quotient[mag.size - xlen] = q
         remLong = rem.toLong() and 0xffffffffL
     }
-    // Unnormalize
+
     return when {
         shift > 0 -> Pair(quotient, intArrayOf(rem % divisor))
         else -> Pair(quotient, intArrayOf(rem))

@@ -87,11 +87,6 @@ public abstract class AbstractRipemdHashEngine: RipemdHashEngine, EndianAware {
             else -> error("Can't happen")
         }
 
-       /* @JvmStatic
-        protected val k0: IntArray = intArrayOf(0x00000000, 0x5A827999, 0x6ED9EBA1, -0x70e44324, -0x56ac02b2)
-        @JvmStatic
-        protected val k1: IntArray = intArrayOf(0x50A28BE6, 0x5C4DD124, 0x6D703EF3, 0x7A6D76E9, 0x000000000)*/
-
         @JvmStatic
         protected val r0: IntArray = intArrayOf(
             0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,

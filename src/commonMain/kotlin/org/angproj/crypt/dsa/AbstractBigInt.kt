@@ -19,6 +19,7 @@ import org.angproj.aux.util.swapEndian
 import org.angproj.aux.util.writeIntAt
 import kotlin.math.max
 
+
 public abstract class AbstractBigInt<E: List<Int>>(
     public val mag: E,
     public val sigNum: BigSigned,
@@ -55,21 +56,6 @@ public abstract class AbstractBigInt<E: List<Int>>(
 
     public fun getUnreversedIdxL(index: Int): Long = getUnreversedIdx(index).toLong() and 0xffffffffL
 
-    /*fun cmpMag(x: BigInt, y: BigInt): BigCompare {
-        (x.mag.lastIndex downTo 0).forEach { idx ->
-            val xNum = x.getIdx(idx)
-            val yNum = y.getIdx(idx)
-            if (xNum != yNum) {
-                return if (xNum xor -0x80000000 > yNum xor -0x80000000) BigCompare.GREATER else BigCompare.LESSER
-            }
-        }
-        return BigCompare.EQUAL
-    }
-
-    fun cmpSize(x: BigInt, y: BigInt): BigCompare {
-        return if (x.mag.size > x.mag.size) BigCompare.GREATER else if (x.mag.size < x.mag.size) BigCompare.LESSER else cmpMag(x, y)
-    }*/
-
     public fun compareTo(other: AbstractBigInt<*>): BigCompare = when {
         sigNum.state > other.sigNum.state -> BigCompare.GREATER
         sigNum.state < other.sigNum.state -> BigCompare.LESSER
@@ -82,18 +68,13 @@ public abstract class AbstractBigInt<E: List<Int>>(
         mag.size < other.mag.size -> BigCompare.LESSER
         mag.size > other.mag.size -> BigCompare.GREATER
         else -> {
-            var cmp = BigCompare.EQUAL
-            mag.indices.indexOfFirst {
-                val a = mag[it]
-                val b = other.mag[it]
-                if(a != b) {
-                    cmp = if((a.toLong() and 0xffffffffL) < (b.toLong() and 0xffffffffL)
-                    ) BigCompare.LESSER else BigCompare.GREATER
-                    //cmp = if(a.toUInt() < b.toUInt()) BigCompare.LESSER else BigCompare.GREATER
-                    true
-                } else false
+            mag.indices.forEach { idx ->
+                val xNum = mag[idx]
+                val yNum = other.mag[idx]
+                if (xNum != yNum) return@compareMagnitude if (xNum xor -0x80000000 < yNum xor -0x80000000
+                ) BigCompare.LESSER else BigCompare.GREATER
             }
-            cmp
+            BigCompare.EQUAL
         }
     }
 
