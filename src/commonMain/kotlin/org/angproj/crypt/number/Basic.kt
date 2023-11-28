@@ -136,7 +136,7 @@ public fun AbstractBigInt<*>.divideAndRemainder(value: AbstractBigInt<*>): Pair<
                 println("Do Knuth")
                 val result = when {
                     value.mag.size == 1 -> divideOneWord(this.abs(), value.abs())
-                    else -> divideMagnitude(this.abs().toMutableBigInt(), value.abs().toMutableBigInt())
+                    else -> divideMagnitude(this.abs(), value.abs())
                 }
                 Pair(
                     of(result.first, if (this.sigNum == value.sigNum) BigSigned.POSITIVE else BigSigned.NEGATIVE),
@@ -147,12 +147,12 @@ public fun AbstractBigInt<*>.divideAndRemainder(value: AbstractBigInt<*>): Pair<
     }
 }
 
-public fun AbstractBigInt<*>.divideOneWord(
+public fun divideOneWord(
     dividend: AbstractBigInt<*>,
     divisor: AbstractBigInt<*>,
 ): Pair<IntArray, IntArray> {
-    val sorInt = divisor.getIdx(0)
-    val sorLong = sorInt.toLong() and 0xffffffffL
+    val sorLong = divisor.getIdxL(divisor.mag.lastIndex)
+    val sorInt = sorLong.toInt()
 
     if (dividend.mag.size == 1) {
         val dendValue: Long = dividend.getIdxL(dividend.mag.lastIndex)
@@ -160,35 +160,31 @@ public fun AbstractBigInt<*>.divideOneWord(
         val r = (dendValue - q * sorLong).toInt()
         return Pair(intArrayOf(q), intArrayOf(r))
     }
+    val quotient =  IntArray(dividend.mag.size)
 
-    val quotient = IntArray(dividend.mag.size)
     val shift: Int = sorInt.countLeadingZeroBits()
-    var rem: Int = dividend.getIdx(dividend.mag.lastIndex)
+    var rem: Int = dividend.getUnreversedIdx(0)
     var remLong = rem.toLong() and 0xffffffffL
-    when (remLong < sorLong) {
-        true -> quotient[0] = 0
-        else -> {
-            quotient[0] = (remLong / sorLong).toInt()
-            rem = (remLong - quotient[0] * sorLong).toInt()
-            remLong = rem.toLong() and 0xffffffffL
-        }
+    if (remLong < sorLong) {
+        quotient[0] = 0
+    } else {
+        quotient[0] = (remLong / sorLong).toInt()
+        rem = (remLong - quotient[0] * sorLong).toInt()
+        remLong = rem.toLong() and 0xffffffffL
     }
 
-    (dividend.mag.size downTo 1).forEach { xlen ->
-        val dendEst = remLong shl Int.SIZE_BITS or dividend.getIdxL(xlen)
-        val q: Int
-        when (dendEst >= 0) {
-            true -> {
-                q = (dendEst / sorLong).toInt()
-                rem = (dendEst - q * sorLong).toInt()
-            }
-            else -> {
-                val tmp = divWord(dendEst, sorInt)
-                q = (tmp and 0xffffffffL).toInt()
-                rem = (tmp ushr Int.SIZE_BITS).toInt()
-            }
+    (dividend.mag.lastIndex downTo 1).forEach { idx ->
+        val dendEst = remLong shl Int.SIZE_BITS or dividend.getIdxL(idx - 1)
+        var q: Int
+        if (dendEst >= 0) {
+            q = (dendEst / sorLong).toInt()
+            rem = (dendEst - q * sorLong).toInt()
+        } else {
+            val tmp = divWord(dendEst, sorInt)
+            q = (tmp and 0xffffffffL).toInt()
+            rem = (tmp ushr Int.SIZE_BITS).toInt()
         }
-        quotient.revSet(xlen-1, q)
+        quotient.revSet(idx - 1, q)
         remLong = rem.toLong() and 0xffffffffL
     }
 
@@ -198,7 +194,10 @@ public fun AbstractBigInt<*>.divideOneWord(
     }
 }
 
-public fun AbstractBigInt<*>.divideMagnitude(dividend: MutableBigInt, divisor: MutableBigInt): Pair<IntArray, IntArray> {
+public fun AbstractBigInt<*>.divideMagnitude(
+    dividend: AbstractBigInt<*>,
+    divisor: AbstractBigInt<*>
+): Pair<IntArray, IntArray> {
     val shift: Int = divisor.getIdx(divisor.mag.lastIndex).countLeadingZeroBits()
     val sorLen = divisor.mag.size
     val sor = when(shift > 0) {
@@ -206,19 +205,23 @@ public fun AbstractBigInt<*>.divideMagnitude(dividend: MutableBigInt, divisor: M
         else -> divisor
     }.toComplementedIntArray()
     val rem = when {
-        shift > 0 && dividend.getIdx(dividend.mag.lastIndex).countLeadingZeroBits() >= shift -> {
+        shift <= 0 -> {
+            println("HELLO3")
+            intArrayOf(0) + dividend.toComplementedIntArray()
+        }
+        dividend.getIdx(dividend.mag.lastIndex).countLeadingZeroBits() >= shift -> {
             println("HELLO1")
             val remarr = dividend.shiftLeft(shift).toComplementedIntArray()
-            require(remarr.size == dividend.mag.size + 1) // Needs extra leading zero?
+            //require(remarr.size == dividend.mag.size + 1) // Needs extra leading zero?
             remarr
         }
-        shift > 0 -> {
+        else -> {
             println("HELLO2")
             val remarr = IntArray(dividend.mag.size + 2)
-            var rFrom: Int = 0 // offset
+            //var rFrom: Int = 0 // offset
             var c = 0
             val n2 = 32 - shift
-            var i = 1
+            /*var i = 1
             while (i < dividend.mag.size + 1) {
                 val b = c
                 c = dividend.getUnreversedIdx(rFrom)
@@ -226,18 +229,14 @@ public fun AbstractBigInt<*>.divideMagnitude(dividend: MutableBigInt, divisor: M
                 i++
                 rFrom++
             }
-            remarr[dividend.mag.size + 1] = c shl shift
-            /*(1 until remarr.lastIndex).forEach { idx ->
+            remarr[dividend.mag.size + 1] = c shl shift*/
+            (1 until remarr.lastIndex).forEach { idx ->
                 val b = c
                 c = dividend.getUnreversedIdx(idx - 1)
                 remarr[idx] = b shl shift or (c ushr n2)
             }
-            remarr[remarr.lastIndex] = c shl shift*/
+            remarr[remarr.lastIndex] = c shl shift
             remarr
-        }
-        else -> {
-            println("HELLO3")
-            intArrayOf(0) + dividend.toComplementedIntArray()
         }
     }
 
@@ -251,7 +250,7 @@ public fun AbstractBigInt<*>.divideMagnitude(dividend: MutableBigInt, divisor: M
     val sorHigh = sorHighLong.toInt()
     val sorLow = divisor.getUnreversedIdx(1)
 
-    quot.indices.forEach { idx ->
+    for(idx in 0 until limit-1) {
         var qhat: Int
         var qrem: Int
         var skipCorrection = false
@@ -275,7 +274,7 @@ public fun AbstractBigInt<*>.divideMagnitude(dividend: MutableBigInt, divisor: M
             }
         }
 
-        if (qhat == 0) return@forEach
+        if (qhat == 0) continue
 
         if (!skipCorrection) {
             val nl: Long = rem[idx + 2].toLong() and 0xffffffffL
@@ -293,6 +292,7 @@ public fun AbstractBigInt<*>.divideMagnitude(dividend: MutableBigInt, divisor: M
         }
 
         rem[idx] = 0
+        println("IDX ${idx}")
         val borrow = mulsub(rem, sor, qhat, sorLen, idx)
 
         if (borrow + -0x80000000 > nh2) {
@@ -341,8 +341,8 @@ public fun AbstractBigInt<*>.divideMagnitude(dividend: MutableBigInt, divisor: M
             }
         }
 
-
         rem[limit - 1] = 0
+        println("LIMIT ${limit - 1}")
         val borrow = mulsub(rem, sor, qhat, sorLen, limit - 1)
         //borrow = if (needRemainder) mulsub(rem.value, divisor, qhat, dlen, limit - 1 + rem.offset)
         //else mulsubBorrow(rem.value, divisor, qhat, dlen, limit - 1 + rem.offset)
@@ -364,10 +364,13 @@ private fun unsignedLongCompare(one: Long, two: Long): Boolean {
 }
 
 private fun mulsub(q: IntArray, a: IntArray, x: Int, len: Int, offset: Int): Int {
+    println("Q ${q.size}")
+    println("A ${a.size}")
     var offset1 = offset
     val xLong = x.toLong() and 0xffffffffL
     var carry: Long = 0
     offset1 += len
+    println("O $offset1, $len")
     for (j in len - 1 downTo 0) {
         val product = (a[j].toLong() and 0xffffffffL) * xLong + carry
         val difference = q[offset1] - product

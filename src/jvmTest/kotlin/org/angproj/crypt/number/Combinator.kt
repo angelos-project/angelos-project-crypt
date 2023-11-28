@@ -220,25 +220,23 @@ object Combinator {
                 println("Jq: ${BinHex.encodeToHex(result.second[0].toByteArray())}")
                 println("Kr: ${BinHex.encodeToHex(result.first.second.toByteArray())}")
                 println("Jr: ${BinHex.encodeToHex(result.second[1].toByteArray())}\n")
-                /*assertContentEquals(result.first.toByteArray(), stripLeadingZeroBytesCorrection(result.second.toByteArray()))
+                /*assertContentEquals(result.first.toB, stripLeadingZeroBytesCorrection(result.second.toByteArray()))
                         assertContentEquals(
                             stripLeadingZeroBytesCorrection(result.first.toByteArray()),
                             stripLeadingZeroBytesCorrection(result.second.toByteArray())
                         )*/
-                //assertContentEquals(result.first.first.toByteArray(), result.second[0].toByteArray())
-                //assertContentEquals(result.first.second.toByteArray(), result.second[1].toByteArray())
-                result.first.first.toByteArray().contentEquals(result.second[0].toByteArray())
+                assertContentEquals(result.first.first.toByteArray(), result.second[0].toByteArray())
+                assertContentEquals(result.first.second.toByteArray(), result.second[1].toByteArray())
                 /* if(result.first.first.toByteArray().contentEquals(result.second[0].toByteArray()))
                     println("QUOT: PASS")
                 else
-                    println("QUOT: FAIL") */
+                    println("QUOT: FAIL")
 
-                result.first.second.toByteArray().contentEquals(result.second[1].toByteArray())
-                /* if(result.first.second.toByteArray().contentEquals(result.second[1].toByteArray()))
+                 if(result.first.second.toByteArray().contentEquals(result.second[1].toByteArray()))
                     println("REM: PASS")
                 else
-                    println("REM: FAIL") */
-                println("")
+                    println("REM: FAIL")
+                println("")*/
             }
         }
     }
