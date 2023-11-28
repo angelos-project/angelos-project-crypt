@@ -227,15 +227,17 @@ object Combinator {
                         )*/
                 //assertContentEquals(result.first.first.toByteArray(), result.second[0].toByteArray())
                 //assertContentEquals(result.first.second.toByteArray(), result.second[1].toByteArray())
-                if(result.first.first.toByteArray().contentEquals(result.second[0].toByteArray()))
+                result.first.first.toByteArray().contentEquals(result.second[0].toByteArray())
+                /* if(result.first.first.toByteArray().contentEquals(result.second[0].toByteArray()))
                     println("QUOT: PASS")
                 else
-                    println("QUOT: FAIL")
+                    println("QUOT: FAIL") */
 
-                if(result.first.second.toByteArray().contentEquals(result.second[1].toByteArray()))
+                result.first.second.toByteArray().contentEquals(result.second[1].toByteArray())
+                /* if(result.first.second.toByteArray().contentEquals(result.second[1].toByteArray()))
                     println("REM: PASS")
                 else
-                    println("REM: FAIL")
+                    println("REM: FAIL") */
                 println("")
             }
         }
