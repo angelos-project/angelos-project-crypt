@@ -15,9 +15,15 @@
 package org.angproj.crypt.number
 
 import org.angproj.crypt.dsa.*
+import org.angproj.crypt.dsa.AbstractBigInt.Companion.bitSizeForInt
 import org.angproj.crypt.dsa.AbstractBigInt.Companion.revGetL
 import org.angproj.crypt.dsa.AbstractBigInt.Companion.revSet
 import org.angproj.crypt.dsa.AbstractBigInt.Companion.revSetL
+
+//import org.angproj.crypt.dsa.MutableBigInteger
+
+
+
 
 
 public operator fun AbstractBigInt<*>.unaryMinus(): AbstractBigInt<*> = negate()
@@ -33,7 +39,7 @@ public fun AbstractBigInt<*>.add(value: AbstractBigInt<*>): AbstractBigInt<*> = 
 }
 
 internal fun add(x: AbstractBigInt<*>, y: AbstractBigInt<*>): IntArray {
-    val result = IntArray(x.mag.size+1)
+    val result = IntArray(x.mag.size + 1)
 
     var carry: Long = 0
     result.indices.forEach { idx ->
@@ -72,9 +78,9 @@ public operator fun AbstractBigInt<*>.times(other: AbstractBigInt<*>): AbstractB
 internal fun AbstractBigInt<*>.multiply(value: AbstractBigInt<*>): AbstractBigInt<*> = when {
     sigNum.isZero() || value.sigNum.isZero() -> BigInt.zero
     else -> biggerFirst(this, value) { big, little ->
-        val negative = big.sigNum.isNegative().let { if(little.sigNum.isNegative()) !it else it }
+        val negative = big.sigNum.isNegative().let { if (little.sigNum.isNegative()) !it else it }
         val result = of(multiply(big.abs(), little.abs()), BigSigned.POSITIVE)
-        return@biggerFirst if(negative) result.negate() else result
+        return@biggerFirst if (negative) result.negate() else result
     }
 }
 
@@ -120,29 +126,39 @@ public fun remainder(value: BigInt): BigInt {
     return rem.canonicalize()
 }*/
 
-public fun AbstractBigInt<*>.divideAndRemainder(value: AbstractBigInt<*>): Pair<AbstractBigInt<*>, AbstractBigInt<*>> = when {
-    value.sigNum.isZero() -> error { "Divisor is zero" }
-    value.compareTo(BigInt.one) == BigCompare.EQUAL  -> Pair(this, BigInt.zero)
-    sigNum.isZero() -> {println("Dividend is zero"); Pair(BigInt.zero, BigInt.zero)}
-    else -> {
-        val cmp = compareMagnitude(value)
-        when {
-            cmp.isLesser() -> {println("Dividend in smaller"); Pair(BigInt.zero, this)}
-            cmp.isEqual() -> {println("Dividend is equal"); Pair(BigInt.one, BigInt.zero)}
-            else -> {
-                println("Do Knuth")
-                val result = when {
-                    value.mag.size == 1 -> divideOneWord(this.abs(), value.abs())
-                    else -> divideMagnitude(this.abs(), value.abs())
+public fun AbstractBigInt<*>.divideAndRemainder(value: AbstractBigInt<*>): Pair<AbstractBigInt<*>, AbstractBigInt<*>> =
+    when {
+        value.sigNum.isZero() -> error { "Divisor is zero" }
+        value.compareTo(BigInt.one) == BigCompare.EQUAL -> Pair(this, BigInt.zero)
+        sigNum.isZero() -> {
+            println("Dividend is zero"); Pair(BigInt.zero, BigInt.zero)
+        }
+
+        else -> {
+            val cmp = compareMagnitude(value)
+            when {
+                cmp.isLesser() -> {
+                    println("Dividend in smaller"); Pair(BigInt.zero, this)
                 }
-                Pair(
-                    of(result.first, if (this.sigNum == value.sigNum) BigSigned.POSITIVE else BigSigned.NEGATIVE),
-                    of(result.second, this.sigNum)
-                )
+
+                cmp.isEqual() -> {
+                    println("Dividend is equal"); Pair(BigInt.one, BigInt.zero)
+                }
+
+                else -> {
+                    println("Do Knuth")
+                    val result = when {
+                        value.mag.size == 1 -> divideOneWord(this.abs(), value.abs())
+                        else -> divideMagnitude(this.abs(), value.abs())
+                    }
+                    Pair(
+                        of(result.first, if (this.sigNum == value.sigNum) BigSigned.POSITIVE else BigSigned.NEGATIVE),
+                        of(result.second, this.sigNum)
+                    )
+                }
             }
         }
     }
-}
 
 internal fun AbstractBigInt<*>.divideOneWord(
     dividend: AbstractBigInt<*>,
@@ -157,7 +173,7 @@ internal fun AbstractBigInt<*>.divideOneWord(
         val r = (dendValue - q * sorLong).toInt()
         return Pair(intArrayOf(q), intArrayOf(r))
     }
-    val quotient =  IntArray(dividend.mag.size)
+    val quotient = IntArray(dividend.mag.size)
 
     val shift: Int = sorInt.countLeadingZeroBits()
     var rem: Int = dividend.getUnreversedIdx(0)
@@ -191,6 +207,33 @@ internal fun AbstractBigInt<*>.divideOneWord(
     }
 }
 
+private fun divWord(n: Long, d: Int): Long {
+    val dLong = d.toLong() and 0xffffffffL
+    var r: Long
+    var q: Long
+    if (dLong == 1L) {
+        q = n.toInt().toLong()
+        r = 0
+        return r shl Int.SIZE_BITS or (q and 0xffffffffL)
+    }
+
+    // Approximate the quotient and remainder
+    q = (n ushr 1) / (dLong ushr 1)
+    r = n - q * dLong
+
+    // Correct the approximation
+    while (r < 0) {
+        r += dLong
+        q--
+    }
+    while (r >= dLong) {
+        r -= dLong
+        q++
+    }
+    // n - q*dlong == r && 0 <= r <dLong, hence we're done.
+    return r shl Int.SIZE_BITS or (q and 0xffffffffL)
+}
+
 // https://github.com/openjdk/jdk/blob/master/src/java.base/share/classes/java/math/MutableBigInteger.java#L1481
 internal fun AbstractBigInt<*>.divideMagnitude(
     dividend: AbstractBigInt<*>,
@@ -199,14 +242,17 @@ internal fun AbstractBigInt<*>.divideMagnitude(
     val shift: Int = divisor.getIdx(divisor.mag.lastIndex).countLeadingZeroBits()
     val sorLen = divisor.mag.size
 
-    val sor = when(shift > 0) {
+    val sor = when (shift > 0) {
         true -> IntArray(divisor.mag.size).also { copyAndShift(divisor, it, shift) }
         else -> divisor.toComplementedIntArray() // <---- ARRAY HERE
     }
+    require(sorLen == sor.size) { "sorLen and sor wrong" }
+
     val rem = intArrayOf(0) + when {
-        shift <= 0 -> dividend.toComplementedIntArray() // <---- ARRAY HERE
+        shift <= 0 -> dividend.toComplementedIntArray()
         dividend.getIdx(dividend.mag.lastIndex).countLeadingZeroBits() >= shift -> IntArray(
-            dividend.mag.size).also { copyAndShift(dividend, it, shift) }
+            dividend.mag.size
+        ).also { copyAndShift(dividend, it, shift) }
         else -> IntArray(dividend.mag.size + 1).also {
             val n2 = Int.SIZE_BITS - shift
             var c = 0
@@ -230,7 +276,7 @@ internal fun AbstractBigInt<*>.divideMagnitude(
     val dhLong = dh.toLong() and 0xffffffffL
     val dl = divisor.getUnreversedIdx(1)
 
-    for(idx in 0 until limit-1) {
+    for (idx in 0 until limit - 1) {
         var qhat: Int = 0
         var qrem: Int = 0
         var skipCorrection: Boolean = false
@@ -329,13 +375,40 @@ internal fun AbstractBigInt<*>.divideMagnitude(
         quot[limit - 1] = qhat // <---- ARRAY HERE
     }
 
-    if (shift > 0) primitiveRightShift(rem, shift)
+    return Pair(quot, if (shift > 0) rightShift(rem, shift) else rem)
+}
 
-    return Pair(quot, rem)
+private fun rightShift(value: IntArray, n: Int): IntArray {
+    if (value.isEmpty()) return value
+    val nInts = n ushr 5
+    val nBits = n and 0x1F
+    var size = value.size - nInts
+    if (nBits == 0) return value
+    val bitsInHighWord: Int = bitSizeForInt(value[0])
+    return if (nBits >= bitsInHighWord) {
+        primitiveLeftShift(value, 32 - nBits)
+        //size--
+        value.copyOfRange(0, value.lastIndex)
+    } else {
+        primitiveRightShift(value, nBits)
+        value
+    }
+}
+
+// https://github.com/openjdk/jdk/blob/master/src/java.base/share/classes/java/math/MutableBigInteger.java#L697
+private fun primitiveLeftShift(value: IntArray, n: Int) {
+    val n2 = 32 - n
+    var c = value[0]
+    (0 until value.lastIndex).forEach { idx ->
+        val b = c
+        c = value[idx + 1]
+        value[idx] = b shl n or (c ushr n2)
+    }
+    value[value.lastIndex] = value[value.lastIndex] shl n
 }
 
 private fun unsignedLongCompare(one: Long, two: Long): Boolean {
-    return one + Long.MIN_VALUE > two + Long.MIN_VALUE
+    return (one + Long.MIN_VALUE) > (two + Long.MIN_VALUE)
 }
 
 private fun mulsub(q: IntArray, a: IntArray, x: Int, len: Int, offset: Int): Int {
@@ -400,33 +473,6 @@ private fun mulsubBorrow(q: IntArray, a: IntArray, x: Int, len: Int, offset: Int
                 + if (difference and 0xffffffffL > product.inv() and 0xffffffffL) 1 else 0)
     }
     return carry.toInt()
-}
-
-private fun divWord(n: Long, d: Int): Long {
-    val dLong = d.toLong() and 0xffffffffL
-    var r: Long
-    var q: Long
-    if (dLong == 1L) {
-        q = n.toInt().toLong()
-        r = 0
-        return r shl Int.SIZE_BITS or (q and 0xffffffffL)
-    }
-
-    // Approximate the quotient and remainder
-    q = (n ushr 1) / (dLong ushr 1)
-    r = n - q * dLong
-
-    // Correct the approximation
-    while (r < 0) {
-        r += dLong
-        q--
-    }
-    while (r >= dLong) {
-        r -= dLong
-        q++
-    }
-    // n - q*dlong == r && 0 <= r <dLong, hence we're done.
-    return r shl Int.SIZE_BITS or (q and 0xffffffffL)
 }
 
 private fun copyAndShift0(src: IntArray, srcFrom: Int, srcLen: Int, dst: IntArray, dstFrom: Int, shift: Int) {

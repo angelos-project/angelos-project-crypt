@@ -1,4 +1,4 @@
-package org.angproj.crypt.dsa
+package org.angproj.crypt
 
 import org.angproj.crypt.number.*
 import kotlin.test.Test

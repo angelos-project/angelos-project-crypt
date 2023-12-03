@@ -1,10 +1,47 @@
-package org.angproj.crypt.dsa
+package org.angproj.crypt
 
 import org.angproj.aux.util.BinHex
+import org.angproj.crypt.dsa.*
 import org.angproj.crypt.number.*
 import java.math.BigInteger
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
+
+
+public fun AbstractBigInt<*>.divideAndRemainder2(value: AbstractBigInt<*>): Pair<AbstractBigInt<*>, AbstractBigInt<*>> =
+    when {
+        value.sigNum.isZero() -> error { "Divisor is zero" }
+        value.compareTo(BigInt.one) == BigCompare.EQUAL -> Pair(this, BigInt.zero)
+        sigNum.isZero() -> Pair(BigInt.zero, BigInt.zero)
+        else -> {
+            val cmp = compareMagnitude(value)
+            when {
+                cmp.isLesser() -> Pair(BigInt.zero, this)
+                cmp.isEqual() -> Pair(BigInt.one, BigInt.zero)
+                else -> {
+                    when {
+                        value.mag.size == 1 -> {
+                            val qr = divideOneWord(this.abs(), value.abs())
+                            Pair(
+                                of(qr.first, if (this.sigNum == value.sigNum) BigSigned.POSITIVE else BigSigned.NEGATIVE),
+                                of(qr.second, this.sigNum)
+                            )
+                        }
+                        else -> {
+                            val q = MutableBigInteger()
+                            val a = MutableBigInteger(abs().toComplementedIntArray())
+                            val b = MutableBigInteger(value.abs().toComplementedIntArray())
+                            val r: MutableBigInteger = a.divideKnuth(b, q)!!
+                            Pair(
+                                of(q.toIntArray(), if (this.sigNum == value.sigNum) BigSigned.POSITIVE else BigSigned.NEGATIVE),
+                                of(r.toIntArray(), this.sigNum)
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
 
 class BigIntBasicTest {
 
@@ -49,6 +86,17 @@ class BigIntBasicTest {
         }*/
         Combinator.doMatrixPairTests(listOf(testSubject1), listOf(testSubject2)) { xbi, ybi, x, y ->
             Pair(xbi.divideAndRemainder(ybi) , x.divideAndRemainder(y))
+        }
+    }
+
+    @Test
+    fun divideAndRemainder2Test() {
+        //vectorList2.forEach { println(it) }
+        /*Combinator.doMatrixPairTests(vectorList1.slice(0..7), listOf(vectorList2[8])) { xbi, ybi, x, y ->
+            Pair(xbi.divideAndRemainder(ybi) , x.divideAndRemainder(y))
+        }*/
+        Combinator.doMatrixPairTests(vectorList1, vectorList2) { xbi, ybi, x, y ->
+            Pair(xbi.divideAndRemainder2(ybi) , x.divideAndRemainder(y))
         }
     }
 

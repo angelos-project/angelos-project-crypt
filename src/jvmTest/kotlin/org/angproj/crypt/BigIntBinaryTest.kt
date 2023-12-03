@@ -1,5 +1,6 @@
-package org.angproj.crypt.dsa
+package org.angproj.crypt
 
+import org.angproj.crypt.dsa.bigIntOf
 import org.angproj.crypt.number.*
 import org.angproj.crypt.sec.*
 import java.math.BigInteger
