@@ -28,13 +28,13 @@ public fun AbstractBigInt<*>.divideAndRemainder2(value: AbstractBigInt<*>): Pair
                             )
                         }
                         else -> {
-                            val q = MutableBigInteger()
-                            val a = MutableBigInteger(abs().toComplementedIntArray())
-                            val b = MutableBigInteger(value.abs().toComplementedIntArray())
-                            val r: MutableBigInteger = a.divideKnuth(b, q)!!
+                            val r = MutableBigInteger.divideMagnitude(
+                                MutableBigInteger(abs().toComplementedIntArray()),
+                                MutableBigInteger(value.abs().toComplementedIntArray())
+                            )
                             Pair(
-                                of(q.toIntArray(), if (this.sigNum == value.sigNum) BigSigned.POSITIVE else BigSigned.NEGATIVE),
-                                of(r.toIntArray(), this.sigNum)
+                                of(r.first.toIntArray(), if (this.sigNum == value.sigNum) BigSigned.POSITIVE else BigSigned.NEGATIVE),
+                                of(r.second.toIntArray(), this.sigNum)
                             )
                         }
                     }
@@ -91,10 +91,6 @@ class BigIntBasicTest {
 
     @Test
     fun divideAndRemainder2Test() {
-        //vectorList2.forEach { println(it) }
-        /*Combinator.doMatrixPairTests(vectorList1.slice(0..7), listOf(vectorList2[8])) { xbi, ybi, x, y ->
-            Pair(xbi.divideAndRemainder(ybi) , x.divideAndRemainder(y))
-        }*/
         Combinator.doMatrixPairTests(vectorList1, vectorList2) { xbi, ybi, x, y ->
             Pair(xbi.divideAndRemainder2(ybi) , x.divideAndRemainder(y))
         }
