@@ -130,40 +130,31 @@ public fun AbstractBigInt<*>.divideAndRemainder(value: AbstractBigInt<*>): Pair<
     when {
         value.sigNum.isZero() -> error { "Divisor is zero" }
         value.compareTo(BigInt.one) == BigCompare.EQUAL -> Pair(this, BigInt.zero)
-        sigNum.isZero() -> {
-            println("Dividend is zero"); Pair(BigInt.zero, BigInt.zero)
-        }
+        sigNum.isZero() -> Pair(BigInt.zero, BigInt.zero)
 
         else -> {
             val cmp = compareMagnitude(value)
             when {
-                cmp.isLesser() -> {
-                    println("Dividend in smaller"); Pair(BigInt.zero, this)
-                }
-
-                cmp.isEqual() -> {
-                    println("Dividend is equal"); Pair(BigInt.one, BigInt.zero)
-                }
-
+                cmp.isLesser() -> Pair(BigInt.zero, this)
+                cmp.isEqual() ->  Pair(BigInt.one, BigInt.zero)
                 else -> {
-                    println("Do Knuth")
                     val result = when {
                         value.mag.size == 1 -> divideOneWord(this.abs(), value.abs())
                         else -> divideMagnitude(this.abs(), value.abs())
                     }
                     Pair(
-                        of(result.first, if (this.sigNum == value.sigNum) BigSigned.POSITIVE else BigSigned.NEGATIVE),
-                        of(result.second, this.sigNum)
+                        of(result.first.toComplementedIntArray(), if (this.sigNum == value.sigNum) BigSigned.POSITIVE else BigSigned.NEGATIVE),
+                        of(result.second.toComplementedIntArray(), this.sigNum)
                     )
                 }
             }
         }
     }
 
-internal fun AbstractBigInt<*>.divideOneWord(
+public fun AbstractBigInt<*>.divideOneWord(
     dividend: AbstractBigInt<*>,
     divisor: AbstractBigInt<*>,
-): Pair<IntArray, IntArray> {
+): Pair<MutableBigInt, MutableBigInt> {
     val sorLong = divisor.getIdxL(divisor.mag.lastIndex)
     val sorInt = sorLong.toInt()
 
@@ -171,18 +162,18 @@ internal fun AbstractBigInt<*>.divideOneWord(
         val dendValue: Long = dividend.getIdxL(dividend.mag.lastIndex)
         val q = (dendValue / sorLong).toInt()
         val r = (dendValue - q * sorLong).toInt()
-        return Pair(intArrayOf(q), intArrayOf(r))
+        return Pair(mutableBigIntOf(q.toLong()), mutableBigIntOf(r.toLong()))
     }
-    val quotient = IntArray(dividend.mag.size)
+    val quotient = emptyMutableBigIntOf(IntArray(dividend.mag.size))
 
     val shift: Int = sorInt.countLeadingZeroBits()
     var rem: Int = dividend.getUnreversedIdx(0)
     var remLong = rem.toLong() and 0xffffffffL
     if (remLong < sorLong) {
-        quotient[0] = 0
+        quotient.setUnreversedIdx(0, 0)
     } else {
-        quotient[0] = (remLong / sorLong).toInt()
-        rem = (remLong - quotient[0] * sorLong).toInt()
+        quotient.setUnreversedIdxL(0, remLong / sorLong)
+        rem = (remLong - quotient.getUnreversedIdx(0) * sorLong).toInt()
         remLong = rem.toLong() and 0xffffffffL
     }
 
@@ -193,21 +184,21 @@ internal fun AbstractBigInt<*>.divideOneWord(
             q = (dendEst / sorLong).toInt()
             rem = (dendEst - q * sorLong).toInt()
         } else {
-            val tmp = divWord(dendEst, sorInt)
+            val tmp = quotient.divWord(dendEst, sorInt)
             q = (tmp and 0xffffffffL).toInt()
             rem = (tmp ushr Int.SIZE_BITS).toInt()
         }
-        quotient.revSet(idx - 1, q)
+        quotient.setIdx(idx - 1, q)
         remLong = rem.toLong() and 0xffffffffL
     }
 
     return when {
-        shift > 0 -> Pair(quotient, intArrayOf(rem % sorInt))
-        else -> Pair(quotient, intArrayOf(rem))
+        shift > 0 -> Pair(quotient, mutableBigIntOf((rem % sorInt).toLong()))
+        else -> Pair(quotient, mutableBigIntOf(rem.toLong()))
     }
 }
 
-private fun divWord(n: Long, d: Int): Long {
+internal fun MutableBigInt.divWord(n: Long, d: Int): Long {
     val dLong = d.toLong() and 0xffffffffL
     var r: Long
     var q: Long
@@ -217,11 +208,9 @@ private fun divWord(n: Long, d: Int): Long {
         return r shl Int.SIZE_BITS or (q and 0xffffffffL)
     }
 
-    // Approximate the quotient and remainder
     q = (n ushr 1) / (dLong ushr 1)
     r = n - q * dLong
 
-    // Correct the approximation
     while (r < 0) {
         r += dLong
         q--
@@ -230,184 +219,276 @@ private fun divWord(n: Long, d: Int): Long {
         r -= dLong
         q++
     }
-    // n - q*dlong == r && 0 <= r <dLong, hence we're done.
     return r shl Int.SIZE_BITS or (q and 0xffffffffL)
 }
 
-// https://github.com/openjdk/jdk/blob/master/src/java.base/share/classes/java/math/MutableBigInteger.java#L1481
-internal fun AbstractBigInt<*>.divideMagnitude(
+public fun AbstractBigInt<*>.divideMagnitude(
     dividend: AbstractBigInt<*>,
     divisor: AbstractBigInt<*>,
-): Pair<IntArray, IntArray> {
-    val shift: Int = divisor.getIdx(divisor.mag.lastIndex).countLeadingZeroBits()
-    val sorLen = divisor.mag.size
+): Pair<MutableBigInt, MutableBigInt>  {
+    val shift = divisor.getUnreversedIdx(0).countLeadingZeroBits()
 
-    val sor = when (shift > 0) {
-        true -> IntArray(divisor.mag.size).also { copyAndShift(divisor, it, shift) }
-        else -> divisor.toComplementedIntArray() // <---- ARRAY HERE
-    }
-    require(sorLen == sor.size) { "sorLen and sor wrong" }
-
-    val rem = intArrayOf(0) + when {
-        shift <= 0 -> dividend.toComplementedIntArray()
-        dividend.getIdx(dividend.mag.lastIndex).countLeadingZeroBits() >= shift -> IntArray(
-            dividend.mag.size
-        ).also { copyAndShift(dividend, it, shift) }
-        else -> IntArray(dividend.mag.size + 1).also {
-            val n2 = Int.SIZE_BITS - shift
+    val dlen = divisor.range.count()
+    val sorarr: IntArray
+    val remainder: MutableBigInt // Remainder starts as dividend with space for a leading zero
+    if (shift > 0) {
+        sorarr = IntArray(dlen)
+        copyAndShift(divisor, sorarr, 0, shift)
+        if (dividend.getUnreversedIdx(0).countLeadingZeroBits() >= shift) {
+            println("3")
+            val remarr = IntArray(dividend.mag.size)
+            copyAndShift(dividend, remarr, 0, shift)
+            remainder = emptyMutableBigIntOf(intArrayOf(0) + remarr)
+            //remainder.range = 1..1 + dividend.range.count()
+        } else {
+            println("1")
+            val remarr = IntArray(dividend.range.count() + 1)
+            var remOffset = 0
             var c = 0
-            (0 until dividend.mag.size).forEach { idx ->
+            val n2 = Int.SIZE_BITS - shift
+            var i = 1
+            while (i < dividend.mag.lastIndex + 1) {
                 val b = c
-                c = dividend.getUnreversedIdx(idx)  // <---- ARRAY HERE
-                it[idx] = b shl shift or (c ushr n2)
+                c = dividend.getUnreversedIdx(remOffset)
+                remarr[i] = b shl shift or (c ushr n2)
+                i++
+                remOffset++
             }
-            it[dividend.mag.size] = c shl shift
+            remarr[dividend.mag.lastIndex + 1] = c shl shift
+            remainder = emptyMutableBigIntOf(intArrayOf(0) + remarr)
+            //remainder.range = 1..1 + dividend.range.count() + 1
         }
+    } else {
+        println("2")
+        sorarr = divisor.mag.slice(divisor.range).toIntArray() // Maybe use toComplementedArray
+        val remarr = dividend.toComplementedIntArray()
+        remainder = emptyMutableBigIntOf(intArrayOf(0) + remarr)
+        //dividend.mag.indices.forEach { remainder.setUnreversedIdx(it + 1, dividend.getUnreversedIdx(it)) }
+        //remainder.range = 1..1 + dividend.range.count()
     }
+    val nlen = remainder.mag.size - 1 //remainder.range.count()
 
-    //val remLen = rem.size // -1
-    val remLen = rem.size - 1
-    val limit = remLen - sorLen + 1
-    val quot = IntArray(limit)
-    // rem[0] = 0
-    // rem.intLen++;
+    val limit = nlen - dlen + 1
+    val quotient = emptyMutableBigIntOf(IntArray(limit))
+    quotient.range = 0..0 + limit
+    val quotarr = quotient.mag
 
-    val dh = divisor.getUnreversedIdx(0)
+    remainder.setUnreversedIdx(0, 0)
+    //remainder.range = 0..0 + remainder.range.last + 1
+    val dh = sorarr[0]
     val dhLong = dh.toLong() and 0xffffffffL
-    val dl = divisor.getUnreversedIdx(1)
+    val dl = sorarr[1]
 
-    for (idx in 0 until limit - 1) {
-        var qhat: Int = 0
-        var qrem: Int = 0
-        var skipCorrection: Boolean = false
-        val nh: Int = rem[idx]
-        val nh2: Int = nh + -0x80000000
-        val nm: Int = rem[idx + 1]
-
+    for (j in 0 until limit - 1) {
+        var qhat = 0
+        var qrem = 0
+        var skipCorrection = false
+        val nh = remainder.getUnreversedIdx(j + remainder.range.first)
+        val nh2 = nh + -0x80000000
+        val nm = remainder.getUnreversedIdx(j + 1 + remainder.range.first)
         if (nh == dh) {
             qhat = 0.inv()
             qrem = nh + nm
             skipCorrection = qrem + -0x80000000 < nh2
         } else {
-            val nChunk: Long = (nh.toLong() shl Int.SIZE_BITS) or (nm.toLong() and 0xffffffffL)
+            val nChunk = nh.toLong() shl Int.SIZE_BITS or (nm.toLong() and 0xffffffffL)
             if (nChunk >= 0) {
                 qhat = (nChunk / dhLong).toInt()
-                qrem = (nChunk - (qhat * dhLong)).toInt()
+                qrem = (nChunk - qhat * dhLong).toInt()
             } else {
-                val tmp = divWord(nChunk, dh)
+                val tmp = quotient.divWord(nChunk, dh)
                 qhat = (tmp and 0xffffffffL).toInt()
                 qrem = (tmp ushr Int.SIZE_BITS).toInt()
             }
         }
-
         if (qhat == 0) continue
-
         if (!skipCorrection) {
-            val nl: Long = rem[idx + 2].toLong() and 0xffffffffL
-            var rs = ((qrem.toLong() and 0xffffffffL) shl Int.SIZE_BITS) or nl
-            var estProduct: Long = (dl.toLong() and 0xffffffffL) * (qhat.toLong() and 0xffffffffL)
-            if (unsignedLongCompare(estProduct, rs)) {
+            val nl = remainder.getUnreversedIdxL(j + 2 + remainder.range.first)
+            var rs = qrem.toLong() and 0xffffffffL shl Int.SIZE_BITS or nl
+            var estProduct = (dl.toLong() and 0xffffffffL) * (qhat.toLong() and 0xffffffffL)
+            if (estProduct + Long.MIN_VALUE > rs + Long.MIN_VALUE) {
                 qhat--
                 qrem = ((qrem.toLong() and 0xffffffffL) + dhLong).toInt()
-                if ((qrem.toLong() and 0xffffffffL) >= dhLong) {
-                    estProduct -= (dl.toLong() and 0xffffffffL)
-                    rs = ((qrem.toLong() and 0xffffffffL) shl Int.SIZE_BITS) or nl
-                    if (unsignedLongCompare(estProduct, rs)) qhat--
+                if (qrem.toLong() and 0xffffffffL >= dhLong) {
+                    estProduct -= dl.toLong() and 0xffffffffL
+                    rs = qrem.toLong() and 0xffffffffL shl Int.SIZE_BITS or nl
+                    if (estProduct + Long.MIN_VALUE > rs + Long.MIN_VALUE) qhat--
                 }
             }
         }
 
-        rem[idx] = 0
-        val borrow = mulsub(rem, sor, qhat, sorLen, idx)
+        remainder.setUnreversedIdx(j + remainder.range.first, 0)
+        val borrow = mulsub2(remainder, sorarr, qhat, dlen, j + remainder.range.first)
 
         if (borrow + -0x80000000 > nh2) {
-            divadd(sor, rem, idx + 1)
+            divadd2(sorarr, remainder, j + 1 + remainder.range.first)
             qhat--
         }
 
-        quot[idx] = qhat // <---- ARRAY HERE
+        quotient.setUnreversedIdx(j, qhat)
     }
 
-    var qhat: Int = 0
-    var qrem: Int = 0
-    var skipCorrection: Boolean = false
-    val nh: Int = rem[limit - 1]
-    val nh2: Int = nh + -0x80000000
-    val nm: Int = rem[limit]
-
+    var qhat = 0
+    var qrem = 0
+    var skipCorrection = false
+    val nh = remainder.getUnreversedIdx(limit - 1 + remainder.range.first)
+    val nh2 = nh + -0x80000000
+    val nm = remainder.getUnreversedIdx(limit + remainder.range.first)
     if (nh == dh) {
         qhat = 0.inv()
         qrem = nh + nm
         skipCorrection = qrem + -0x80000000 < nh2
     } else {
-        val nChunk = (nh.toLong() shl Int.SIZE_BITS) or (nm.toLong() and 0xffffffffL)
+        val nChunk = nh.toLong() shl Int.SIZE_BITS or (nm.toLong() and 0xffffffffL)
         if (nChunk >= 0) {
             qhat = (nChunk / dhLong).toInt()
-            qrem = (nChunk - (qhat * dhLong)).toInt()
+            qrem = (nChunk - qhat * dhLong).toInt()
         } else {
-            val tmp = divWord(nChunk, dh)
+            val tmp = quotient.divWord(nChunk, dh)
             qhat = (tmp and 0xffffffffL).toInt()
             qrem = (tmp ushr Int.SIZE_BITS).toInt()
         }
     }
     if (qhat != 0) {
         if (!skipCorrection) {
-            val nl: Long = rem[limit + 1].toLong() and 0xffffffffL
-            var rs: Long = ((qrem.toLong() and 0xffffffffL) shl Int.SIZE_BITS) or nl
-            var estProduct: Long = (dl.toLong() and 0xffffffffL) * (qhat.toLong() and 0xffffffffL)
-            if (unsignedLongCompare(estProduct, rs)) {
+            val nl = remainder.getUnreversedIdxL(limit + 1 + remainder.range.first)
+            var rs = qrem.toLong() and 0xffffffffL shl Int.SIZE_BITS or nl
+            var estProduct = (dl.toLong() and 0xffffffffL) * (qhat.toLong() and 0xffffffffL)
+            if (estProduct + Long.MIN_VALUE > rs + Long.MIN_VALUE) {
                 qhat--
                 qrem = ((qrem.toLong() and 0xffffffffL) + dhLong).toInt()
                 if (qrem.toLong() and 0xffffffffL >= dhLong) {
-                    estProduct -= (dl.toLong() and 0xffffffffL)
-                    rs = ((qrem.toLong() and 0xffffffffL) shl Int.SIZE_BITS) or nl
-                    if (unsignedLongCompare(estProduct, rs)) qhat--
+                    estProduct -= dl.toLong() and 0xffffffffL
+                    rs = qrem.toLong() and 0xffffffffL shl Int.SIZE_BITS or nl
+                    if (estProduct + Long.MIN_VALUE > rs + Long.MIN_VALUE) qhat--
                 }
             }
         }
 
-        rem[limit - 1] = 0
-        val borrow: Int = mulsub(rem, sor, qhat, sorLen, limit - 1)
+        val borrow: Int
+        remainder.setUnreversedIdx(limit - 1 + remainder.range.first, 0)
+        borrow = mulsub2(remainder, sorarr, qhat, dlen, limit - 1 + remainder.range.first)
+
         if (borrow + -0x80000000 > nh2) {
-            divadd(sor, rem, limit - 1)
+            divadd2(sorarr, remainder, limit - 1 + 1 + remainder.range.first)
             qhat--
         }
-        quot[limit - 1] = qhat // <---- ARRAY HERE
+
+        //quotarr[limit - 1] = qhat
+        quotient.setUnreversedIdx(limit - 1, qhat)
     }
 
-    return Pair(quot, if (shift > 0) rightShift(rem, shift) else rem)
+    if (shift > 0) rightShift(remainder, shift)
+    return Pair(quotient, remainder)
 }
 
-private fun rightShift(value: IntArray, n: Int): IntArray {
-    if (value.isEmpty()) return value
+private fun mulsub2(q: MutableBigInt, a: IntArray, x: Int, len: Int, offset: Int): Int {
+    val xLong = x.toLong() and 0xffffffffL
+    var carry: Long = 0
+    var offset_: Int = offset + len
+    (len - 1 downTo 0).forEach { idx ->
+        val product: Long = (a[idx].toLong() and 0xffffffffL) * xLong + carry
+        val difference = q.getUnreversedIdx(offset_) - product
+        q.setUnreversedIdxL(offset_--, difference)
+        carry = (product ushr Int.SIZE_BITS) + (
+                if ((difference and 0xffffffffL) > (product.inv() and 0xffffffffL)) 1 else 0)
+    }
+    return carry.toInt()
+}
+
+private fun divadd2(a: IntArray, r: MutableBigInt, offset: Int): Int {
+    var carry: Long = 0
+    (a.lastIndex downTo 0).forEach { idx ->
+        val sum: Long = (a[idx].toLong() and 0xffffffffL) + r.getUnreversedIdxL(idx + offset) + carry
+        r.setUnreversedIdxL(idx + offset, sum)
+        carry = sum ushr Int.SIZE_BITS
+    }
+    return carry.toInt()
+}
+
+/*internal fun MutableBigInt.rightShift(n: Int) {
+    if (range.last == 0) return
     val nInts = n ushr 5
     val nBits = n and 0x1F
-    var size = value.size - nInts
-    if (nBits == 0) return value
-    val bitsInHighWord: Int = bitSizeForInt(value[0])
-    return if (nBits >= bitsInHighWord) {
+    range = range.first..range.last - nInts
+    if (nBits == 0) return
+    val bitsInHighWord = Int.SIZE_BITS - mag[range.first].countLeadingZeroBits()
+    if (nBits >= bitsInHighWord) {
+        primitiveLeftShift(this, Int.SIZE_BITS - nBits)
+        range = range.first until range.last
+    } else {
+        primitiveRightShift(this, nBits)
+    }
+}*/
+
+/*private fun MutableBigInt.primitiveRightShift(n: Int) {
+    val value = mag
+    val n2 = Int.SIZE_BITS - n
+    var i = range.first + range.count() - 1
+    var c = value[i]
+    while (i > range.first) {
+        val b = c
+        c = value[i - 1]
+        value[i] = c shl n2 or (b ushr n)
+        i--
+    }
+    value[range.first] = value[range.first] ushr n
+}
+
+private fun MutableBigInt.primitiveLeftShift(n: Int) {
+    val value = mag
+    val n2 = Int.SIZE_BITS - n
+    var i = range.first
+    var c = value[i]
+    val m = i + range.count() - 1
+    while (i < m) {
+        val b = c
+        c = value[i + 1]
+        value[i] = b shl n or (c ushr n2)
+        i++
+    }
+    value[range.first + range.count() - 1] = value[range.first + range.count() - 1] shl n
+}*/
+
+private fun rightShift(value: MutableBigInt, n: Int) {
+    if (value.mag.isEmpty()) return
+    val nInts = n ushr 5
+    val nBits = n and 0x1F
+    var size = value.mag.size - nInts
+    if (nBits == 0) return
+    val bitsInHighWord: Int = bitSizeForInt(value.getUnreversedIdx(0))
+    if (nBits >= bitsInHighWord) {
         primitiveLeftShift(value, 32 - nBits)
-        //size--
-        value.copyOfRange(0, value.lastIndex)
+        value.mag.removeAt(value.mag.lastIndex)
+        value.range = value.range.first until value.range.last
     } else {
         primitiveRightShift(value, nBits)
-        value
     }
 }
 
-// https://github.com/openjdk/jdk/blob/master/src/java.base/share/classes/java/math/MutableBigInteger.java#L697
-private fun primitiveLeftShift(value: IntArray, n: Int) {
+private fun primitiveRightShift(value: MutableBigInt, n: Int) {
+    val n2: Int = Int.SIZE_BITS - n
+    var c: Int = value.getUnreversedIdx(value.mag.lastIndex)
+    (value.mag.lastIndex downTo 1).forEach { idx ->
+        val b: Int = c
+        c = value.getUnreversedIdx(idx - 1)
+        value.setUnreversedIdx(idx, (c shl n2) or (b ushr n))
+    }
+    value.setUnreversedIdx(0, value.getUnreversedIdx(0) ushr n)
+}
+
+private fun primitiveLeftShift(value: MutableBigInt, n: Int) {
     val n2 = 32 - n
-    var c = value[0]
-    (0 until value.lastIndex).forEach { idx ->
+    var c = value.getUnreversedIdx(0)
+    (0 until value.mag.lastIndex).forEach { idx ->
         val b = c
-        c = value[idx + 1]
-        value[idx] = b shl n or (c ushr n2)
+        c = value.getUnreversedIdx(idx + 1)
+        value.setUnreversedIdx(idx, b shl n or (c ushr n2))
     }
-    value[value.lastIndex] = value[value.lastIndex] shl n
+    value.setUnreversedIdx(value.mag.lastIndex, value.getUnreversedIdx(value.mag.lastIndex) shl n)
 }
 
-private fun unsignedLongCompare(one: Long, two: Long): Boolean {
+private fun unsignedLongCompare0(one: Long, two: Long): Boolean {
     return (one + Long.MIN_VALUE) > (two + Long.MIN_VALUE)
 }
 
@@ -475,19 +556,20 @@ private fun mulsubBorrow(q: IntArray, a: IntArray, x: Int, len: Int, offset: Int
     return carry.toInt()
 }
 
-private fun copyAndShift0(src: IntArray, srcFrom: Int, srcLen: Int, dst: IntArray, dstFrom: Int, shift: Int) {
-    var srcFrom1 = srcFrom
+private fun copyAndShift(src: AbstractBigInt<*>, dst: IntArray, destOffset: Int, shift: Int) {
+    val srcOffset = src.range.first
+    val srcSize = src.range.count()
     val n2 = Int.SIZE_BITS - shift
-    var c = src[srcFrom1]
-    for (i in 0 until srcLen - 1) {
+    var c = src.getUnreversedIdx(srcOffset)
+    (0 until srcSize - 1).forEach { idx ->
         val b = c
-        c = src[++srcFrom1]
-        dst[dstFrom + i] = b shl shift or (c ushr n2)
+        c = src.getUnreversedIdx(srcOffset + idx)
+        dst[destOffset + idx] = b shl shift or (c ushr n2)
     }
-    dst[dstFrom + srcLen - 1] = c shl shift
+    dst[destOffset + srcSize - 1] = c shl shift
 }
 
-private fun copyAndShift(src: AbstractBigInt<*>, dst: IntArray, shift: Int) {
+private fun copyAndShift1(src: AbstractBigInt<*>, dst: IntArray, shift: Int) {
     val n2 = Int.SIZE_BITS - shift
     var c = src.getUnreversedIdx(0) // <---- ARRAY HERE
     (0 until src.mag.lastIndex).forEach { idx ->
@@ -496,28 +578,4 @@ private fun copyAndShift(src: AbstractBigInt<*>, dst: IntArray, shift: Int) {
         dst[idx] = (b shl shift) or (c ushr n2)
     }
     dst[src.mag.lastIndex] = c shl shift
-}
-
-private fun primitiveRightShift(value: IntArray, n: Int) {
-    val n2: Int = Int.SIZE_BITS - n
-    var c: Int = value.last()
-    (value.lastIndex downTo 1).forEach { idx ->
-        val b: Int = c
-        c = value[idx - 1]
-        value[idx] = (c shl n2) or (b ushr n)
-    }
-    value[0] = value[0] ushr n
-}
-
-private fun primitiveRightShift0(value: IntArray, n: Int) {
-    val n2 = Int.SIZE_BITS - n
-    var i: Int = value.lastIndex
-    var c = value[i]
-    while (i > 0) {
-        val b = c
-        c = value[i - 1]
-        value[i] = c shl n2 or (b ushr n)
-        i--
-    }
-    value[0] = value[0] ushr n
 }

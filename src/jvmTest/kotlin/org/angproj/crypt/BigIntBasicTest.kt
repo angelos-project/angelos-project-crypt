@@ -23,8 +23,8 @@ public fun AbstractBigInt<*>.divideAndRemainder2(value: AbstractBigInt<*>): Pair
                         value.mag.size == 1 -> {
                             val qr = divideOneWord(this.abs(), value.abs())
                             Pair(
-                                of(qr.first, if (this.sigNum == value.sigNum) BigSigned.POSITIVE else BigSigned.NEGATIVE),
-                                of(qr.second, this.sigNum)
+                                of(qr.first.mag.toIntArray(), if (this.sigNum == value.sigNum) BigSigned.POSITIVE else BigSigned.NEGATIVE),
+                                of(qr.second.mag.toIntArray(), this.sigNum)
                             )
                         }
                         else -> {
@@ -75,8 +75,8 @@ class BigIntBasicTest {
         }
     }
 
-    val testSubject1 = BigInteger(BinHex.decodeToBin("7fffffffffffffff79faf9c67d318e19ded9fe7c82c98aefdba98d4275014c8e"))
-    val testSubject2 = BigInteger(BinHex.decodeToBin("5ff66b9fa07ae36f9cfe8ccc"))
+    val testSubject1 = BigInteger(BinHex.decodeToBin("7fffffffffffffffac558342a6ebd1f01b63beb525401ca4b754d3bde084251a"))
+    val testSubject2 = BigInteger(BinHex.decodeToBin("296c47bd9382d357be2bdea1f32ea78ac1b95f2138d5814816004ceb2009d127"))
 
     @Test
     fun divideAndRemainderTest() {
@@ -84,7 +84,7 @@ class BigIntBasicTest {
         /*Combinator.doMatrixPairTests(vectorList1.slice(0..7), listOf(vectorList2[8])) { xbi, ybi, x, y ->
             Pair(xbi.divideAndRemainder(ybi) , x.divideAndRemainder(y))
         }*/
-        Combinator.doMatrixPairTests(listOf(testSubject1), listOf(testSubject2)) { xbi, ybi, x, y ->
+        Combinator.doMatrixPairTests(vectorList1, vectorList2) { xbi, ybi, x, y ->
             Pair(xbi.divideAndRemainder(ybi) , x.divideAndRemainder(y))
         }
     }

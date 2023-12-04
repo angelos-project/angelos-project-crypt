@@ -15,18 +15,31 @@
 package org.angproj.crypt.dsa
 
 public class MutableBigInt internal constructor(magnitude: MutableList<Int>, sigNum: BigSigned): AbstractBigInt<MutableList<Int>>(magnitude, sigNum) {
+
+    public override var range: IntRange = 0..magnitude.lastIndex
+
     public constructor(magnitude: IntArray, sigNum: BigSigned): this(magnitude.toMutableList(), sigNum)
 
     public fun setIdx(index: Int, num: Int) {
-        val value = when {
+        val value = num/*when {
             sigNum.isNonNegative() -> num
             index <= firstNonZero -> -num
             else -> num.inv()
-        }
-        mag.revSet(value, index)
+        }*/
+        mag.revSet(index, value)
     }
 
     public fun setIdxL(index: Int, num: Long): Unit = setIdx(index, num.toInt())
+
+    public fun setUnreversedIdx(index: Int, num: Int) {
+        mag[index] = num /*when {
+            sigNum.isNonNegative() -> num
+            index <= firstNonZero -> -num
+            else -> num.inv()
+        }*/
+    }
+
+    public fun setUnreversedIdxL(index: Int, num: Long): Unit = setUnreversedIdx(index, num.toInt())
 
     override fun negate(): MutableBigInt = MutableBigInt(mag, sigNum.negate())
 
@@ -38,6 +51,8 @@ public class MutableBigInt internal constructor(magnitude: MutableList<Int>, sig
     public override fun toBigInt(): BigInt = BigInt(mag.toIntArray(), sigNum)
     public override fun toMutableBigInt(): MutableBigInt = this
 }
+
+public fun emptyMutableBigIntOf(value: IntArray = intArrayOf(0)): MutableBigInt = MutableBigInt(value, BigSigned.POSITIVE)
 
 public fun mutableBigIntOf(value: IntArray): MutableBigInt = AbstractBigInt.fromIntArray(value) { a, b -> MutableBigInt(a, b) }
 public fun mutableBigIntOf(value: ByteArray): MutableBigInt = AbstractBigInt.fromByteArray(value) { a, b -> MutableBigInt(a, b) }
