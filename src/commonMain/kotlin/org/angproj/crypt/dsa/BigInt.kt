@@ -31,8 +31,6 @@ package org.angproj.crypt.dsa
 
 public class BigInt internal constructor(magnitude: List<Int>, sigNum: BigSigned): AbstractBigInt<List<Int>>(magnitude, sigNum) {
 
-    public override val range: IntRange = 0..magnitude.lastIndex
-
     public constructor(magnitude: IntArray, sigNum: BigSigned): this(magnitude.asList(), sigNum)
 
     override fun negate(): BigInt = BigInt(mag, sigNum.negate())

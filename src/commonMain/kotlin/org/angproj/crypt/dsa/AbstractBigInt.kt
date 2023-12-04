@@ -24,9 +24,6 @@ public abstract class AbstractBigInt<E: List<Int>>(
     public val mag: E,
     public val sigNum: BigSigned,
 ){
-
-    public abstract val range: IntRange
-
     public val bitCount: Int by lazy { bitCount(mag, sigNum) }
     public val bitLength: Int by lazy { bitLength(mag, sigNum) }
     public val firstNonZero: Int by lazy { firstNonZero(mag) }

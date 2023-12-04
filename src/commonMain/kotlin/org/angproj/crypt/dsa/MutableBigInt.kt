@@ -16,8 +16,6 @@ package org.angproj.crypt.dsa
 
 public class MutableBigInt internal constructor(magnitude: MutableList<Int>, sigNum: BigSigned): AbstractBigInt<MutableList<Int>>(magnitude, sigNum) {
 
-    public override var range: IntRange = 0..magnitude.lastIndex
-
     public constructor(magnitude: IntArray, sigNum: BigSigned): this(magnitude.toMutableList(), sigNum)
 
     public fun setIdx(index: Int, num: Int) {
@@ -50,6 +48,8 @@ public class MutableBigInt internal constructor(magnitude: MutableList<Int>, sig
 
     public override fun toBigInt(): BigInt = BigInt(mag.toIntArray(), sigNum)
     public override fun toMutableBigInt(): MutableBigInt = this
+
+    public companion object
 }
 
 public fun emptyMutableBigIntOf(value: IntArray = intArrayOf(0)): MutableBigInt = MutableBigInt(value, BigSigned.POSITIVE)
