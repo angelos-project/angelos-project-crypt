@@ -14,11 +14,12 @@
  */
 package org.angproj.crypt.number
 
+import org.angproj.crypt.dsa.AbstractBigInt.Companion.getL
 import org.angproj.crypt.dsa.MutableBigInt
 
 
 internal fun MutableBigInt.Companion.divWord(n: Long, d: Int): Long {
-    val dLong = d.toLong() and 0xffffffffL
+    val dLong = d.getL()
     var r: Long
     var q: Long
     if (dLong == 1L) {
@@ -57,13 +58,11 @@ internal fun MutableBigInt.Companion.rightShift(value: IntArray, n: Int): IntArr
 
 internal fun MutableBigInt.Companion.primitiveRightShift(value: IntArray, n: Int): IntArray {
     val n2 = Int.SIZE_BITS - n
-    var i = value.lastIndex
-    var c = value[i]
-    while (i > 0) {
+    var c = value[value.lastIndex]
+     (value.lastIndex downTo 1).forEach { idx ->
         val b = c
-        c = value[i - 1]
-        value[i] = c shl n2 or (b ushr n)
-        i--
+        c = value[idx - 1]
+        value[idx] = c shl n2 or (b ushr n)
     }
     value[0] = value[0] ushr n
     return value
@@ -71,20 +70,20 @@ internal fun MutableBigInt.Companion.primitiveRightShift(value: IntArray, n: Int
 
 internal fun MutableBigInt.Companion.primitiveLeftShift(value: IntArray, n: Int): IntArray {
     val n2 = Int.SIZE_BITS - n
-    var i = 0
-    var c = value[i]
-    val m = i + value.lastIndex
-    while (i < m) {
+    var c = value[0]
+    (0 until value.lastIndex).forEach { idx ->
         val b = c
-        c = value[i + 1]
-        value[i] = b shl n or (c ushr n2)
-        i++
+        c = value[idx + 1]
+        value[idx] = b shl n or (c ushr n2)
     }
     value[value.lastIndex] = value[value.lastIndex] shl n
     return value
 }
 
-internal fun MutableBigInt.Companion.copyAndShift(src: IntArray, srcFrom_: Int, srcLen: Int, dst: IntArray, dstFrom: Int, shift: Int) {
+internal fun MutableBigInt.Companion.copyAndShift(
+    src: IntArray, srcFrom_: Int, srcLen: Int,
+    dst: IntArray, dstFrom: Int, shift: Int
+) {
     var srcFrom = srcFrom_
     val n2 = Int.SIZE_BITS - shift
     var c = src[srcFrom]
@@ -96,25 +95,22 @@ internal fun MutableBigInt.Companion.copyAndShift(src: IntArray, srcFrom_: Int, 
     dst[dstFrom + srcLen - 1] = c shl shift
 }
 
-internal fun MutableBigInt.Companion.mulsub(q: IntArray, a: IntArray, x: Int, len: Int, offset: Int): Int {
-    val xLong = x.toLong() and 0xffffffffL
+internal fun MutableBigInt.Companion.mulSub(q: IntArray, a: IntArray, x: Int, len: Int, offset: Int): Int {
     var carry: Long = 0
-    var offset_: Int = offset + len
     (len - 1 downTo 0).forEach { idx ->
-        val product: Long = (a[idx].toLong() and 0xffffffffL) * xLong + carry
-        val difference = q[offset_] - product
-        q[offset_--] = difference.toInt()
-        carry = (product ushr Int.SIZE_BITS) + (
-                if ((difference and 0xffffffffL) > (product.inv() and 0xffffffffL)) 1 else 0)
+        val prod: Long = a[idx].getL() * x.getL() + carry
+        val diff = q[offset + idx + 1] - prod
+        q[offset + idx + 1] = diff.toInt()
+        carry = (prod ushr Int.SIZE_BITS) + (
+                if ((diff and 0xffffffffL) > (prod.inv() and 0xffffffffL)) 1 else 0)
     }
     return carry.toInt()
 }
 
-internal fun MutableBigInt.Companion.divadd(a: IntArray, result: IntArray, offset: Int): Int {
+internal fun MutableBigInt.Companion.divAdd(a: IntArray, result: IntArray, offset: Int): Int {
     var carry: Long = 0
     (a.lastIndex downTo 0).forEach { idx ->
-        val sum: Long = (a[idx].toLong() and 0xffffffffL) + (
-                result[idx + offset].toLong() and 0xffffffffL) + carry
+        val sum: Long = a[idx].getL() + result[idx + offset].getL() + carry
         result[idx + offset] = sum.toInt()
         carry = sum ushr Int.SIZE_BITS
     }

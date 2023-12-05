@@ -15,9 +15,7 @@
 package org.angproj.crypt.number
 
 import org.angproj.crypt.dsa.*
-import org.angproj.crypt.dsa.AbstractBigInt.Companion.revGetL
-import org.angproj.crypt.dsa.AbstractBigInt.Companion.revSet
-import org.angproj.crypt.dsa.AbstractBigInt.Companion.revSetL
+import org.angproj.crypt.dsa.AbstractBigInt.Companion.getL
 
 public operator fun AbstractBigInt<*>.unaryMinus(): AbstractBigInt<*> = negate()
 
@@ -27,17 +25,17 @@ public fun AbstractBigInt<*>.add(value: AbstractBigInt<*>): AbstractBigInt<*> = 
     sigNum.isZero() -> value
     value.sigNum.isZero() -> this
     else -> biggerFirst(this, value) { big, little ->
-        return@biggerFirst of(add(big, little))
+        return@biggerFirst of(MutableBigInt.add(big, little).toRawIntArray())
     }
 }
 
-internal fun add(x: AbstractBigInt<*>, y: AbstractBigInt<*>): IntArray {
-    val result = IntArray(x.mag.size + 1)
+internal fun MutableBigInt.Companion.add(x: AbstractBigInt<*>, y: AbstractBigInt<*>): MutableBigInt {
+    val result = emptyMutableBigIntOf(IntArray(x.mag.size + 1))
 
     var carry: Long = 0
-    result.indices.forEach { idx ->
+    result.mag.indices.forEach { idx ->
         carry += x.getIdxL(idx) + y.getIdxL(idx)
-        result.revSetL(idx, carry)
+        result.setIdxL(idx, carry)
         carry = carry ushr Int.SIZE_BITS
     }
     return result
@@ -49,19 +47,19 @@ public operator fun AbstractBigInt<*>.minus(other: AbstractBigInt<*>): AbstractB
 public fun AbstractBigInt<*>.subtract(value: AbstractBigInt<*>): AbstractBigInt<*> = when {
     value.sigNum.isZero() -> this
     sigNum.isZero() -> value.negate()
-    else -> of(subtract(this, value))
+    else -> of(MutableBigInt.subtract(this, value).toRawIntArray())
 }
 
-internal fun subtract(x: AbstractBigInt<*>, y: AbstractBigInt<*>): IntArray {
-    val result = maxOfArrays(x.mag, y.mag)
+internal fun MutableBigInt.Companion.subtract(x: AbstractBigInt<*>, y: AbstractBigInt<*>): MutableBigInt {
+    val result = emptyMutableBigIntOf(maxOfArrays(x.mag, y.mag))
     var carry = 0
-    result.indices.forEach { idr ->
+    result.mag.indices.forEach { idr ->
         var yNum = y.getIdx(idr) + carry
         val xNum = x.getIdx(idr)
         carry = if (yNum xor -0x80000000 < carry xor -0x80000000) 1 else 0
         yNum = xNum - yNum
         carry += if (yNum xor -0x80000000 > xNum xor -0x80000000) 1 else 0
-        result.revSet(idr, yNum)
+        result.setIdx(idr, yNum)
     }
     return result
 }
@@ -72,52 +70,45 @@ internal fun AbstractBigInt<*>.multiply(value: AbstractBigInt<*>): AbstractBigIn
     sigNum.isZero() || value.sigNum.isZero() -> BigInt.zero
     else -> biggerFirst(this, value) { big, little ->
         val negative = big.sigNum.isNegative().let { if (little.sigNum.isNegative()) !it else it }
-        val result = of(multiply(big.abs(), little.abs()), BigSigned.POSITIVE)
+        val result = of(MutableBigInt.multiply(big.abs(), little.abs()).toRawIntArray(), BigSigned.POSITIVE)
         return@biggerFirst if (negative) result.negate() else result
     }
 }
 
-internal fun multiply(x: AbstractBigInt<*>, y: AbstractBigInt<*>): IntArray {
-    val result = IntArray(x.mag.size + y.mag.size)
-    result.revSet(x.mag.size, multiply(result, x, y.getIdx(0)))
+internal fun MutableBigInt.Companion.multiply(x: AbstractBigInt<*>, y: AbstractBigInt<*>): MutableBigInt {
+    val result = emptyMutableBigIntOf(IntArray(x.mag.size + y.mag.size))
+    result.setIdx(x.mag.size, multiply(result, x, y.getIdx(0)))
     (1 until y.mag.size).forEach { idy ->
         val num = y.getIdxL(idy)
         var carry: Long = 0
         x.mag.indices.forEach { idx ->
-            carry += x.getIdxL(idx) * num + result.revGetL(idy + idx)
-            result.revSetL(idy + idx, carry)
+            carry += x.getIdxL(idx) * num + result.getIdxL(idy + idx)
+            result.setIdxL(idy + idx, carry)
             carry = carry ushr Int.SIZE_BITS
         }
-        result.revSetL(idy + x.mag.size, carry)
+        result.setIdxL(idy + x.mag.size, carry)
     }
     return result
 }
 
-internal fun multiply(result: IntArray, x: AbstractBigInt<*>, y: Int): Int {
-    val first = y.toLong() and 0xffffffffL
+internal fun MutableBigInt.Companion.multiply(result: MutableBigInt, x: AbstractBigInt<*>, y: Int): Int {
+    val first = y.getL()
     var carry: Long = 0
     x.mag.indices.forEach { idx ->
         carry += x.getIdxL(idx) * first
-        result.revSetL(idx, carry)
+        result.setIdxL(idx, carry)
         carry = carry ushr Int.SIZE_BITS
     }
     return carry.toInt()
 }
 
 
-/*public fun divide(value: BigInt): BigInt {
-    check(value.sigNum.isNonZero()) { "Divisor is zero" }
-    val quot = BigInt()
-    BigInt.divide(this, value, quot, null, BigInt.TRUNCATE)
-    return quot.canonicalize()
-}
+public operator fun AbstractBigInt<*>.div(other: AbstractBigInt<*>): AbstractBigInt<*> = divide(other)
+public fun AbstractBigInt<*>.divide(value: AbstractBigInt<*>): AbstractBigInt<*> = divideAndRemainder(value).first
 
-public fun remainder(value: BigInt): BigInt {
-    check(value.sigNum.isNonZero()) { "Divisor is zero" }
-    val rem = BigInt()
-    BigInt.divide(this, value, null, rem, BigInt.TRUNCATE)
-    return rem.canonicalize()
-}*/
+public operator fun AbstractBigInt<*>.rem(other: AbstractBigInt<*>): AbstractBigInt<*> = remainder(other)
+public fun AbstractBigInt<*>.remainder(value: AbstractBigInt<*>): AbstractBigInt<*> = divideAndRemainder(value).second
+
 
 public fun AbstractBigInt<*>.divideAndRemainder(value: AbstractBigInt<*>): Pair<AbstractBigInt<*>, AbstractBigInt<*>> =
     when {
@@ -136,7 +127,10 @@ public fun AbstractBigInt<*>.divideAndRemainder(value: AbstractBigInt<*>): Pair<
                         else -> divideMagnitude(this.abs(), value.abs())
                     }
                     Pair(
-                        of(result.first.toComplementedIntArray(), if (this.sigNum == value.sigNum) BigSigned.POSITIVE else BigSigned.NEGATIVE),
+                        of(
+                            result.first.toComplementedIntArray(),
+                            if (this.sigNum == value.sigNum) BigSigned.POSITIVE else BigSigned.NEGATIVE
+                        ),
                         of(result.second.toComplementedIntArray(), this.sigNum)
                     )
                 }
@@ -161,13 +155,13 @@ public fun AbstractBigInt<*>.divideOneWord(
 
     val shift: Int = sorInt.countLeadingZeroBits()
     var rem: Int = dividend.getUnreversedIdx(0)
-    var remLong = rem.toLong() and 0xffffffffL
+    var remLong = rem.getL()
     if (remLong < sorLong) {
         quotient.setUnreversedIdx(0, 0)
     } else {
         quotient.setUnreversedIdxL(0, remLong / sorLong)
         rem = (remLong - quotient.getUnreversedIdx(0) * sorLong).toInt()
-        remLong = rem.toLong() and 0xffffffffL
+        remLong = rem.getL()
     }
 
     (dividend.mag.lastIndex downTo 1).forEach { idx ->
@@ -182,7 +176,7 @@ public fun AbstractBigInt<*>.divideOneWord(
             rem = (tmp ushr Int.SIZE_BITS).toInt()
         }
         quotient.setIdx(idx - 1, q)
-        remLong = rem.toLong() and 0xffffffffL
+        remLong = rem.getL()
     }
 
     return when {
@@ -197,152 +191,138 @@ public fun AbstractBigInt<*>.divideMagnitude(
 ): Pair<MutableBigInt, MutableBigInt> {
     val shift = divisor.mag[0].countLeadingZeroBits()
 
-    val dlen = divisor.mag.size
-    val sorarr: IntArray = when {
+    val sorLen = divisor.mag.size
+    val sorArr: IntArray = when {
         shift > 0 -> IntArray(divisor.mag.size).also {
             MutableBigInt.copyAndShift(divisor.mag.toIntArray(), 0, divisor.mag.size, it, 0, shift) }
         else -> divisor.mag.toIntArray().copyOfRange(0, divisor.mag.size)
     }
-    val remainder: IntArray = when {
-        shift <= 0 ->  {
-            val remarr = IntArray(dividend.mag.size + 1)
-            dividend.mag.toIntArray().copyInto(remarr, 1, 0, dividend.mag.size)
-            remarr
+    val remArr: IntArray = when {
+        shift <= 0 -> IntArray(dividend.mag.size + 1).also { arr ->
+            dividend.mag.toIntArray().copyInto(arr, 1, 0, dividend.mag.size)
         }
-        dividend.mag[0].countLeadingZeroBits() >= shift -> {
-            val remarr = IntArray(dividend.mag.size + 1)
-            MutableBigInt.copyAndShift(dividend.mag.toIntArray(), 0, remarr.lastIndex, remarr, 1, shift)
-            remarr
+        dividend.mag[0].countLeadingZeroBits() >= shift -> IntArray(dividend.mag.size + 1).also { arr ->
+            MutableBigInt.copyAndShift(dividend.mag.toIntArray(), 0, arr.lastIndex, arr, 1, shift)
         }
-        else -> {
-            val remarr = IntArray(dividend.mag.size + 2)
-            var rFrom = 0
+        else -> IntArray(dividend.mag.size + 2).also { arr ->
             var c = 0
             val n2 = Int.SIZE_BITS - shift
-            var i = 1
-            while (i < dividend.mag.size + 1) {
+            (1 until dividend.mag.size + 1).forEach { idx ->
                 val b = c
-                c = dividend.mag[rFrom]
-                remarr[i] = b shl shift or (c ushr n2)
-                i++
-                rFrom++
+                c = dividend.mag[idx - 1]
+                arr[idx] = b shl shift or (c ushr n2)
             }
-            remarr[dividend.mag.size + 1] = c shl shift
-            remarr
+            arr[dividend.mag.size + 1] = c shl shift
         }
     }
 
-    val nlen = remainder.lastIndex
+    val remLen = remArr.lastIndex
+    val quotLen = remLen - sorLen + 1
+    val quotArr = IntArray(quotLen)
 
-    val limit = nlen - dlen + 1
-    //val quotient = MutableBigInteger()
-    //quotient.value =
-    val quotarr = IntArray(limit) //quotient.value
+    val sorHigh = sorArr[0]
+    val sorHighLong = sorHigh.getL()
+    val sorLow = sorArr[1]
 
-    val dh = sorarr[0]
-    val dhLong = dh.toLong() and 0xffffffffL
-    val dl = sorarr[1]
-
-    for (j in 0 until limit - 1) {
+    quotArr.indices.forEach { idx ->
         var qhat = 0
         var qrem = 0
         var skipCorrection = false
-        val nh = remainder[j]
+        val nh = remArr[idx]
         val nh2 = nh + -0x80000000
-        val nm = remainder[j + 1]
-        if (nh == dh) {
+        val nm = remArr[idx + 1]
+        if (nh == sorHigh) {
             qhat = 0.inv()
             qrem = nh + nm
             skipCorrection = qrem + -0x80000000 < nh2
         } else {
-            val nChunk = nh.toLong() shl Int.SIZE_BITS or (nm.toLong() and 0xffffffffL)
+            val nChunk = nh.toLong() shl Int.SIZE_BITS or nm.getL()
             if (nChunk >= 0) {
-                qhat = (nChunk / dhLong).toInt()
-                qrem = (nChunk - qhat * dhLong).toInt()
+                qhat = (nChunk / sorHighLong).toInt()
+                qrem = (nChunk - qhat * sorHighLong).toInt()
             } else {
-                val tmp = MutableBigInt.divWord(nChunk, dh)
+                val tmp = MutableBigInt.divWord(nChunk, sorHigh)
                 qhat = (tmp and 0xffffffffL).toInt()
                 qrem = (tmp ushr Int.SIZE_BITS).toInt()
             }
         }
-        if (qhat == 0) continue
+        if (qhat == 0) return@forEach
         if (!skipCorrection) {
-            val nl = remainder[j + 2].toLong() and 0xffffffffL
-            var rs = qrem.toLong() and 0xffffffffL shl Int.SIZE_BITS or nl
-            var estProduct = (dl.toLong() and 0xffffffffL) * (qhat.toLong() and 0xffffffffL)
-            if (estProduct + Long.MIN_VALUE > rs + Long.MIN_VALUE) {
+            val nl = remArr[idx + 2].getL()
+            var rs = qrem.getL() shl Int.SIZE_BITS or nl
+            var estProd = sorLow.getL() * qhat.getL()
+            if (estProd + Long.MIN_VALUE > rs + Long.MIN_VALUE) {
                 qhat--
-                qrem = ((qrem.toLong() and 0xffffffffL) + dhLong).toInt()
-                if (qrem.toLong() and 0xffffffffL >= dhLong) {
-                    estProduct -= dl.toLong() and 0xffffffffL
-                    rs = qrem.toLong() and 0xffffffffL shl Int.SIZE_BITS or nl
-                    if (estProduct + Long.MIN_VALUE > rs + Long.MIN_VALUE) qhat--
+                qrem = (qrem.getL() + sorHighLong).toInt()
+                if (qrem.getL() >= sorHighLong) {
+                    estProd -= sorLow.getL()
+                    rs = qrem.getL() shl Int.SIZE_BITS or nl
+                    if (estProd + Long.MIN_VALUE > rs + Long.MIN_VALUE) qhat--
                 }
             }
         }
 
-        remainder[j] = 0
-        val borrow = MutableBigInt.mulsub(remainder, sorarr, qhat, dlen, j)
+        remArr[idx] = 0
+        val borrow = MutableBigInt.mulSub(remArr, sorArr, qhat, sorLen, idx)
 
         if (borrow + -0x80000000 > nh2) {
-            MutableBigInt.divadd(sorarr, remainder, j + 1)
+            MutableBigInt.divAdd(sorArr, remArr, idx + 1)
             qhat--
         }
 
-        quotarr[j] = qhat
+        quotArr[idx] = qhat
     }
 
     var qhat = 0
     var qrem = 0
     var skipCorrection = false
-    val nh = remainder[limit - 1]
+    val nh = remArr[quotLen - 1]
     val nh2 = nh + -0x80000000
-    val nm = remainder[limit]
-    if (nh == dh) {
+    val nm = remArr[quotLen]
+    if (nh == sorHigh) {
         qhat = 0.inv()
         qrem = nh + nm
         skipCorrection = qrem + -0x80000000 < nh2
     } else {
-        val nChunk = nh.toLong() shl Int.SIZE_BITS or (nm.toLong() and 0xffffffffL)
+        val nChunk = nh.toLong() shl Int.SIZE_BITS or nm.getL()
         if (nChunk >= 0) {
-            qhat = (nChunk / dhLong).toInt()
-            qrem = (nChunk - qhat * dhLong).toInt()
+            qhat = (nChunk / sorHighLong).toInt()
+            qrem = (nChunk - qhat * sorHighLong).toInt()
         } else {
-            val tmp = MutableBigInt.divWord(nChunk, dh)
+            val tmp = MutableBigInt.divWord(nChunk, sorHigh)
             qhat = (tmp and 0xffffffffL).toInt()
             qrem = (tmp ushr Int.SIZE_BITS).toInt()
         }
     }
     if (qhat != 0) {
         if (!skipCorrection) {
-            val nl = remainder[limit + 1].toLong() and 0xffffffffL
-            var rs = qrem.toLong() and 0xffffffffL shl Int.SIZE_BITS or nl
-            var estProduct = (dl.toLong() and 0xffffffffL) * (qhat.toLong() and 0xffffffffL)
-            if (estProduct + Long.MIN_VALUE > rs + Long.MIN_VALUE) {
+            val nl = remArr[quotLen + 1].getL()
+            var rs = qrem.getL() shl Int.SIZE_BITS or nl
+            var estProd = sorLow.getL() * qhat.getL()
+            if (estProd + Long.MIN_VALUE > rs + Long.MIN_VALUE) {
                 qhat--
-                qrem = ((qrem.toLong() and 0xffffffffL) + dhLong).toInt()
-                if (qrem.toLong() and 0xffffffffL >= dhLong) {
-                    estProduct -= dl.toLong() and 0xffffffffL
-                    rs = qrem.toLong() and 0xffffffffL shl Int.SIZE_BITS or nl
-                    if (estProduct + Long.MIN_VALUE > rs + Long.MIN_VALUE) qhat--
+                qrem = (qrem.getL() + sorHighLong).toInt()
+                if (qrem.getL() >= sorHighLong) {
+                    estProd -= sorLow.getL()
+                    rs = qrem.getL() shl Int.SIZE_BITS or nl
+                    if (estProd + Long.MIN_VALUE > rs + Long.MIN_VALUE) qhat--
                 }
             }
         }
 
-        val borrow: Int
-        remainder[limit - 1] = 0
-        borrow = MutableBigInt.mulsub(remainder, sorarr, qhat, dlen, limit - 1)
+        remArr[quotLen - 1] = 0
+        val borrow = MutableBigInt.mulSub(remArr, sorArr, qhat, sorLen, quotLen - 1)
 
         if (borrow + -0x80000000 > nh2) {
-            MutableBigInt.divadd(sorarr, remainder, limit)
+            MutableBigInt.divAdd(sorArr, remArr, quotLen)
             qhat--
         }
 
-        quotarr[limit - 1] = qhat
+        quotArr[quotLen - 1] = qhat
     }
 
     return Pair(
-        emptyMutableBigIntOf(quotarr),
-        emptyMutableBigIntOf(if (shift > 0) MutableBigInt.rightShift(remainder, shift) else remainder)
+        emptyMutableBigIntOf(quotArr),
+        emptyMutableBigIntOf(if (shift > 0) MutableBigInt.rightShift(remArr, shift) else remArr)
     )
 }

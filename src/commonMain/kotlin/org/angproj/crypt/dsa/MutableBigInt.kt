@@ -18,24 +18,11 @@ public class MutableBigInt internal constructor(magnitude: MutableList<Int>, sig
 
     public constructor(magnitude: IntArray, sigNum: BigSigned): this(magnitude.toMutableList(), sigNum)
 
-    public fun setIdx(index: Int, num: Int) {
-        val value = num/*when {
-            sigNum.isNonNegative() -> num
-            index <= firstNonZero -> -num
-            else -> num.inv()
-        }*/
-        mag.revSet(index, value)
-    }
+    public fun setIdx(index: Int, num: Int): Unit = mag.revSet(index, num)
 
     public fun setIdxL(index: Int, num: Long): Unit = setIdx(index, num.toInt())
 
-    public fun setUnreversedIdx(index: Int, num: Int) {
-        mag[index] = num /*when {
-            sigNum.isNonNegative() -> num
-            index <= firstNonZero -> -num
-            else -> num.inv()
-        }*/
-    }
+    public fun setUnreversedIdx(index: Int, num: Int) { mag[index] = num }
 
     public fun setUnreversedIdxL(index: Int, num: Long): Unit = setUnreversedIdx(index, num.toInt())
 
@@ -49,7 +36,11 @@ public class MutableBigInt internal constructor(magnitude: MutableList<Int>, sig
     public override fun toBigInt(): BigInt = BigInt(mag.toIntArray(), sigNum)
     public override fun toMutableBigInt(): MutableBigInt = this
 
-    public companion object
+    public companion object {
+        public val one: MutableBigInt by lazy { MutableBigInt(intArrayOf(1), BigSigned.POSITIVE) }
+        public val zero: MutableBigInt by lazy { MutableBigInt(intArrayOf(0), BigSigned.ZERO) }
+        public val minusOne: MutableBigInt by lazy { MutableBigInt(intArrayOf(1), BigSigned.NEGATIVE) }
+    }
 }
 
 public fun emptyMutableBigIntOf(value: IntArray = intArrayOf(0)): MutableBigInt = MutableBigInt(value, BigSigned.POSITIVE)

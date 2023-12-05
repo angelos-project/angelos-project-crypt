@@ -1,6 +1,5 @@
 package org.angproj.crypt
 
-import org.angproj.aux.util.BinHex
 import org.angproj.crypt.dsa.*
 import org.angproj.crypt.number.*
 import java.math.BigInteger
@@ -46,13 +45,6 @@ class BigIntBasicTest {
         }
     }
 
-    /*@Test
-    fun divideOneWordTest() {
-        Combinator.doMatrixPairTests(vectorList1, vectorList2.slice(11..13)) { xbi, ybi, x, y ->
-            Pair(xbi.divideAndRemainder(ybi) , x.divideAndRemainder(y))
-        }
-    }
-*/
     @Test
     fun compareToTest() {
         Combinator.doMatrixIntTests(vectorList1, vectorList2) { xbi, ybi, x, y ->

@@ -19,11 +19,11 @@ package org.angproj.crypt.dsa
  * pow2 log2 sqrt2
  * addition subtraction multiplication division
  *
- * mod !
+ * mod
  * add
  * multiply
  * compareTo
- * divide !
+ * divide
  * subtract
  * pow
  * equals
@@ -44,9 +44,9 @@ public class BigInt internal constructor(magnitude: List<Int>, sigNum: BigSigned
     override public fun toBigInt(): BigInt = this
 
     public companion object {
-        public val one: BigInt by lazy { BigInt(intArrayOf(1), BigSigned.POSITIVE) }
-        public val zero: BigInt by lazy { BigInt(intArrayOf(0), BigSigned.ZERO) }
-        public val minusOne: BigInt by lazy { BigInt(intArrayOf(1), BigSigned.NEGATIVE) }
+        public val one: BigInt by lazy { MutableBigInt.one.toBigInt() }
+        public val zero: BigInt by lazy { MutableBigInt.zero.toBigInt() }
+        public val minusOne: BigInt by lazy { MutableBigInt.minusOne.toBigInt() }
     }
 }
 
