@@ -12,18 +12,12 @@
  * Contributors:
  *      Kristoffer Paulsson - initial implementation
  */
-package org.angproj.crypt.dsa
+package org.angproj.crypt.keccak
 
+import org.angproj.aux.util.EndianAware
 
-// https://csrc.nist.gov/files/pubs/fips/186-3/final/docs/fips_186-3.pdf
-// https://datatracker.ietf.org/doc/html/rfc6979
+// https://github.com/brainhub/SHA3IUF/blob/master/sha3.c
+// https://github.com/komputing/KHash/blob/master/keccak/src/commonMain/kotlin/org/komputing/khash/keccak/Keccak.kt
 
-
-// https://csrc.nist.gov/Projects/Cryptographic-Algorithm-Validation-Program/Secure-Hashing
-// https://csrc.nist.gov/Projects/Cryptographic-Algorithm-Validation-Program/Digital-Signatures
-
-// https://github.com/starkbank/ecdsa-java
-
-public class ECDSA {
-
+internal abstract class AbstractKeccakHashEngine: KeccakHashEngine, EndianAware {
 }

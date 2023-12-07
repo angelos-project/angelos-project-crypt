@@ -14,5 +14,31 @@
  */
 package org.angproj.crypt.sha
 
-internal class Sha3224Hash {
+import org.angproj.crypt.Hash
+import org.angproj.crypt.HashEngine
+import org.angproj.crypt.keccak.AbstractKeccakHashEngine
+import org.angproj.crypt.keccak.KeccakHashEngine
+
+internal class Sha3224Hash: AbstractKeccakHashEngine() {
+    override val type: String
+        get() = TODO("Not yet implemented")
+
+    override fun update(messagePart: ByteArray) {
+        TODO("Not yet implemented")
+    }
+
+    override fun final(): ByteArray {
+        TODO("Not yet implemented")
+    }
+
+    public companion object: Hash {
+        public override val name: String = "${KeccakHashEngine.TYPE}3-224"
+        public override val blockSize: Int = 1152 / ShaHashEngine.byteSize
+        public override val wordSize: Int = 64 / ShaHashEngine.byteSize
+        public override val messageDigestSize: Int = 224 / ShaHashEngine.byteSize
+
+        override fun create(): HashEngine {
+            TODO("Not yet implemented")
+        }
+    }
 }

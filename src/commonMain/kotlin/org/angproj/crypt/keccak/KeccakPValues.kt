@@ -12,18 +12,14 @@
  * Contributors:
  *      Kristoffer Paulsson - initial implementation
  */
-package org.angproj.crypt.dsa
+package org.angproj.crypt.keccak
 
-
-// https://csrc.nist.gov/files/pubs/fips/186-3/final/docs/fips_186-3.pdf
-// https://datatracker.ietf.org/doc/html/rfc6979
-
-
-// https://csrc.nist.gov/Projects/Cryptographic-Algorithm-Validation-Program/Secure-Hashing
-// https://csrc.nist.gov/Projects/Cryptographic-Algorithm-Validation-Program/Digital-Signatures
-
-// https://github.com/starkbank/ecdsa-java
-
-public class ECDSA {
-
+internal enum class KeccakPValues (val bWidth: Int, val wSize: Int, val log: Int){
+    P_25(25, 1, 0),
+    P_50(50, 2, 1),
+    P_100(100, 4, 2),
+    P_200(200, 8, 3),
+    P_400(400, 16, 4),
+    P_800(800, 32, 5),
+    P_1600(1600, 64, 6)
 }

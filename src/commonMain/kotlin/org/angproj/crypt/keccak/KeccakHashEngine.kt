@@ -12,18 +12,13 @@
  * Contributors:
  *      Kristoffer Paulsson - initial implementation
  */
-package org.angproj.crypt.dsa
+package org.angproj.crypt.keccak
 
+import org.angproj.crypt.HashEngine
 
-// https://csrc.nist.gov/files/pubs/fips/186-3/final/docs/fips_186-3.pdf
-// https://datatracker.ietf.org/doc/html/rfc6979
+internal interface KeccakHashEngine: HashEngine {
 
-
-// https://csrc.nist.gov/Projects/Cryptographic-Algorithm-Validation-Program/Secure-Hashing
-// https://csrc.nist.gov/Projects/Cryptographic-Algorithm-Validation-Program/Digital-Signatures
-
-// https://github.com/starkbank/ecdsa-java
-
-public class ECDSA {
-
+    public companion object {
+        const val TYPE = "KECCAK"
+    }
 }
