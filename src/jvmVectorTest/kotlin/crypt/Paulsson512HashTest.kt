@@ -1,13 +1,19 @@
 package org.angproj.crypt
 
 import org.angproj.aux.util.BinHex
+import org.angproj.aux.util.writeIntAt
+import org.angproj.aux.util.writeLongAt
 import org.angproj.crypt.kp.Paulsson512Hash
+import org.angproj.crypt.kp.PaulssonRandom
+import org.angproj.crypt.sha.Sha512256Hash
+import org.angproj.crypt.sha.Sha512Hash
+import kotlin.random.Random
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.time.ExperimentalTime
+import kotlin.time.measureTime
 
 class Paulsson512HashTest {
-
-
 
     val testVectorsDigest = listOf(
         "cdf26213a150dc3ecb610f18f6b38b46",
@@ -35,11 +41,105 @@ class Paulsson512HashTest {
 
     @Test
     fun testPaulsson512Msg() {
-        testVectors.forEachIndexed { idx, msg ->
+        testVectors.forEachIndexed { _, msg ->
             val algo = Paulsson512Hash()
             algo.update(msg)
             println(BinHex.encodeToHex(algo.final()))
             //assertEquals(BinHex.encodeToHex(algo.final()), testVectorsDigest[idx].lowercase())
         }
+    }
+
+    @Test
+    fun testPaulssonPrintRandom() {
+        val buffer = ByteArray(128)
+        testVectors.forEachIndexed { _, _ ->
+            PaulssonRandom.nextBytes(buffer)
+            println(BinHex.encodeToHex(buffer))
+            //assertEquals(BinHex.encodeToHex(algo.final()), testVectorsDigest[idx].lowercase())
+        }
+    }
+
+    @OptIn(ExperimentalTime::class)
+    @Test
+    fun testSha512Random() {
+        val count = LongArray(256)
+        val input = ByteArray(8)
+
+        val duration = measureTime {
+            (0 until 16_000_000).forEach {
+                val algo = Sha512Hash()
+                input.fill(0)
+                input.writeIntAt(0, it)
+                algo.update(input)
+                algo.final().forEach { count[it.toInt() + 128]++ }
+            }
+        }
+
+        val sorted = count.sortedArray()
+        val avarage = sorted.average()
+
+        println("Sha512 Random")
+        println("+/-${(sorted.last() - sorted.first()) / avarage / 2 * 100} %")
+        println(duration)
+    }
+
+    @OptIn(ExperimentalTime::class)
+    @Test
+    fun testPaulsson512Random() {
+        val count = LongArray(256)
+        val input = ByteArray(8)
+
+        val duration = measureTime {
+            (0 until 16_000_000).forEach {
+                val algo = Paulsson512Hash()
+                input.fill(0)
+                input.writeIntAt(0, it)
+                algo.update(input)
+                algo.final().forEach { count[it.toInt() + 128]++ }
+            }
+        }
+
+        val sorted = count.sortedArray()
+        val avarage = sorted.average()
+
+        println("Paulsson512 Random")
+        println("+/-${(sorted.last() - sorted.first()) / avarage / 2 * 100} %")
+        println(duration)
+    }
+
+    @OptIn(ExperimentalTime::class)
+    @Test
+    fun testPaulssonRandom() {
+        val buffer = ByteArray(128)
+        val count = LongArray(256)
+
+        val duration = measureTime {
+            repeat(1_000_000) { PaulssonRandom.nextBytes(buffer).forEach { count[it.toInt() + 128]++ } }
+        }
+
+        val sorted = count.sortedArray()
+        val avarage = sorted.average()
+
+        println("Paulsson Random")
+        println("+/-${(sorted.last() - sorted.first()) / avarage / 2 * 100} %")
+        println(duration)
+    }
+
+    @OptIn(ExperimentalTime::class)
+    @Test
+    fun testKotlinRandom() {
+        val buffer = ByteArray(128)
+        val count = LongArray(256)
+
+        val duration = measureTime {
+            repeat(1_000_000) { Random.nextBytes(buffer).forEach { count[it.toInt() + 128]++ } }
+        }
+
+        val sorted = count.sortedArray()
+        val avarage = sorted.average()
+
+        println("Kotlin Random")
+        println("+/-${(sorted.last() - sorted.first()) / avarage / 2 * 100} %")
+        println(duration)
     }
 }
