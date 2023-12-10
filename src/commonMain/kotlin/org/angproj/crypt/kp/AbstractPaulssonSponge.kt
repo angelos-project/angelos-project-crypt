@@ -19,7 +19,7 @@ package org.angproj.crypt.kp
  * */
 public abstract class AbstractPaulssonSponge {
 
-    protected val state: LongArray = start.copyOf()
+    protected val state: LongArray = LongArray(16)
     private val rc = LongArray(4)
 
     protected fun cycle() {
@@ -29,6 +29,8 @@ public abstract class AbstractPaulssonSponge {
         oddNegateEvenInvertOnState(state)
         xorMergeRowToStateCols(rc, state)
     }
+
+    protected fun reset() { start.copyInto(state) }
 
     protected companion object {
 

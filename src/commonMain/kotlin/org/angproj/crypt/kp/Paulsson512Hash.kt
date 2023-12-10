@@ -32,6 +32,8 @@ public class Paulsson512Hash : AbstractPaulssonSponge(), HashEngine, EndianAware
 
     protected var count: Int = 0
 
+    init { reset() }
+
     private fun push(chunk: ByteArray) = (0 until 16).forEach { i ->
         w[i] = chunk.readLongAt(i * wordSize).asBig()
     }
@@ -42,7 +44,6 @@ public class Paulsson512Hash : AbstractPaulssonSponge(), HashEngine, EndianAware
         state[0] = state[0] xor it
         cycle()
     }
-
 
     public override fun update(messagePart: ByteArray) {
         val buffer = lasting + messagePart

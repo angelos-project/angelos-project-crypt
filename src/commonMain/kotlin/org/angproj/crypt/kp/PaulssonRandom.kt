@@ -24,6 +24,7 @@ internal object PaulssonRandom: AbstractPaulssonSponge() {
     init { seed() }
 
     fun seed(salt: Long = 0) {
+        reset()
         state[0] = state[0] xor salt
         repeat(15) { cycle() }
     }
