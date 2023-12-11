@@ -14,25 +14,40 @@
  */
 package org.angproj.crypt.kp
 
+import kotlin.jvm.JvmStatic
+
 /**
  *  ===== WARNING! EXPERIMENTAL USE ONLY =====
  * */
-public abstract class AbstractPaulssonSponge {
+public abstract class AbstractPaulssonSponge(
+    protected val state: LongArray,
+    protected val shufflePattern: IntArray,
+    protected val rotationPattern: IntArray
+) {
 
-    protected val state: LongArray = LongArray(16)
     private val rc = LongArray(4)
+
+    init {
+        require(state.size == 16)
+        require(rotationPattern.size == 16)
+        require(shufflePattern.sortedArray().contentEquals(forwardShuffle.sortedArray()))
+    }
 
     protected fun cycle() {
         xorColFromStateRows(rc, state)
-        shuffleState(fanPropellerShuffle, state)
-        rotateStateLeft(primeParallelAscDescRotation, state)
+        shuffleState(shufflePattern, state)
+        rotateStateLeft(rotationPattern, state)
         oddNegateEvenInvertOnState(state)
         xorMergeRowToStateCols(rc, state)
     }
 
-    protected fun reset() { start.copyInto(state) }
+    public companion object {
 
-    protected companion object {
+        @JvmStatic
+        protected val forwardShuffle: IntArray = intArrayOf(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 0)
+
+        @JvmStatic
+        protected val blankState: LongArray = longArrayOf(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
 
         private val start = longArrayOf(
             0xF95EE459B44D3AFBuL.toLong(),
@@ -58,41 +73,61 @@ public abstract class AbstractPaulssonSponge {
             15 to 10, 10 to 11, 11 to 7, 7 to 3, 3 to 6, 6 to 2, 2 to 1, 1 to 0,
         )
 
-        private val primeParallelAscDescRotation = intArrayOf(
+        @JvmStatic
+        protected val primeParallelAscDescRotation: IntArray = intArrayOf(
             61,  5, 53, 11, 43, 17, 37, 23,
             29, 31, 19, 41, 13, 47,  7, 59
         )
 
-        private fun shuffleState(shuffle: Array<Pair<Int, Int>>, state: LongArray) {
-            val temp = state[shuffle[0].first]
+        @JvmStatic
+        public fun shuffleState(shuffle: IntArray, state: LongArray) {
+            val temp = state[0]
             (shuffle.lastIndex downTo 1).forEach { idx ->
-                state[shuffle[idx].second] = state[shuffle[idx].first]
+                state[shuffle[idx]] = state[idx]
             }
-            state[shuffle[0].second] = temp
+            state[shuffle[0]] = temp
         }
 
-        private fun rotateStateLeft(rotation: IntArray, state: LongArray) {
+        @JvmStatic
+        public fun rotateStateLeft(rotation: IntArray, state: LongArray) {
             state.indices.forEach { idx ->
                 state[idx] = state[idx].rotateLeft(rotation[idx])}
         }
 
-        private fun oddNegateEvenInvertOnState(state: LongArray) {
+        @JvmStatic
+        public fun oddNegateEvenInvertOnState(state: LongArray) {
             (state.indices step 2).forEach { idx ->
                 state[idx] = state[idx].inv()
                 state[idx + 1] = -state[idx + 1]
             }
         }
 
-        private fun xorColFromStateRows(rc: LongArray, state: LongArray): Unit =  rc.indices.forEach { idx ->
+        @JvmStatic
+        public fun xorColFromStateRows(rc: LongArray, state: LongArray): Unit =  rc.indices.forEach { idx ->
             val idy = idx * 4
             rc[idx] = state[idy] xor state[idy + 1] xor state[idy + 2] xor state[idy + 3]
         }
 
-        private fun xorMergeRowToStateCols(rc: LongArray, state: LongArray): Unit = rc.indices.forEach { idy ->
+        @JvmStatic
+        public fun xorMergeRowToStateCols(rc: LongArray, state: LongArray): Unit = rc.indices.forEach { idy ->
             state[idy] = rc[idy] xor state[idy]
             state[idy + 4] = rc[idy] xor state[idy + 4]
             state[idy + 8] = rc[idy] xor state[idy + 8]
             state[idy + 12] = rc[idy] xor state[idy + 12]
+        }
+
+        @JvmStatic
+        public fun rotateMaskRight(rotation: IntArray, mask: LongArray) {
+            mask.indices.forEach { idx ->
+                mask[idx] = mask[idx].rotateRight(rotation[idx])}
+        }
+
+        @JvmStatic
+        public fun oddInvertEvenNegateOnMAsk(mask: LongArray) {
+            (mask.indices step 2).forEach { idx ->
+                mask[idx] = -mask[idx]
+                mask[idx + 1] = mask[idx + 1].inv()
+            }
         }
     }
 }

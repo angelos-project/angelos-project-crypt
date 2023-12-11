@@ -19,19 +19,48 @@ import org.angproj.aux.util.writeLongAt
 /**
  *  ===== WARNING! EXPERIMENTAL USE ONLY =====
  * */
-internal object PaulssonRandom: AbstractPaulssonSponge() {
+public class PaulssonRandom(salt: Long = 0, key: ByteArray = byteArrayOf()): AbstractPaulssonSponge(
+    blankState, forwardShuffle, primeParallelAscDescRotation
+) {
 
-    init { seed() }
-
-    fun seed(salt: Long = 0) {
-        reset()
-        state[0] = state[0] xor salt
-        repeat(15) { cycle() }
+    init {
+        require(arrayOf(0, 16, 32, 64, 128).contains(key.size))
+        seed(salt)
     }
 
-    fun nextBytes(rand: ByteArray): ByteArray {
+    protected val mask: LongArray = maskFromKey(key)
+
+    protected fun seed(salt: Long) {
+        state[0] = state[0] xor salt
+        repeat(16) { cycle() }
+    }
+
+    protected fun maskFromKey(key: ByteArray): LongArray = when(key.size == 0) {
+        true -> longArrayOf()
+        else -> LongArray(16) { idx ->
+            key.readLongAt((idx * Long.SIZE_BYTES).mod(key.size / Long.SIZE_BYTES))
+        }.also { mask ->
+            rotateMaskRight(rotationPattern, mask)
+            oddInvertEvenNegateOnMAsk(mask)
+        }
+    }
+
+    protected fun obfuscate(buffer: ByteArray, mask: LongArray, state: LongArray) {
+        (0 until 16).forEach { idx ->
+            buffer.writeLongAt(idx * Long.SIZE_BYTES, mask[idx] xor state[idx]) }
+    }
+
+    protected fun unobfuscated(buffer: ByteArray, state: LongArray) {
+        (0 until 16).forEach { idx ->
+            buffer.writeLongAt(idx * Long.SIZE_BYTES, state[idx]) }
+    }
+
+    public fun nextBytes(rand: ByteArray): ByteArray {
+        when(mask.size == state.size) {
+            true -> obfuscate(rand, mask, state)
+            else -> unobfuscated(rand, state)
+        }
         cycle()
-        state.forEachIndexed { idx, value -> rand.writeLongAt(idx * Long.SIZE_BYTES, value) }
         return rand
     }
 }

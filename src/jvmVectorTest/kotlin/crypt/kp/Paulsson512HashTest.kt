@@ -1,15 +1,14 @@
-package org.angproj.crypt
+package crypt.kp
 
 import org.angproj.aux.util.BinHex
+import org.angproj.aux.util.readLongAt
 import org.angproj.aux.util.writeIntAt
-import org.angproj.aux.util.writeLongAt
 import org.angproj.crypt.kp.Paulsson512Hash
 import org.angproj.crypt.kp.PaulssonRandom
-import org.angproj.crypt.sha.Sha512256Hash
 import org.angproj.crypt.sha.Sha512Hash
 import kotlin.random.Random
+import kotlin.random.Random.Default
 import kotlin.test.Test
-import kotlin.test.assertEquals
 import kotlin.time.ExperimentalTime
 import kotlin.time.measureTime
 
@@ -110,36 +109,39 @@ class Paulsson512HashTest {
     @OptIn(ExperimentalTime::class)
     @Test
     fun testPaulssonRandom() {
+        val monteCarlo = Benchmark()
         val buffer = ByteArray(128)
-        val count = LongArray(256)
+        val random = PaulssonRandom(Random.nextLong())
 
-        val duration = measureTime {
-            repeat(1_000_000) { PaulssonRandom.nextBytes(buffer).forEach { count[it.toInt() + 128]++ } }
+        repeat(1_250_000) {
+            random.nextBytes(buffer).also { arr ->
+                (0 until 128 step 16).forEach { idx ->
+                    monteCarlo.scatterPoint(arr.readLongAt(idx), arr.readLongAt(idx + 8))
+                }
+            }
         }
 
-        val sorted = count.sortedArray()
-        val avarage = sorted.average()
-
         println("Paulsson Random")
-        println("+/-${(sorted.last() - sorted.first()) / avarage / 2 * 100} %")
-        println(duration)
+        println(monteCarlo.n)
+        println(monteCarlo.deviation())
     }
 
     @OptIn(ExperimentalTime::class)
     @Test
     fun testKotlinRandom() {
+        val monteCarlo = Benchmark()
         val buffer = ByteArray(128)
-        val count = LongArray(256)
 
-        val duration = measureTime {
-            repeat(1_000_000) { Random.nextBytes(buffer).forEach { count[it.toInt() + 128]++ } }
+        repeat(1_250_000) {
+            Random.nextBytes(buffer).also { arr ->
+                (0 until 128 step 16).forEach { idx ->
+                    monteCarlo.scatterPoint(arr.readLongAt(idx), arr.readLongAt(idx + 8))
+                }
+            }
         }
 
-        val sorted = count.sortedArray()
-        val avarage = sorted.average()
-
         println("Kotlin Random")
-        println("+/-${(sorted.last() - sorted.first()) / avarage / 2 * 100} %")
-        println(duration)
+        println(monteCarlo.n)
+        println(monteCarlo.deviation())
     }
 }
