@@ -15,6 +15,7 @@
 package org.angproj.crypt.kp
 
 import kotlin.jvm.JvmStatic
+import kotlin.math.min
 
 /**
  *  ===== WARNING! EXPERIMENTAL USE ONLY =====
@@ -24,8 +25,6 @@ public interface PaulssonSponge {
 
         public const val stateSize: Int = 16
         public const val sideSize: Int = 4
-
-        private val validKeySizes = arrayOf(stateSize / 8, stateSize / 4, stateSize / 2, stateSize)
 
         public val entropyState: List<Long> = listOf(
             2761899119146431915, 8177232236604328481, -2683022088977940051, 8297643565527658886,
@@ -82,18 +81,8 @@ public interface PaulssonSponge {
         }
 
         @JvmStatic
-        public fun mask(key: LongArray, mask: LongArray) {
-            require(validKeySizes.contains(key.size)) { "The key must be 128, 256, 512 or 1024 bits long" }
-            require(key.sum() != 0L) { "The key must have entropy" }
-            require(mask.size == stateSize) { "Mask size must be $stateSize long" }
-
-            mask.fill(0)
-            val side = LongArray(sideSize)
-            repeat(stateSize) { rnd ->
-                mask[0] = mask[0] xor key[rnd.mod(key.size)] xor (rnd + 1L)
-                cycle(side, mask)
-            }
-        }
+        public fun finalize(loops: Int, side: LongArray, state: LongArray): Unit = repeat(min(loops, 16)) {
+            cycle(side, state) }
 
         @JvmStatic
         public fun absorb(data: LongArray, side: LongArray, state: LongArray): Unit = data.forEach { value ->
