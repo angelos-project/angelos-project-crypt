@@ -14,13 +14,15 @@
  */
 package org.angproj.crypt.kp
 
+import org.angproj.aux.util.readLongAt
 import org.angproj.aux.util.writeLongAt
+import kotlin.jvm.JvmStatic
 
 /**
  *  ===== WARNING! EXPERIMENTAL USE ONLY =====
  * */
 public class PaulssonRandom(salt: Long = 0, key: ByteArray = byteArrayOf()): AbstractPaulssonSponge(
-    blankState, forwardShuffle, primeParallelAscDescRotation
+    entropyState.toLongArray()
 ) {
 
     init {
@@ -40,7 +42,7 @@ public class PaulssonRandom(salt: Long = 0, key: ByteArray = byteArrayOf()): Abs
         else -> LongArray(16) { idx ->
             key.readLongAt((idx * Long.SIZE_BYTES).mod(key.size / Long.SIZE_BYTES))
         }.also { mask ->
-            rotateMaskRight(rotationPattern, mask)
+            rotateMaskRight(rotationPattern.toIntArray(), mask)
             oddInvertEvenNegateOnMAsk(mask)
         }
     }
@@ -62,5 +64,19 @@ public class PaulssonRandom(salt: Long = 0, key: ByteArray = byteArrayOf()): Abs
         }
         cycle()
         return rand
+    }
+
+    public fun nextState(): LongArray {
+        cycle()
+        return state.copyOf()
+    }
+
+    protected companion object {
+
+        @JvmStatic
+        protected val fourWithOffsetTwoRotation: IntArray = intArrayOf(
+             2,  6, 10, 14, 18, 22, 26, 30,
+            34, 38, 42, 46, 50, 54, 58, 62
+        )
     }
 }

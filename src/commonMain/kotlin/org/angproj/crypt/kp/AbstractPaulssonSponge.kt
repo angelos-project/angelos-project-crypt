@@ -19,24 +19,14 @@ import kotlin.jvm.JvmStatic
 /**
  *  ===== WARNING! EXPERIMENTAL USE ONLY =====
  * */
-public abstract class AbstractPaulssonSponge(
-    protected val state: LongArray,
-    protected val shufflePattern: IntArray,
-    protected val rotationPattern: IntArray
-) {
+public abstract class AbstractPaulssonSponge(protected val state: LongArray) {
 
     private val rc = LongArray(4)
 
-    init {
-        require(state.size == 16)
-        require(rotationPattern.size == 16)
-        require(shufflePattern.sortedArray().contentEquals(forwardShuffle.sortedArray()))
-    }
-
     protected fun cycle() {
         xorColFromStateRows(rc, state)
-        shuffleState(shufflePattern, state)
-        rotateStateLeft(rotationPattern, state)
+        shuffleState(state)
+        rotateStateLeft(state)
         oddNegateEvenInvertOnState(state)
         xorMergeRowToStateCols(rc, state)
     }
@@ -44,54 +34,49 @@ public abstract class AbstractPaulssonSponge(
     public companion object {
 
         @JvmStatic
-        protected val forwardShuffle: IntArray = intArrayOf(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 0)
-
-        @JvmStatic
-        protected val blankState: LongArray = longArrayOf(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
-
-        private val start = longArrayOf(
-            0xF95EE459B44D3AFBuL.toLong(),
-            0xCF2524721D9D20F1uL.toLong(),
-            0xE2983D21B9932D9DuL.toLong(),
-            0xF1D564FE73279615uL.toLong(),
-            0xF2B1571605DDD83FuL.toLong(),
-            0xD113337954AE5BBDuL.toLong(),
-            0xF5EEF9DB9430601FuL.toLong(),
-            0xEAE5782F4E4A0E0DuL.toLong(),
-            0xE4259C85787070DFuL.toLong(),
-            0xDECBBF314C2D80B3uL.toLong(),
-            0xDDCF79715B7C03E5uL.toLong(),
-            0xD4D90604AA798353uL.toLong(),
-            0xF4EC80F6B4640611uL.toLong(),
-            0xC3FAD13DB2080321uL.toLong(),
-            0xE6BED75357868AC5uL.toLong(),
-            0xD5DC8181CDE9E23FuL.toLong()
-        )
-
-        private val fanPropellerShuffle = arrayOf(
-            0 to 5, 5 to 4, 4 to 8, 8 to 12, 12 to 9, 9 to 13, 13 to 14, 14 to 15,
-            15 to 10, 10 to 11, 11 to 7, 7 to 3, 3 to 6, 6 to 2, 2 to 1, 1 to 0,
+        protected val entropyState: List<Long> = listOf(
+            2761899119146431915,
+            8177232236604328481,
+            -2683022088977940051,
+            8297643565527658886,
+            6314988026415961142,
+            7168096847635899458,
+            7028997605562976397,
+            5160888127703030859,
+            2193126384059359087,
+            -71050805361049744,
+            -4636386313816014018,
+            789548178545734435,
+            -4283424856243090559,
+            -8124456396478961627,
+            6782707806115057139,
+            7514471421073573375,
         )
 
         @JvmStatic
-        protected val primeParallelAscDescRotation: IntArray = intArrayOf(
-            61,  5, 53, 11, 43, 17, 37, 23,
-            29, 31, 19, 41, 13, 47,  7, 59
+        protected val shufflePattern: List<Int> = listOf(
+            8, 9, 1, 5, 12, 13, 0, 4, 11, 15, 3, 7, 10, 14, 2, 6
         )
 
         @JvmStatic
-        public fun shuffleState(shuffle: IntArray, state: LongArray) {
+        protected val rotationPattern: List<Int> = listOf(
+            37, 19, 17, 5, 47, 53, 2, 11, 43, 41, 23, 31, 3, 13, 29, 7
+        )
+
+        @JvmStatic
+        public fun shuffleState(state: LongArray) {
             val temp = state[0]
-            (shuffle.lastIndex downTo 1).forEach { idx ->
-                state[shuffle[idx]] = state[idx]
+            (shufflePattern.lastIndex downTo 1).forEach { idx ->
+                state[shufflePattern[idx]] = state[idx]
             }
-            state[shuffle[0]] = temp
+            state[shufflePattern[0]] = temp
         }
 
         @JvmStatic
-        public fun rotateStateLeft(rotation: IntArray, state: LongArray) {
+        public fun rotateStateLeft(state: LongArray) {
             state.indices.forEach { idx ->
-                state[idx] = state[idx].rotateLeft(rotation[idx])}
+                state[idx] = state[idx].rotateLeft(rotationPattern[idx])
+            }
         }
 
         @JvmStatic
@@ -103,7 +88,7 @@ public abstract class AbstractPaulssonSponge(
         }
 
         @JvmStatic
-        public fun xorColFromStateRows(rc: LongArray, state: LongArray): Unit =  rc.indices.forEach { idx ->
+        public fun xorColFromStateRows(rc: LongArray, state: LongArray): Unit = rc.indices.forEach { idx ->
             val idy = idx * 4
             rc[idx] = state[idy] xor state[idy + 1] xor state[idy + 2] xor state[idy + 3]
         }
@@ -119,7 +104,8 @@ public abstract class AbstractPaulssonSponge(
         @JvmStatic
         public fun rotateMaskRight(rotation: IntArray, mask: LongArray) {
             mask.indices.forEach { idx ->
-                mask[idx] = mask[idx].rotateRight(rotation[idx])}
+                mask[idx] = mask[idx].rotateRight(rotation[idx])
+            }
         }
 
         @JvmStatic

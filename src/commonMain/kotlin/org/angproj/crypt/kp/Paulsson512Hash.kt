@@ -24,7 +24,9 @@ import org.angproj.crypt.HashEngine
 /**
  *  ===== WARNING! EXPERIMENTAL USE ONLY =====
  * */
-public class Paulsson512Hash : AbstractPaulssonSponge(), HashEngine, EndianAware {
+public class Paulsson512Hash : AbstractPaulssonSponge(
+    entropyState.toLongArray()
+), HashEngine, EndianAware {
 
     protected val w: LongArray = LongArray(16)
 
@@ -32,7 +34,6 @@ public class Paulsson512Hash : AbstractPaulssonSponge(), HashEngine, EndianAware
 
     protected var count: Int = 0
 
-    init { reset() }
 
     private fun push(chunk: ByteArray) = (0 until 16).forEach { i ->
         w[i] = chunk.readLongAt(i * wordSize).asBig()

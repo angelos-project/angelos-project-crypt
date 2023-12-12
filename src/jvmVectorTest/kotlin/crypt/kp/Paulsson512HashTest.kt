@@ -49,99 +49,41 @@ class Paulsson512HashTest {
     }
 
     @Test
-    fun testPaulssonPrintRandom() {
-        val buffer = ByteArray(128)
-        testVectors.forEachIndexed { _, _ ->
-            PaulssonRandom.nextBytes(buffer)
-            println(BinHex.encodeToHex(buffer))
-            //assertEquals(BinHex.encodeToHex(algo.final()), testVectorsDigest[idx].lowercase())
-        }
-    }
-
-    @OptIn(ExperimentalTime::class)
-    @Test
-    fun testSha512Random() {
-        val count = LongArray(256)
-        val input = ByteArray(8)
-
-        val duration = measureTime {
-            (0 until 16_000_000).forEach {
-                val algo = Sha512Hash()
-                input.fill(0)
-                input.writeIntAt(0, it)
-                algo.update(input)
-                algo.final().forEach { count[it.toInt() + 128]++ }
-            }
-        }
-
-        val sorted = count.sortedArray()
-        val avarage = sorted.average()
-
-        println("Sha512 Random")
-        println("+/-${(sorted.last() - sorted.first()) / avarage / 2 * 100} %")
-        println(duration)
-    }
-
-    @OptIn(ExperimentalTime::class)
-    @Test
-    fun testPaulsson512Random() {
-        val count = LongArray(256)
-        val input = ByteArray(8)
-
-        val duration = measureTime {
-            (0 until 16_000_000).forEach {
-                val algo = Paulsson512Hash()
-                input.fill(0)
-                input.writeIntAt(0, it)
-                algo.update(input)
-                algo.final().forEach { count[it.toInt() + 128]++ }
-            }
-        }
-
-        val sorted = count.sortedArray()
-        val avarage = sorted.average()
-
-        println("Paulsson512 Random")
-        println("+/-${(sorted.last() - sorted.first()) / avarage / 2 * 100} %")
-        println(duration)
-    }
-
-    @OptIn(ExperimentalTime::class)
-    @Test
     fun testPaulssonRandom() {
-        val monteCarlo = Benchmark()
         val buffer = ByteArray(128)
-        val random = PaulssonRandom(Random.nextLong())
+        println("Paulsson Random")
 
-        repeat(1_250_000) {
-            random.nextBytes(buffer).also { arr ->
-                (0 until 128 step 16).forEach { idx ->
-                    monteCarlo.scatterPoint(arr.readLongAt(idx), arr.readLongAt(idx + 8))
+        val seed = Random.nextLong()
+        val random = PaulssonRandom()
+        repeat(1000) {
+            val monteCarlo = Benchmark()
+            repeat(1_250_000) {
+                random.nextBytes(buffer).also { arr ->
+                    (0 until 128 step 16).forEach { idx ->
+                        monteCarlo.scatterPoint(arr.readLongAt(idx), arr.readLongAt(idx + 8))
+                    }
                 }
             }
+            println(monteCarlo.distribution())
         }
-
-        println("Paulsson Random")
-        println(monteCarlo.n)
-        println(monteCarlo.deviation())
+        random.nextState().forEach { idx -> println(idx) }
     }
 
-    @OptIn(ExperimentalTime::class)
     @Test
     fun testKotlinRandom() {
-        val monteCarlo = Benchmark()
         val buffer = ByteArray(128)
+        println("Paulsson Random")
 
-        repeat(1_250_000) {
-            Random.nextBytes(buffer).also { arr ->
-                (0 until 128 step 16).forEach { idx ->
-                    monteCarlo.scatterPoint(arr.readLongAt(idx), arr.readLongAt(idx + 8))
+        repeat(1000) {
+            val monteCarlo = Benchmark()
+            repeat(1_250_000) {
+                Random.nextBytes(buffer).also { arr ->
+                    (0 until 128 step 16).forEach { idx ->
+                        monteCarlo.scatterPoint(arr.readLongAt(idx), arr.readLongAt(idx + 8))
+                    }
                 }
             }
+            println(monteCarlo.distribution())
         }
-
-        println("Kotlin Random")
-        println(monteCarlo.n)
-        println(monteCarlo.deviation())
     }
 }
