@@ -81,8 +81,7 @@ public interface PaulssonSponge {
         }
 
         @JvmStatic
-        public fun finalize(loops: Int, side: LongArray, state: LongArray): Unit = repeat(min(loops, 16)) {
-            cycle(side, state) }
+        public fun scramble(loops: Int, side: LongArray, state: LongArray): Unit = repeat(min(loops,16)) { cycle(side, state) }
 
         @JvmStatic
         public fun absorb(data: LongArray, side: LongArray, state: LongArray): Unit = data.forEach { value ->

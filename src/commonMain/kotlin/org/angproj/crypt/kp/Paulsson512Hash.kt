@@ -35,7 +35,7 @@ public class Paulsson512Hash : AbstractPaulssonSponge(
 
     private var count: Long = 0
 
-    private var cycles: Long = 0
+    private var cycles: Int = 0
 
 
     private fun push(chunk: ByteArray, out: LongArray) = out.indices.forEach { idx ->
@@ -83,8 +83,7 @@ public class Paulsson512Hash : AbstractPaulssonSponge(
         transform(end)
         transform(longArrayOf(count * Byte.SIZE_BITS))
 
-        if (cycles < PaulssonSponge.stateSize)
-            PaulssonSponge.finalize((PaulssonSponge.stateSize - cycles).toInt(), side, state)
+        if (cycles < 16) finalize(16 - cycles)
 
         val hash = ByteArray(state.size * wordSize / 2)
         (0 until state.size / 2).forEach {
