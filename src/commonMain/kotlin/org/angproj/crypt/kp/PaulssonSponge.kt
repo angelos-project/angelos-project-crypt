@@ -81,7 +81,15 @@ public interface PaulssonSponge {
 
         @JvmStatic
         public fun scramble(side: LongArray, state: LongArray) {
-            for (idx in 0 until 15) cycle(side, state)
+            repeat(15) { cycle(side, state) }
+        }
+
+        @JvmStatic
+        public fun scrambleWithSalt(side: LongArray, state: LongArray): Long {
+            repeat(7) { cycle(side, state) }
+            val salt = state.first()
+            repeat(8 ) { cycle(side, state) }
+            return salt
         }
 
         @JvmStatic

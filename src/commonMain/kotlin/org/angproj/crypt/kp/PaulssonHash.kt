@@ -23,33 +23,33 @@ import org.angproj.crypt.HashEngine
 /**
  *  ===== WARNING! EXPERIMENTAL USE ONLY =====
  * */
-public class Paulsson512Hash : AbstractPaulssonSponge(
+public class PaulssonHash : AbstractPaulssonSponge(
     PaulssonSponge.entropyState.toLongArray()
 ), HashEngine, EndianAware {
 
-    private val w = LongArray(PaulssonSponge.stateSize)
+    private val inBuf = LongArray(PaulssonSponge.stateSize)
     private var lasting = ByteArray(0)
     private var count: Long = 0
 
-    private fun push(chunk: ByteArray) = w.indices.forEach { idx ->
-        w[idx] = chunk.readLongAt(idx * wordSize).asBig()
+    private fun push(chunk: ByteArray) = inBuf.indices.forEach { idx ->
+        inBuf[idx] = chunk.readLongAt(idx * wordSize).asBig()
     }
 
     private fun transform() {
-        PaulssonSponge.absorb(w, side, state)
+        PaulssonSponge.absorb(inBuf, side, state)
     }
 
     public override fun update(messagePart: ByteArray) {
-        val buffer = lasting + messagePart
+        val message = lasting + messagePart
         lasting = ByteArray(0) // Setting an empty array
 
-        (0..buffer.size step blockSize).forEach { idx ->
+        (0..message.size step blockSize).forEach { idx ->
 
             // Slicing the buffer in ranges of 64, if too small it's lasting.
             val chunk = try {
                 messagePart.copyOfRange(idx, idx + blockSize)
             } catch (_: IndexOutOfBoundsException) {
-                lasting = buffer.copyOfRange(idx, buffer.size)
+                lasting = message.copyOfRange(idx, message.size)
                 return
             }
 
@@ -61,30 +61,41 @@ public class Paulsson512Hash : AbstractPaulssonSponge(
     }
 
     override val type: String
-        get() = "Paulsson512"
+        get() = "Paulsson"
 
     public override fun final(): ByteArray {
         count += lasting.size
         lasting += ByteArray(blockSize - lasting.size)
 
         push(lasting)
-        w[15] = w[15] xor (count * Byte.SIZE_BITS)
+        inBuf[15] = inBuf[15] xor (count * Byte.SIZE_BITS)
         transform()
-
+        val salt = PaulssonSponge.scrambleWithSalt(side, state)
+        val screen = LongArray(16)
+        PaulssonSponge.squeeze(screen, side, state)
         PaulssonSponge.scramble(side, state)
+        obfuscate(salt, screen, state)
 
-        val hash = ByteArray(state.size * wordSize / 2)
-        (0 until state.size / 2).forEach {
+        val hash = ByteArray(state.size * wordSize)
+        state.indices.forEach {
             hash.writeLongAt(it * wordSize, state[it].asBig()) }
         return hash
     }
 
+    private fun obfuscate(start: Long, screen: LongArray, buffer: LongArray): Long {
+        buffer[0] = buffer[0] xor screen[0] xor start
+        for (idx in 1 until buffer.size ) {
+            buffer[idx] = buffer[idx] xor screen[idx] xor buffer[idx-1]
+        }
+        return buffer.last()
+    }
+
     internal companion object: Hash {
-        public override val name: String = "Paulsson-512"
+        public override val name: String = "Paulsson"
         public override val blockSize: Int = PaulssonSponge.stateSize * Long.SIZE_BYTES
         public override val wordSize: Int = Long.SIZE_BYTES
-        public override val messageDigestSize: Int = blockSize / 2
+        public override val messageDigestSize: Int = blockSize
 
-        override fun create(): Paulsson512Hash = Paulsson512Hash()
+        override fun create(): PaulssonHash = PaulssonHash()
     }
 }
