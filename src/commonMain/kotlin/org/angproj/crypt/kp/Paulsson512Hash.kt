@@ -25,26 +25,23 @@ import org.angproj.crypt.HashEngine
  *  ===== WARNING! EXPERIMENTAL USE ONLY =====
  * */
 public class Paulsson512Hash : AbstractPaulssonSponge(
-    entropyState.toLongArray()
+    PaulssonSponge.entropyState.toLongArray()
 ), HashEngine, EndianAware {
 
-    protected val w: LongArray = LongArray(16)
+    protected val w: LongArray = LongArray(PaulssonSponge.stateSize)
 
     protected var lasting: ByteArray = ByteArray(0)
 
     protected var count: Int = 0
 
 
-    private fun push(chunk: ByteArray) = (0 until 16).forEach { i ->
+    private fun push(chunk: ByteArray) = (0 until PaulssonSponge.stateSize).forEach { i ->
         w[i] = chunk.readLongAt(i * wordSize).asBig()
     }
 
     private fun push(block: LongArray) = block.copyInto(w, 0, 0, 16)
 
-    private fun transform(): Unit = w.forEach {
-        state[0] = state[0] xor it
-        cycle()
-    }
+    private fun transform(): Unit = PaulssonSponge.absorb(w, side, state)
 
     public override fun update(messagePart: ByteArray) {
         val buffer = lasting + messagePart
@@ -72,9 +69,9 @@ public class Paulsson512Hash : AbstractPaulssonSponge(
 
     public override fun final(): ByteArray {
         count += lasting.size
-        val blocksNeeded = if (lasting.size + 1 + 16 > blockSize) 2 else 1
+        val blocksNeeded = if (lasting.size + 1 + 8 > blockSize) 2 else 1
         val blockLength = lasting.size / wordSize
-        val end = LongArray(blocksNeeded * 16)
+        val end = LongArray(blocksNeeded * PaulssonSponge.stateSize)
 
         (0 until blockLength).forEach { i ->
             end[i] = lasting.readLongAt(i * wordSize).asBig()

@@ -1,29 +1,22 @@
 package crypt.kp
 
 import org.angproj.aux.util.BinHex
-import org.angproj.aux.util.readLongAt
-import org.angproj.aux.util.writeIntAt
 import org.angproj.crypt.kp.Paulsson512Hash
-import org.angproj.crypt.kp.PaulssonRandom
-import org.angproj.crypt.sha.Sha512Hash
-import kotlin.random.Random
-import kotlin.random.Random.Default
 import kotlin.test.Test
-import kotlin.time.ExperimentalTime
-import kotlin.time.measureTime
+import kotlin.test.assertEquals
 
 class Paulsson512HashTest {
 
     val testVectorsDigest = listOf(
-        "cdf26213a150dc3ecb610f18f6b38b46",
-        "86be7afa339d0fc7cfc785e72f578d33",
-        "c14a12199c66e4ba84636b0f69144c77",
-        "9e327b3d6e523062afc1132d7df9d1b8",
-        "fd2aa607f71dc8f510714922b371834e",
-        "a1aa0689d0fafa2ddc22e88b49133a06",
-        "d1e959eb179c911faea4624c60c5c702",
-        "3f45ef194732c2dbb2c4a2c769795fa3",
-        "4a7f5723f954eba1216c9d8f6320431f"
+        "f9ae9167544406a9b795a77daacb1406e6b4a944d797c42ea629f8502c4ff536d498eeede1b3039fe6f1023c5806b6dd7fd48c780e1f16b4400e4a649cdc440c",
+        "2cc7e46617b9ccd058167e623afeb6becafc4fd895e080f28db684d53d50502905354d8345be6c207173e75d390c96ce5c9ccc98c9a0d3d5faa0e3ef03218743",
+        "e22793c49b4844e05a33f0040ec0a89d66dc0b1566c8a8a8d1e763183c608fd2865e417bff7852f75011e81eff8c474f3770b0df06409f2aef64388d230ab657",
+        "2f07c3c3714284a0e45ab472c72badf4f5972765b663b06170617437e9c30f235aefd2095bbfa1976eb8d960965f8e26c683b44b4ac019e3a48b30251516b0f2",
+        "c17370671c92b8450733ae6a8d57bead3ccf3339fab1fe32a8843f761841b3954ed4f16cc88a6e8dda894bafeb189456f7b77c2236c3bb1bb144ff9e7f54386f",
+        "f35b01aaa52518d172b8aa3e0a6cbb6ab68e35b519225a7ec5d8b5e1546d60e3c0471c8eab5f1beca9be9cd695a35cb2914698862b93b96103a6c382a1dc40d5",
+        "72915614b85233b15ea87ca420079db6f424074473b1318bd49233dd8c21dd7dbfb8bcfca27a2e60a3e13ce04f11c7585bf5b1596eadc2f6b477f03232603c95",
+        "6a1c3fd6c947c09c77d9ce8368a7ed8a0e17f2c74976cd7af3bd53c2e1b7f97ce391a098d831c8f69bd7a026f6bcf94f4976b46ac237c6651c760bb77b48be6d",
+        "772f7a4a3cdeed5d8fc74024b2491aad6b3467cb6b7f783dbd02038c74bd684bcd38d236ec97f8a587f617232554eaf95056949a8e027a9007da2f773bc073fb"
     )
 
     val testVectors = listOf(
@@ -40,50 +33,11 @@ class Paulsson512HashTest {
 
     @Test
     fun testPaulsson512Msg() {
-        testVectors.forEachIndexed { _, msg ->
+        testVectors.forEachIndexed { idx, msg ->
             val algo = Paulsson512Hash()
             algo.update(msg)
-            println(BinHex.encodeToHex(algo.final()))
-            //assertEquals(BinHex.encodeToHex(algo.final()), testVectorsDigest[idx].lowercase())
-        }
-    }
-
-    @Test
-    fun testPaulssonRandom() {
-        val buffer = ByteArray(128)
-        println("Paulsson Random")
-
-        val seed = Random.nextLong()
-        val random = PaulssonRandom()
-        repeat(1000) {
-            val monteCarlo = Benchmark()
-            repeat(1_250_000) {
-                random.nextBytes(buffer).also { arr ->
-                    (0 until 128 step 16).forEach { idx ->
-                        monteCarlo.scatterPoint(arr.readLongAt(idx), arr.readLongAt(idx + 8))
-                    }
-                }
-            }
-            println(monteCarlo.distribution())
-        }
-        random.nextState().forEach { idx -> println(idx) }
-    }
-
-    @Test
-    fun testKotlinRandom() {
-        val buffer = ByteArray(128)
-        println("Paulsson Random")
-
-        repeat(1000) {
-            val monteCarlo = Benchmark()
-            repeat(1_250_000) {
-                Random.nextBytes(buffer).also { arr ->
-                    (0 until 128 step 16).forEach { idx ->
-                        monteCarlo.scatterPoint(arr.readLongAt(idx), arr.readLongAt(idx + 8))
-                    }
-                }
-            }
-            println(monteCarlo.distribution())
+            //println(BinHex.encodeToHex(algo.final()))
+            assertEquals(BinHex.encodeToHex(algo.final()), testVectorsDigest[idx].lowercase())
         }
     }
 }
