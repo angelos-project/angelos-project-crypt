@@ -19,8 +19,6 @@ import org.angproj.aux.util.readLongAt
 import org.angproj.aux.util.writeLongAt
 import org.angproj.crypt.Hash
 import org.angproj.crypt.HashEngine
-import org.angproj.crypt.sha.ShaHashEngine
-
 
 /**
  *  ===== WARNING! EXPERIMENTAL USE ONLY =====
@@ -30,17 +28,12 @@ public class Paulsson512Hash : AbstractPaulssonSponge(
 ), HashEngine, EndianAware {
 
     private val w = LongArray(PaulssonSponge.stateSize)
-
     private var lasting = ByteArray(0)
-
     private var count: Long = 0
-
 
     private fun push(chunk: ByteArray) = w.indices.forEach { idx ->
         w[idx] = chunk.readLongAt(idx * wordSize).asBig()
     }
-
-    private fun push(block: LongArray) = block.copyInto(w, 0, 0, 16)
 
     private fun transform() {
         PaulssonSponge.absorb(w, side, state)
@@ -71,7 +64,6 @@ public class Paulsson512Hash : AbstractPaulssonSponge(
         get() = "Paulsson512"
 
     public override fun final(): ByteArray {
-        lasting += 128.toByte()
         count += lasting.size
         lasting += ByteArray(blockSize - lasting.size)
 
