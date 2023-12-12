@@ -26,6 +26,4 @@ public abstract class AbstractPaulssonSponge(entropy: LongArray): PaulssonSponge
 
     protected val state: LongArray = entropy.copyOf()
     protected val side: LongArray = LongArray(PaulssonSponge.sideSize)
-
-    protected fun finalize(loops: Int = 16): Unit = PaulssonSponge.scramble(loops, side, state)
 }

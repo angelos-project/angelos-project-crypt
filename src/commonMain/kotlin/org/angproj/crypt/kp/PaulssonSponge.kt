@@ -81,16 +81,18 @@ public interface PaulssonSponge {
         }
 
         @JvmStatic
-        public fun scramble(loops: Int, side: LongArray, state: LongArray): Unit = repeat(min(loops,16)) { cycle(side, state) }
+        public fun scramble(side: LongArray, state: LongArray) {
+            for (idx in 0 until 15) cycle(side, state)
+        }
 
         @JvmStatic
-        public fun absorb(data: LongArray, side: LongArray, state: LongArray): Unit = data.forEach { value ->
-            state[0] = state[0] xor value
+        public fun absorb(data: LongArray, side: LongArray, state: LongArray) {
+            for (idx in 0 until 16) state[idx] = state[idx] xor data[idx]
             cycle(side, state)
         }
 
         @JvmStatic
-        public fun extract(buffer: LongArray, side: LongArray, state: LongArray) {
+        public fun squeeze(buffer: LongArray, side: LongArray, state: LongArray) {
             state.copyInto(buffer)
             cycle(side, state)
         }

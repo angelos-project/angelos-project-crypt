@@ -35,18 +35,15 @@ public class Paulsson512Hash : AbstractPaulssonSponge(
 
     private var count: Long = 0
 
-    private var cycles: Int = 0
 
-
-    private fun push(chunk: ByteArray, out: LongArray) = out.indices.forEach { idx ->
-        out[idx] = chunk.readLongAt(idx * wordSize).asBig()
+    private fun push(chunk: ByteArray) = w.indices.forEach { idx ->
+        w[idx] = chunk.readLongAt(idx * wordSize).asBig()
     }
 
     private fun push(block: LongArray) = block.copyInto(w, 0, 0, 16)
 
-    private fun transform(block: LongArray) {
-        PaulssonSponge.absorb(block, side, state)
-        cycles += block.size
+    private fun transform() {
+        PaulssonSponge.absorb(w, side, state)
     }
 
     public override fun update(messagePart: ByteArray) {
@@ -63,8 +60,8 @@ public class Paulsson512Hash : AbstractPaulssonSponge(
                 return
             }
 
-            push(chunk, w)
-            transform(w)
+            push(chunk)
+            transform()
 
             count += blockSize
         }
@@ -76,14 +73,13 @@ public class Paulsson512Hash : AbstractPaulssonSponge(
     public override fun final(): ByteArray {
         lasting += 128.toByte()
         count += lasting.size
-        lasting += ByteArray(lasting.size.rem(wordSize))
+        lasting += ByteArray(blockSize - lasting.size)
 
-        val end = LongArray(lasting.size / wordSize)
-        push(lasting, end)
-        transform(end)
-        transform(longArrayOf(count * Byte.SIZE_BITS))
+        push(lasting)
+        w[15] = w[15] xor (count * Byte.SIZE_BITS)
+        transform()
 
-        if (cycles < 16) finalize(16 - cycles)
+        PaulssonSponge.scramble(side, state)
 
         val hash = ByteArray(state.size * wordSize / 2)
         (0 until state.size / 2).forEach {
