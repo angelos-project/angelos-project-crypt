@@ -17,13 +17,11 @@ package org.angproj.crypt.kp
 /**
  *  ===== WARNING! EXPERIMENTAL USE ONLY =====
  * */
-public abstract class AbstractPaulssonSponge(entropy: LongArray): PaulssonSponge {
-
-    init {
-        require(entropy.size == PaulssonSponge.stateSize) { "Entropy is not 1024 bits long" }
-        require(entropy.sum() != 0L) { "Entropy is zero" }
-    }
-
-    protected val state: LongArray = entropy.copyOf()
-    protected val side: LongArray = LongArray(PaulssonSponge.sideSize)
+public abstract class AbstractPaulssonSponge(
+    absorb: Boolean = false,
+    squeeze: Boolean = false
+): PaulssonSponge {
+    protected val inBuf: StateBuffer = if(absorb) PaulssonSponge.buffer() else longArrayOf()
+    protected val outBuf: StateBuffer = if(squeeze) PaulssonSponge.buffer() else longArrayOf()
+    protected val state: Sponge = PaulssonSponge.sponge()
 }

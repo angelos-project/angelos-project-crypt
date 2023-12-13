@@ -1,6 +1,5 @@
 package crypt.kp
 
-import kotlin.math.PI
 import kotlin.math.absoluteValue
 import kotlin.math.sqrt
 
@@ -15,7 +14,7 @@ class Benchmark {
         val a = x.absoluteValue / longMax
         val b = y.absoluteValue / longMax
         val c = sqrt(a * a + b * b)
-        when (c < 1){
+        when (c < 1) {
             true -> this.r++
             else -> this.b++
         }
@@ -25,8 +24,6 @@ class Benchmark {
         val n = (r + b).toDouble()
         return 4 * r / n
     }
-
-    fun deviation(): Double = distribution() - PI
 
     companion object {
         const val longMax = Long.MAX_VALUE.toDouble()

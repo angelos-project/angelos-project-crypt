@@ -16,6 +16,10 @@ package org.angproj.crypt.kp
 
 import kotlin.jvm.JvmStatic
 
+
+public typealias StateBuffer = LongArray
+public typealias Sponge = Pair<StateBuffer, LongArray>
+
 /**
  *  ===== WARNING! EXPERIMENTAL USE ONLY =====
  * */
@@ -38,7 +42,7 @@ public interface PaulssonSponge {
         private val rotationPattern = arrayOf(
             37, 19, 17, 5, 47, 53, 2, 11, 43, 41, 23, 31, 3, 13, 29, 7)
 
-        private fun shuffleState(state: LongArray) {
+        private fun shuffleState(state: StateBuffer) {
             val temp = state[0]
             (shufflePattern.lastIndex downTo 1).forEach { idx ->
                 state[shufflePattern[idx]] = state[idx]
@@ -46,32 +50,38 @@ public interface PaulssonSponge {
             state[shufflePattern[0]] = temp
         }
 
-        private fun rotateStateLeft(state: LongArray) {
+        private fun rotateStateLeft(state: StateBuffer) {
             state.indices.forEach { idx ->
                 state[idx] = state[idx].rotateLeft(rotationPattern[idx])
             }
         }
 
-        private fun oddNegateEvenInvertOnState(state: LongArray) {
+        private fun rotateStateRight(state: StateBuffer) {
+            state.indices.forEach { idx ->
+                state[idx] = state[idx].rotateRight(rotationPattern[idx])
+            }
+        }
+
+        private fun oddNegateEvenInvertOnState(state: StateBuffer) {
             (state.indices step 2).forEach { idx ->
                 state[idx] = state[idx].inv()
                 state[idx + 1] = -state[idx + 1]
             }
         }
 
-        private fun xorColFromStateRows(rc: LongArray, state: LongArray): Unit = rc.indices.forEach { idx ->
+        private fun xorColFromStateRows(rc: LongArray, state: StateBuffer): Unit = rc.indices.forEach { idx ->
             val idy = idx * 4
             rc[idx] = state[idy] xor state[idy + 1] xor state[idy + 2] xor state[idy + 3]
         }
 
-        private fun xorMergeRowToStateCols(rc: LongArray, state: LongArray): Unit = rc.indices.forEach { idy ->
+        private fun xorMergeRowToStateCols(rc: LongArray, state: StateBuffer): Unit = rc.indices.forEach { idy ->
             state[idy] = rc[idy] xor state[idy]
             state[idy + 4] = rc[idy] xor state[idy + 4]
             state[idy + 8] = rc[idy] xor state[idy + 8]
             state[idy + 12] = rc[idy] xor state[idy + 12]
         }
 
-        protected fun cycle(side: LongArray, state: LongArray) {
+        protected fun cycle(side: LongArray, state: StateBuffer) {
             xorColFromStateRows(side, state)
             shuffleState(state)
             rotateStateLeft(state)
@@ -79,29 +89,66 @@ public interface PaulssonSponge {
             xorMergeRowToStateCols(side, state)
         }
 
-        @JvmStatic
-        public fun scramble(side: LongArray, state: LongArray) {
-            repeat(15) { cycle(side, state) }
+        protected fun cycleRight(side: LongArray, state: StateBuffer) {
+            xorColFromStateRows(side, state)
+            shuffleState(state)
+            rotateStateRight(state)
+            oddNegateEvenInvertOnState(state)
+            xorMergeRowToStateCols(side, state)
         }
 
         @JvmStatic
-        public fun scrambleWithSalt(side: LongArray, state: LongArray): Long {
-            repeat(7) { cycle(side, state) }
-            val salt = state.first()
-            repeat(8 ) { cycle(side, state) }
-            return salt
+        public fun scramble(state: Sponge) {
+            repeat(15) { cycle(state.second, state.first) }
         }
 
         @JvmStatic
-        public fun absorb(data: LongArray, side: LongArray, state: LongArray) {
-            for (idx in 0 until 16) state[idx] = state[idx] xor data[idx]
-            cycle(side, state)
+        public fun scrambleRight(mask: Sponge) {
+            repeat(16) { cycleRight(mask.second, mask.first) }
         }
 
         @JvmStatic
-        public fun squeeze(buffer: LongArray, side: LongArray, state: LongArray) {
-            state.copyInto(buffer)
-            cycle(side, state)
+        public fun absorb(inBuf: StateBuffer, state: Sponge) {
+            for (idx in 0 until 16) state.first[idx] = state.first[idx] xor inBuf[idx]
+            cycle(state.second, state.first)
         }
+
+        @JvmStatic
+        public fun squeeze(outBuf: StateBuffer, state: Sponge) {
+            state.first.copyInto(outBuf)
+            cycle(state.second, state.first)
+        }
+
+        @JvmStatic
+        public fun simpleCipher(result: StateBuffer, mask: StateBuffer, state: Sponge): Unit = result.indices.forEach { idx ->
+            result[idx] = mask[idx] xor state.first[idx]
+        }
+
+        @JvmStatic
+        public fun sponge(): Sponge = Sponge(
+            StateBuffer(stateSize) { idx -> entropyState[idx] },
+            LongArray(sideSize)
+        )
+
+        @JvmStatic
+        public fun sponge(from: Sponge): Sponge = Sponge(
+            from.first.copyOf(),
+            LongArray(sideSize)
+        )
+
+        @JvmStatic
+        public fun sponge(from: StateBuffer): Sponge = Sponge(
+            from.copyOf(),
+            LongArray(sideSize)
+        )
+
+        @JvmStatic
+        public fun buffer(): StateBuffer = StateBuffer(stateSize)
+
+        @JvmStatic
+        public fun buffer(from: Sponge): StateBuffer = from.first.copyOf()
+
+        @JvmStatic
+        public fun buffer(from: StateBuffer): StateBuffer = from.copyOf()
     }
 }

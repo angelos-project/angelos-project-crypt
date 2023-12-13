@@ -24,19 +24,14 @@ import org.angproj.crypt.HashEngine
  *  ===== WARNING! EXPERIMENTAL USE ONLY =====
  * */
 public class PaulssonHash : AbstractPaulssonSponge(
-    PaulssonSponge.entropyState.toLongArray()
+    absorb = true
 ), HashEngine, EndianAware {
 
-    private val inBuf = LongArray(PaulssonSponge.stateSize)
     private var lasting = ByteArray(0)
     private var count: Long = 0
 
     private fun push(chunk: ByteArray) = inBuf.indices.forEach { idx ->
         inBuf[idx] = chunk.readLongAt(idx * wordSize).asBig()
-    }
-
-    private fun transform() {
-        PaulssonSponge.absorb(inBuf, side, state)
     }
 
     public override fun update(messagePart: ByteArray) {
@@ -54,7 +49,7 @@ public class PaulssonHash : AbstractPaulssonSponge(
             }
 
             push(chunk)
-            transform()
+            PaulssonSponge.absorb(inBuf, state)
 
             count += blockSize
         }
@@ -68,26 +63,24 @@ public class PaulssonHash : AbstractPaulssonSponge(
         lasting += ByteArray(blockSize - lasting.size)
 
         push(lasting)
-        inBuf[15] = inBuf[15] xor (count * Byte.SIZE_BITS)
-        transform()
-        val salt = PaulssonSponge.scrambleWithSalt(side, state)
-        val screen = LongArray(16)
-        PaulssonSponge.squeeze(screen, side, state)
-        PaulssonSponge.scramble(side, state)
-        obfuscate(salt, screen, state)
+        PaulssonSponge.absorb(inBuf, state)
+        PaulssonSponge.scramble(state)
 
-        val hash = ByteArray(state.size * wordSize)
-        state.indices.forEach {
-            hash.writeLongAt(it * wordSize, state[it].asBig()) }
+        val mask = PaulssonSponge.sponge(state)
+        PaulssonSponge.scrambleRight(mask)
+
+        inBuf.fill(0)
+        inBuf[0] = (count * Byte.SIZE_BITS)
+        PaulssonSponge.absorb(inBuf, state)
+        PaulssonSponge.scramble(state)
+
+        val output = PaulssonSponge.buffer()
+        PaulssonSponge.simpleCipher(output, mask.first, state)
+
+        val hash = ByteArray(PaulssonSponge.stateSize * wordSize)
+        output.forEachIndexed {idx, reg ->
+            hash.writeLongAt(idx * wordSize, reg.asBig()) }
         return hash
-    }
-
-    private fun obfuscate(start: Long, screen: LongArray, buffer: LongArray): Long {
-        buffer[0] = buffer[0] xor screen[0] xor start
-        for (idx in 1 until buffer.size ) {
-            buffer[idx] = buffer[idx] xor screen[idx] xor buffer[idx-1]
-        }
-        return buffer.last()
     }
 
     internal companion object: Hash {
