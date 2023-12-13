@@ -2,11 +2,10 @@ package crypt.kp
 
 import org.angproj.aux.util.BinHex
 import org.angproj.crypt.kp.PaulssonHash
-import org.angproj.crypt.kp.PaulssonSponge
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
-class Paulsson512HashTest {
+class PaulssonHashTest {
 
     val testVectorsDigest = listOf(
         "7c579be5605dd675029a41b2c8f2eab84c400235c3e5cc3300e1d0ad13b965e27a83e29a6720e6d68d6c4430b97d6ce4878f86ea57f45a3c4bc4e8e450c8a1cc6032d1808b2e5f28da41c951337c789595f93359d237bcf4f20425ee30b94f37d572bf2733359a1167d058aab9558ea80e3c5ecba5448fbf8b57574e63608ac6",
@@ -33,7 +32,7 @@ class Paulsson512HashTest {
     )
 
     @Test
-    fun testPaulsson512Msg() {
+    fun testPaulssonHash() {
         testVectors.forEachIndexed { idx, msg ->
             val algo = PaulssonHash()
             algo.update(msg)
