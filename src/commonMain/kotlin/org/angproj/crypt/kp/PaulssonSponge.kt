@@ -69,16 +69,16 @@ public interface PaulssonSponge {
             }
         }
 
-        private fun xorColFromStateRows(rc: LongArray, state: StateBuffer): Unit = rc.indices.forEach { idx ->
+        private fun xorColFromStateRows(side: LongArray, state: StateBuffer): Unit = side.indices.forEach { idx ->
             val idy = idx * 4
-            rc[idx] = state[idy] xor state[idy + 1] xor state[idy + 2] xor state[idy + 3]
+            side[idx] = state[idy] xor state[idy + 1] xor state[idy + 2] xor state[idy + 3]
         }
 
-        private fun xorMergeRowToStateCols(rc: LongArray, state: StateBuffer): Unit = rc.indices.forEach { idy ->
-            state[idy] = rc[idy] xor state[idy]
-            state[idy + 4] = rc[idy] xor state[idy + 4]
-            state[idy + 8] = rc[idy] xor state[idy + 8]
-            state[idy + 12] = rc[idy] xor state[idy + 12]
+        private fun xorMergeRowToStateCols(side: LongArray, state: StateBuffer): Unit = side.indices.forEach { idy ->
+            state[idy] = side[idy] xor state[idy]
+            state[idy + 4] = side[idy] xor state[idy + 4]
+            state[idy + 8] = side[idy] xor state[idy + 8]
+            state[idy + 12] = side[idy] xor state[idy + 12]
         }
 
         protected fun cycle(side: LongArray, state: StateBuffer) {

@@ -27,7 +27,7 @@ public class PaulssonHash : AbstractPaulssonSponge(
     absorb = true
 ), HashEngine, EndianAware {
 
-    private var lasting = ByteArray(0)
+    private var lasting = byteArrayOf()
     private var count: Long = 0
 
     private fun push(chunk: ByteArray) = inBuf.indices.forEach { idx ->
@@ -36,11 +36,10 @@ public class PaulssonHash : AbstractPaulssonSponge(
 
     public override fun update(messagePart: ByteArray) {
         val message = lasting + messagePart
-        lasting = ByteArray(0) // Setting an empty array
+        lasting = byteArrayOf()
 
         (0..message.size step blockSize).forEach { idx ->
 
-            // Slicing the buffer in ranges of 64, if too small it's lasting.
             val chunk = try {
                 messagePart.copyOfRange(idx, idx + blockSize)
             } catch (_: IndexOutOfBoundsException) {
@@ -63,22 +62,19 @@ public class PaulssonHash : AbstractPaulssonSponge(
         lasting += ByteArray(blockSize - lasting.size)
 
         push(lasting)
+        inBuf[0] = inBuf[0] xor (count * Byte.SIZE_BITS)
         PaulssonSponge.absorb(inBuf, state)
         PaulssonSponge.scramble(state)
 
-        val mask = PaulssonSponge.sponge(state)
-        PaulssonSponge.scrambleRight(mask)
-
-        inBuf.fill(0)
-        inBuf[0] = (count * Byte.SIZE_BITS)
-        PaulssonSponge.absorb(inBuf, state)
+        val mask = PaulssonSponge.buffer()
+        PaulssonSponge.squeeze(mask, state)
         PaulssonSponge.scramble(state)
 
-        val output = PaulssonSponge.buffer()
-        PaulssonSponge.simpleCipher(output, mask.first, state)
+        PaulssonSponge.absorb(mask, state)
+        PaulssonSponge.scramble(state)
 
         val hash = ByteArray(PaulssonSponge.stateSize * wordSize)
-        output.forEachIndexed {idx, reg ->
+        state.first.forEachIndexed {idx, reg ->
             hash.writeLongAt(idx * wordSize, reg.asBig()) }
         return hash
     }
