@@ -64,12 +64,9 @@ public class PaulssonHash : AbstractPaulssonSponge(
         push(lasting)
         inBuf[0] = inBuf[0] xor (count * Byte.SIZE_BITS)
         PaulssonSponge.absorb(inBuf, state)
-        PaulssonSponge.scramble(state)
 
         val mask = PaulssonSponge.buffer()
         PaulssonSponge.squeeze(mask, state)
-        PaulssonSponge.scramble(state)
-
         PaulssonSponge.absorb(mask, state)
         PaulssonSponge.scramble(state)
 
