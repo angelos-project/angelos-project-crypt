@@ -98,13 +98,15 @@ public interface PaulssonSponge {
         }
 
         @JvmStatic
-        public fun scramble(state: Sponge) {
-            repeat(15) { cycle(state.second, state.first) }
-        }
-
-        @JvmStatic
-        public fun scrambleRight(mask: Sponge) {
-            repeat(16) { cycleRight(mask.second, mask.first) }
+        public fun scrambleLock(mask: StateBuffer) {
+            val side = LongArray(4)
+            val history = buffer()
+            repeat(16) {
+                history[0] = mask[15]
+                simpleCipher(mask, history)
+                shuffleState(history)
+                cycleRight(side, mask)
+            }
         }
 
         @JvmStatic
@@ -122,6 +124,11 @@ public interface PaulssonSponge {
         @JvmStatic
         public fun simpleCipher(result: StateBuffer, mask: StateBuffer, state: Sponge): Unit = result.indices.forEach { idx ->
             result[idx] = mask[idx] xor state.first[idx]
+        }
+
+        @JvmStatic
+        public fun simpleCipher(result: StateBuffer, mask: StateBuffer): Unit = result.indices.forEach { idx ->
+            result[idx] = mask[idx] xor result[idx]
         }
 
         @JvmStatic
