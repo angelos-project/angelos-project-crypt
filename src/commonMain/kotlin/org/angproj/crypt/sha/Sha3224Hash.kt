@@ -14,6 +14,7 @@
  */
 package org.angproj.crypt.sha
 
+import org.angproj.aux.util.*
 import org.angproj.crypt.Hash
 import org.angproj.crypt.HashEngine
 import org.angproj.crypt.keccak.AbstractKeccakHashEngine
@@ -33,7 +34,9 @@ internal class Sha3224Hash(private val b: KeccakPValues = KeccakPValues.P_200): 
 
     private val state = createState()
 
-    protected var lasting: ByteArray = ByteArray(0)
+    private val a = createState()
+
+    protected var lasting: ByteArray = byteArrayOf()
 
     protected var count: Int = 0
 
@@ -61,6 +64,14 @@ internal class Sha3224Hash(private val b: KeccakPValues = KeccakPValues.P_200): 
 
     private fun loopState(block: (idx: Int, idy: Int, idz: Int) -> Unit): Unit {
         for (x in 0 until 5) for (y in 0 until 5) for(z in 0 until b.wSize) block(x, y, z)
+    }
+
+    private fun loopPush(block: (idx: Int, idy: Int, idz: Int) -> Unit): Unit {
+        for (y in 0 until 5) for (x in 0 until 5) for(z in 0 until b.wSize) block(x, y, z)
+    }
+
+    private fun loopPull(block: (idi: Int, idj: Int, ids: Int) -> Unit): Unit {
+        for (j in 0 until 5) for (i in 0 until 5) block(i, j, i + j * 5)
     }
 
     private fun loopPlane(block: (idx: Int, idz: Int) -> Unit): Unit {
@@ -159,15 +170,85 @@ internal class Sha3224Hash(private val b: KeccakPValues = KeccakPValues.P_200): 
     }
     private fun rotateLeft64(x: Long, y: Int): Long = (x shl y) or (x shr (64 - y))
 
-    override val type: String
-        get() = "SHA3 Under developlment"
+    private fun push(chunk: ByteArray) = loopPush { idx, idy, idz ->
+        val pos = b.wSize * (5 * idy + idx) + idz
+        val g = pos.floorDiv(8)
+        val bit = when(pos.mod(8)) {
+            7 -> chunk[g].checkFlag0()
+            6 -> chunk[g].checkFlag1()
+            5 -> chunk[g].checkFlag2()
+            4 -> chunk[g].checkFlag3()
+            3 -> chunk[g].checkFlag4()
+            2 -> chunk[g].checkFlag5()
+            1 -> chunk[g].checkFlag6()
+            0 -> chunk[g].checkFlag7()
+            else -> false
+        }
+        a.setBitOfState(idx, idy, idz, bit)
+    }
+
+    fun transform() {}
 
     override fun update(messagePart: ByteArray) {
+        val buffer = lasting + messagePart
+        lasting = ByteArray(0) // Setting an empty array
+
+        (0..buffer.size step b.bSize).forEach { i ->
+
+            // Slicing the buffer in ranges of 64, if too small it's lasting.
+            val chunk = try {
+                messagePart.copyOfRange(i, i + b.bSize)
+            } catch (_: IndexOutOfBoundsException) {
+                lasting = buffer.copyOfRange(i, buffer.size)
+                return
+            }
+
+            push(chunk)
+            transform()
+
+            count += b.bSize
+        }
     }
 
-    override fun final(): ByteArray {
-        return byteArrayOf(12, 43, 56, -78)
+    public override fun final(): ByteArray {
+        val hash = ByteArray(b.bSize)
+        loopPull { idi, idj, ids ->
+            hash.writeLongAt(ids, state[idj + 5 * idi])
+        }
+       /* count += lasting.size
+        val blocksNeeded = if (lasting.size + 1 + 16 > blockSize) 2 else 1
+        val blockLength = lasting.size / wordSize
+        val end = LongArray(blocksNeeded * 16)
+
+        (0 until blockLength).forEach { i ->
+            end[i] = lasting.readLongAt(i * wordSize).asBig()
+        }
+
+        val remainder = (lasting.copyOfRange(
+            blockLength * wordSize, lasting.size
+        ) + 128.toByte()).copyOf(wordSize)
+        end[blockLength] = remainder.readLongAt(0).asBig()
+
+        val totalSize = count * 8L
+        end[end.size - 1] = totalSize
+
+        if (blocksNeeded == 1) {
+            push(end)
+            transform()
+        } else {
+            push(end.copyOfRange(0, 16))
+            transform()
+            push(end.copyOfRange(16, 32))
+            transform()
+        }
+
+        val hash = ByteArray(h.size * wordSize)
+        h.indices.forEach { hash.writeLongAt(it * wordSize, h[it].asBig()) }*/
+        return hash
     }
+
+    override val type: String
+        get() = "SHA3 Under developlment"
 
     public companion object: Hash {
         public override val name: String = "${KeccakHashEngine.TYPE}3-224"

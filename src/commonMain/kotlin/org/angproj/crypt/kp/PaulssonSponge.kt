@@ -98,18 +98,6 @@ public interface PaulssonSponge {
         }
 
         @JvmStatic
-        public fun scrambleLock(mask: StateBuffer) {
-            val side = LongArray(4)
-            val history = buffer()
-            repeat(16) {
-                history[0] = mask[15]
-                simpleCipher(mask, history)
-                shuffleState(history)
-                cycleRight(side, mask)
-            }
-        }
-
-        @JvmStatic
         public fun absorb(inBuf: StateBuffer, state: Sponge) {
             for (idx in 0 until 16) state.first[idx] = state.first[idx] xor inBuf[idx]
             cycle(state.second, state.first)
@@ -119,6 +107,24 @@ public interface PaulssonSponge {
         public fun squeeze(outBuf: StateBuffer, state: Sponge) {
             state.first.copyInto(outBuf)
             cycle(state.second, state.first)
+        }
+
+        @JvmStatic
+        public fun scramble(state: Sponge) {
+            repeat(15) { cycle(state.second, state.first) }
+        }
+
+        @JvmStatic
+        public fun scrambleLock(mask: StateBuffer) {
+            val side = LongArray(4)
+            val history = buffer()
+            repeat(16) {
+                history[0] = mask[15]
+                simpleCipher(mask, history)
+                shuffleState(history)
+                cycleRight(side, mask)
+
+            }
         }
 
         @JvmStatic

@@ -14,12 +14,12 @@
  */
 package org.angproj.crypt.keccak
 
-internal enum class KeccakPValues (val bWidth: Int, val wSize: Int, val log: Int, val wordMask: Long){
-    P_25(25, 1, 0, 0x1),
-    P_50(50, 2, 1, 0x3),
-    P_100(100, 4, 2, 0x7),
-    P_200(200, 8, 3, 0xff),
-    P_400(400, 16, 4, 0xffff),
-    P_800(800, 32, 5, 0xffffffff),
-    P_1600(1600, 64, 6, 0xffffffffffffffffuL.toLong())
+internal enum class KeccakPValues (val bWidth: Int, val wSize: Int, val log: Int, val wordMask: Long, val bSize: Int){
+    P_25(25, 1, 0, 0x1, 0),
+    P_50(50, 2, 1, 0x3, 0),
+    P_100(100, 4, 2, 0x7, 0),
+    P_200(200, 8, 3, 0xff, 25),
+    P_400(400, 16, 4, 0xffff, 50),
+    P_800(800, 32, 5, 0xffffffff, 100),
+    P_1600(1600, 64, 6, 0xffffffffffffffffuL.toLong(), 200)
 }
