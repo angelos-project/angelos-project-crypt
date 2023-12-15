@@ -7,9 +7,6 @@ class Benchmark {
     private var r: Long = 0
     private var b: Long = 0
 
-    val n: Long
-        get() = r + b
-
     fun scatterPoint(x: Long, y: Long) {
         val a = x.absoluteValue / longMax
         val b = y.absoluteValue / longMax

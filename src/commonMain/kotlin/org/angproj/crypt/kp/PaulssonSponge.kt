@@ -123,7 +123,6 @@ public interface PaulssonSponge {
                 simpleCipher(mask, history)
                 shuffleState(history)
                 cycleRight(side, mask)
-
             }
         }
 
