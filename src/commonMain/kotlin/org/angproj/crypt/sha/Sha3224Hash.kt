@@ -152,6 +152,20 @@ internal class Sha3224Hash(private val b: KeccakPValues = KeccakPValues.P_200): 
         return adState
     }
 
+    private fun roundConstant(t: Int): Boolean {
+        if(t.mod(255) == 0) return true
+        var r = booleanArrayOf(true, false, false, false, false, false, false, false)
+        for(i in 1 until t.mod(255)) {
+            r = booleanArrayOf(false) + r // a
+            r[0] = r[0] xor r[8] // b
+            r[4] = r[4] xor r[8] // c
+            r[5] = r[5] xor r[8] // d
+            r[6] = r[6] xor r[8] // e
+            r = r.sliceArray(0 until 8)
+        }
+        return r[0]
+    }
+
     private fun stepIota(aState: LongArray): LongArray {
          TODO("!!!")
         return aState

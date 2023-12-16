@@ -25,7 +25,7 @@ public class StdCLibRandom(salt: Long = 0): Random() {
         next *= 1103515245
         next += 12345
         result = result shl 10
-        result = result xor (next / 65536) % 1024;
+        result = result xor (next / 65536) % 1024
 
         seed = next
 
