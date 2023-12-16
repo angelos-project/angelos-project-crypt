@@ -27,8 +27,39 @@ public class SimpleRandom(salt: Long = 0): Random() {
         counter += salt
     }
 
+    // 31, 43  ->  For Random without bit manipulation
+    // 23, 53  ->  For Kotlin bits
+    private fun cycle() { counter = (counter + 1).inv().rotateLeft(31) xor -counter.rotateRight(43) }
+
     override fun nextBits(bitCount: Int): Int {
-        counter = (counter + 1).inv().rotateLeft(2) xor -counter.rotateRight(23)
+        cycle()
         return (counter shr (32 - bitCount + 32)).toInt()
     }
+
+    override fun nextLong(): Long {
+        cycle()
+        return counter
+    }
 }
+
+/**
+ * left right
+ * 23	53
+ * 5	23
+ * 41	5
+ * 47	61
+ * 2	19
+ * 43	2
+ * 53	29
+ * 37	13
+ * 59	11
+ * 11	31
+ * 31	43
+ * 29	61
+ * 19	59
+ * 13	17
+ * 17	37
+ * 7	47
+ */
+
+

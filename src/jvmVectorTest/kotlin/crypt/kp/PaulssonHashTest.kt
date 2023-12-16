@@ -5,6 +5,7 @@ import org.angproj.aux.util.Epoch
 import org.angproj.aux.util.readLongAt
 import org.angproj.aux.util.readULongAt
 import org.angproj.crypt.kp.PaulssonHash
+import org.angproj.crypt.kp.PaulssonRandom
 import org.angproj.crypt.kp.SimpleRandom
 import org.angproj.crypt.kp.StdCLibRandom
 import kotlin.experimental.xor
@@ -50,41 +51,5 @@ class PaulssonHashTest {
             algo.update(msg)
             assertEquals(BinHex.encodeToHex(algo.final()), testVectorsDigest[idx].lowercase())
         }
-    }
-
-    @OptIn(ExperimentalTime::class)
-    @Test
-    fun randomTest() {
-        val salt = Epoch.getEpochSecs()
-        val sr = SimpleRandom(salt)
-        val mc1 = Benchmark()
-
-        val m1 = measureTime {
-            repeat(10_000_000) {
-                mc1.scatterPoint(sr.nextLong(), sr.nextLong())
-            }
-        }
-        println("${(PI - mc1.distribution()).absoluteValue} in $m1")
-
-        val sclr = StdCLibRandom(salt)
-        val mc2 = Benchmark()
-
-        val m2 = measureTime {
-            repeat(10_000_000) {
-                mc2.scatterPoint(sclr.nextLong(), sclr.nextLong())
-            }
-        }
-        println("${(PI - mc2.distribution()).absoluteValue} in $m2")
-
-        val kr = Random(salt)
-        val mc3 = Benchmark()
-
-        val m3 = measureTime {
-            repeat(10_000_000) {
-                mc3.scatterPoint(kr.nextLong(), kr.nextLong())
-            }
-        }
-        println("${(PI - mc3.distribution()).absoluteValue} in $m3")
-
     }
 }
