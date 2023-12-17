@@ -14,7 +14,7 @@
  */
 package org.angproj.crypt.keccak
 
-internal enum class KeccakPValues (val bWidth: Int, val wSize: Int, val log: Int, val wordMask: Long, val bSize: Int){
+internal enum class KeccakPValues (val bWidth: Int, val wSize: Int, val log2: Int, val wordMask: Long, val bSize: Int){
     P_25(25, 1, 0, 0x1, 0),
     P_50(50, 2, 1, 0x3, 0),
     P_100(100, 4, 2, 0x7, 0),

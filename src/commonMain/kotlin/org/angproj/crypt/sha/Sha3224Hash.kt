@@ -166,9 +166,23 @@ internal class Sha3224Hash(private val b: KeccakPValues = KeccakPValues.P_200): 
         return r[0]
     }
 
-    private fun stepIota(aState: LongArray): LongArray {
-         TODO("!!!")
+    private fun stepIota(aState: LongArray, i: Int): LongArray {
+        val adState = aState.copyOf()
+        val rc = BooleanArray(b.wSize)
+
+        for (j in 0 until b.log2)
+            rc[(1 shl j) - 1] = roundConstant(j + 7 * i)
+
+        for(z in 0 until b.wSize)
+            adState.setBitOfState(0, 0, z, adState.getBitOfState(0, 0, z) xor rc[z])
+
         return aState
+    }
+
+    private fun keccakPRound(s: ByteArray, n: Int): ByteArray {
+        var aState = createState()
+        val i = 1
+        aState = stepIota(stepChi(stepPi(stepRho(stepTheta(aState)))), i)
     }
 
     private fun fromFlatToStructure(): Array<Array<LongArray>> = Array(5) { idx ->
