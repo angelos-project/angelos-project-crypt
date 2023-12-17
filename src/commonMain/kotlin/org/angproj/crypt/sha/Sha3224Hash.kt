@@ -179,23 +179,52 @@ internal class Sha3224Hash(private val b: KeccakPValues = KeccakPValues.P_200): 
         return aState
     }
 
+    private fun pad10_1(x: Int, m: Int): ByteArray {
+        val j = (-m-2).mod(x)
+        val p = ByteArray(j / 8)
+        p[0].flipOnFlag7()
+        p[p.lastIndex].flipOnFlag0()
+        return p
+    }
+
     private fun keccakPRound(s: ByteArray, n: Int): ByteArray {
-        var aState = createState()
-        val i = 1
-        aState = stepIota(stepChi(stepPi(stepRho(stepTheta(aState)))), i)
+        var aState = absorb(s)
+
+        for(i in(12 + 2 * b.log2 - n) until (12 + 2 * b.log2 - 1))
+            aState = stepIota(stepChi(stepPi(stepRho(stepTheta(aState)))), i)
+
+        return squeeze(aState)
     }
 
-    private fun fromFlatToStructure(): Array<Array<LongArray>> = Array(5) { idx ->
-        Array(5) { idy ->
-            val ids = b.wSize * (idy + 5 * idx)
-            println("x:$idx , y: $idy, z: 0-${b.wSize-1}; S: $ids-${ids + b.wSize-1};")
-            state.copyOfRange(ids, ids + b.wSize)
+    private fun absorb(value: ByteArray): LongArray {
+        val aState = createState()
+        loopPush { idx, idy, idz ->
+            val pos = b.wSize * (5 * idy + idx) + idz
+            val g = pos.floorDiv(8)
+            val bit = when(pos.mod(8)) {
+                7 -> value[g].checkFlag0()
+                6 -> value[g].checkFlag1()
+                5 -> value[g].checkFlag2()
+                4 -> value[g].checkFlag3()
+                3 -> value[g].checkFlag4()
+                2 -> value[g].checkFlag5()
+                1 -> value[g].checkFlag6()
+                0 -> value[g].checkFlag7()
+                else -> false
+            }
+            a.setBitOfState(idx, idy, idz, bit)
         }
+        return aState
     }
 
-    private fun absorb(value: ByteArray): Unit = value.forEachIndexed { idx, byte ->
-        state[idx] = state[idx] xor (byte.toLong() and 0xff)
+    private fun squeeze(aState: LongArray): ByteArray {
+        val s = ByteArray(b.bSize)
+        loopPull { idi, idj, ids ->
+            s.writeLongAt(ids, aState[idj + 5 * idi])
+        }
+        return s
     }
+
     private fun rotateLeft64(x: Long, y: Int): Long = (x shl y) or (x shr (64 - y))
 
     private fun push(chunk: ByteArray) = loopPush { idx, idy, idz ->
