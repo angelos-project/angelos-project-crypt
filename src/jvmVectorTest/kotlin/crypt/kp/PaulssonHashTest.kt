@@ -2,15 +2,9 @@ package crypt.kp
 
 import org.angproj.aux.util.BinHex
 import org.angproj.aux.util.Epoch
-import org.angproj.aux.util.readLongAt
-import org.angproj.aux.util.readULongAt
 import org.angproj.crypt.kp.PaulssonHash
-import org.angproj.crypt.kp.PaulssonRandom
 import org.angproj.crypt.kp.SimpleRandom
-import org.angproj.crypt.kp.StdCLibRandom
-import kotlin.experimental.xor
 import kotlin.math.PI
-import kotlin.math.abs
 import kotlin.math.absoluteValue
 import kotlin.random.Random
 import kotlin.test.Test
@@ -51,5 +45,20 @@ class PaulssonHashTest {
             algo.update(msg)
             assertEquals(BinHex.encodeToHex(algo.final()), testVectorsDigest[idx].lowercase())
         }
+    }
+
+    @OptIn(ExperimentalTime::class)
+    @Test
+    fun testRandom() {
+        val sr = SimpleRandom(Epoch.getEpochSecs())
+        val monteCarlo = Benchmark()
+        val period = measureTime {
+            repeat(10_000_000) {
+                monteCarlo.scatterPoint(sr.randLong(), sr.randLong())
+            }
+        }
+
+        println((PI - monteCarlo.distribution()).absoluteValue)
+        println(period)
     }
 }

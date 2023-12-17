@@ -8,8 +8,8 @@ class Benchmark {
     private var b: Long = 0
 
     fun scatterPoint(x: Long, y: Long) {
-        val a = x.absoluteValue / longMax
-        val b = y.absoluteValue / longMax
+        val a = x / longMax
+        val b = y / longMax
         val c = sqrt(a * a + b * b)
         when (c < 1) {
             true -> this.r++
