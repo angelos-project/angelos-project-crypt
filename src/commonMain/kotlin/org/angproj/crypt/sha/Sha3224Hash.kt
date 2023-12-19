@@ -265,7 +265,7 @@ internal class Sha3224Hash(private val b: KeccakPValues = KeccakPValues.P_1600):
             transform()
         }
 
-        val last = lasting.copyOfRange(0, rateSize) + pad10_1(rateSize, count)
+        val last = lasting.copyOfRange(0, lasting.size) + pad10_1(rateSize, count)
         push(last)
         transform()
 

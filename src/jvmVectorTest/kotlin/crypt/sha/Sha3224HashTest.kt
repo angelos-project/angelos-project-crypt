@@ -9,6 +9,7 @@ class Sha3224HashTest: HashVectorParsing {
     @Test
     fun testSha3224Short() {
         msgIter(SHA3224ShortMsg.testVectors) { msg, md ->
+            println(msg.size)
             val algo = Sha3224Hash()
             algo.update(msg)
             assertEquals(BinHex.encodeToHex(algo.final()), md.lowercase())
