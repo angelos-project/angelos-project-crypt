@@ -27,14 +27,12 @@ import org.angproj.crypt.keccak.KeccakPValues
 // https://csrc.nist.gov/Projects/cryptographic-algorithm-validation-program/Secure-Hashing
 // https://csrc.nist.gov/pubs/fips/202/final
 
-internal class Sha3224Hash(private val b: KeccakPValues = KeccakPValues.P_200): AbstractKeccakHashEngine() {
+internal class Sha3224Hash(private val b: KeccakPValues = KeccakPValues.P_1600): AbstractKeccakHashEngine() {
 
     private val xIndices = listOf(3, 4, 0, 1, 2)
     private val yIndices = xIndices
 
-    private val state = createState()
-
-    private val a = createState()
+    protected var string = ByteArray(permutationSize)
 
     protected var lasting: ByteArray = byteArrayOf()
 
@@ -140,6 +138,7 @@ internal class Sha3224Hash(private val b: KeccakPValues = KeccakPValues.P_200): 
         }
         return adState
     }
+    
     private fun stepChi(aState: LongArray): LongArray {
         val adState = createState()
         loopState { idx, idy, idz ->
@@ -187,11 +186,14 @@ internal class Sha3224Hash(private val b: KeccakPValues = KeccakPValues.P_200): 
         return p
     }
 
+    private fun keccakRnd(aState: LongArray, i: Int): LongArray = stepIota(
+        stepChi(stepPi(stepRho(stepTheta(aState)))), i)
+
     private fun keccakPRound(s: ByteArray, n: Int): ByteArray {
         var aState = absorb(s)
 
         for(i in(12 + 2 * b.log2 - n) until (12 + 2 * b.log2 - 1))
-            aState = stepIota(stepChi(stepPi(stepRho(stepTheta(aState)))), i)
+            aState = keccakRnd(aState, i)
 
         return squeeze(aState)
     }
@@ -212,7 +214,7 @@ internal class Sha3224Hash(private val b: KeccakPValues = KeccakPValues.P_200): 
                 0 -> value[g].checkFlag7()
                 else -> false
             }
-            a.setBitOfState(idx, idy, idz, bit)
+            aState.setBitOfState(idx, idy, idz, bit)
         }
         return aState
     }
@@ -225,36 +227,22 @@ internal class Sha3224Hash(private val b: KeccakPValues = KeccakPValues.P_200): 
         return s
     }
 
-    private fun rotateLeft64(x: Long, y: Int): Long = (x shl y) or (x shr (64 - y))
-
-    private fun push(chunk: ByteArray) = loopPush { idx, idy, idz ->
-        val pos = b.wSize * (5 * idy + idx) + idz
-        val g = pos.floorDiv(8)
-        val bit = when(pos.mod(8)) {
-            7 -> chunk[g].checkFlag0()
-            6 -> chunk[g].checkFlag1()
-            5 -> chunk[g].checkFlag2()
-            4 -> chunk[g].checkFlag3()
-            3 -> chunk[g].checkFlag4()
-            2 -> chunk[g].checkFlag5()
-            1 -> chunk[g].checkFlag6()
-            0 -> chunk[g].checkFlag7()
-            else -> false
-        }
-        a.setBitOfState(idx, idy, idz, bit)
+    private fun push(chunk: ByteArray): Unit {
+        val p = chunk + ByteArray(capacitySize)
+        string.indices.forEach { idx -> string[idx] = (string[idx].toInt() xor p[idx].toInt()).toByte() }
     }
 
-    fun transform() {}
+    private fun transform() { string = keccakPRound(string, rounds) }
 
     override fun update(messagePart: ByteArray) {
         val buffer = lasting + messagePart
         lasting = ByteArray(0) // Setting an empty array
 
-        (0..buffer.size step b.bSize).forEach { i ->
+        (0..buffer.size step rateSize).forEach { i ->
 
             // Slicing the buffer in ranges of 64, if too small it's lasting.
             val chunk = try {
-                messagePart.copyOfRange(i, i + b.bSize)
+                messagePart.copyOfRange(i, i + rateSize)
             } catch (_: IndexOutOfBoundsException) {
                 lasting = buffer.copyOfRange(i, buffer.size)
                 return
@@ -263,45 +251,30 @@ internal class Sha3224Hash(private val b: KeccakPValues = KeccakPValues.P_200): 
             push(chunk)
             transform()
 
-            count += b.bSize
+            count += rateSize
         }
     }
 
     public override fun final(): ByteArray {
-        val hash = ByteArray(b.bSize)
-        loopPull { idi, idj, ids ->
-            hash.writeLongAt(ids, state[idj + 5 * idi])
-        }
-       /* count += lasting.size
-        val blocksNeeded = if (lasting.size + 1 + 16 > blockSize) 2 else 1
-        val blockLength = lasting.size / wordSize
-        val end = LongArray(blocksNeeded * 16)
+        count += lasting.size
 
-        (0 until blockLength).forEach { i ->
-            end[i] = lasting.readLongAt(i * wordSize).asBig()
-        }
-
-        val remainder = (lasting.copyOfRange(
-            blockLength * wordSize, lasting.size
-        ) + 128.toByte()).copyOf(wordSize)
-        end[blockLength] = remainder.readLongAt(0).asBig()
-
-        val totalSize = count * 8L
-        end[end.size - 1] = totalSize
-
-        if (blocksNeeded == 1) {
-            push(end)
-            transform()
-        } else {
-            push(end.copyOfRange(0, 16))
-            transform()
-            push(end.copyOfRange(16, 32))
+        if(lasting.size >= rateSize) {
+            val first = lasting.copyOfRange(0, rateSize)
+            lasting = lasting.copyOfRange(rateSize, lasting.size)
+            push(first)
             transform()
         }
 
-        val hash = ByteArray(h.size * wordSize)
-        h.indices.forEach { hash.writeLongAt(it * wordSize, h[it].asBig()) }*/
-        return hash
+        val last = lasting.copyOfRange(0, rateSize) + pad10_1(rateSize, count)
+        push(last)
+        transform()
+
+        var z = byteArrayOf()
+        while(messageDigestSize >= z.size) {
+            z += string.copyOfRange(0, rateSize)
+            transform()
+        }
+        return z.copyOfRange(0, messageDigestSize)
     }
 
     override val type: String
@@ -311,7 +284,16 @@ internal class Sha3224Hash(private val b: KeccakPValues = KeccakPValues.P_200): 
         public override val name: String = "${KeccakHashEngine.TYPE}3-224"
         public override val blockSize: Int = 1152 / ShaHashEngine.byteSize
         public override val wordSize: Int = 64 / ShaHashEngine.byteSize
-        public override val messageDigestSize: Int = 224 / ShaHashEngine.byteSize
+        public override val messageDigestSize: Int = 224 / ShaHashEngine.byteSize // d
+        public val permutationWidth: Int = 1600 // b
+        public val permutationSize: Int = permutationWidth / ShaHashEngine.byteSize // b / 8
+        public val laneSize: Int = permutationWidth / 25 / ShaHashEngine.byteSize // w = b/25
+        public val log2: Int = 6 // log2(b / 25) = log2(w)
+        public val capacitySize: Int = messageDigestSize * 2 // d2
+        public val rateSize: Int = permutationSize - capacitySize // r
+        public val rounds: Int = 24 // n
+
+        //     P_1600(1600, 64, 6, 0xffffffffffffffffuL.toLong(), 200)
 
         override fun create(): HashEngine {
             TODO("Not yet implemented")
