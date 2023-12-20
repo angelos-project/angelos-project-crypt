@@ -29,111 +29,95 @@ import org.angproj.crypt.keccak.KeccakPValues
 
 internal class Sha3224Hash(private val b: KeccakPValues = KeccakPValues.P_1600): AbstractKeccakHashEngine() {
 
-    private val stepMapping = listOf(3, 4, 0, 1, 2)
-
-    protected var string = ByteArray(permutationSize)
+    protected var string = ByteArray(permutationWidth.inByteSize)
 
     protected var lasting: ByteArray = byteArrayOf()
 
     protected var count: Int = 0
 
-    private fun createState(): LongArray = LongArray(5 * 5)
-    private fun createPlane(): LongArray = LongArray(5)
-
-    private fun LongArray.getBitOfState(x: Int, y: Int, z: Int): Boolean = this[stepMapping[y] + 5 * stepMapping[x]] and (1 shl (b.wSize - z - 1)).toLong() != 0L
-    private fun LongArray.setBitOfState(x: Int, y: Int, z: Int, v: Boolean) {
-        val ids = stepMapping[y] + 5 * stepMapping[x]
-        val mask = (1 shl (b.wSize - z - 1)).toLong()
-        when(v) {
-            true -> this[ids] = this[ids] or mask
-            else -> this[ids] = this[ids] and mask.inv()
-        }
+    private fun m(i: Int) = when(i) {
+        0 -> 3
+        1 -> 4
+        2 -> 0
+        3 -> 1
+        4 -> 2
+        else -> Int.MAX_VALUE
     }
 
-    private fun LongArray.getBitOfPlane(x: Int, z: Int): Boolean = this[stepMapping[x]] and (1 shl (b.wSize - z - 1)).toLong() != 0L
-    private fun LongArray.setBitOfPlane(x: Int, z: Int, v: Boolean)  {
-        val mX = stepMapping[x]
-        val mask = (1 shl (b.wSize - z - 1)).toLong()
-        when(v) {
-            true -> this[mX] = this[mX] or mask
-            else -> this[mX] = this[mX] and mask.inv()
-        }
-    }
+    private fun createState() = Array(5) { Array(5) { BooleanArray(laneSize) } } // [x, y, z]
+    private fun createPlane() = Array(5) { BooleanArray(laneSize) } // [x, z]
 
     private fun loopState(block: (idx: Int, idy: Int, idz: Int) -> Unit): Unit {
-        for (x in 0 until 5) for (y in 0 until 5) for(z in 0 until b.wSize) block(x, y, z)
+        for (x in 0 until 5) for (y in 0 until 5) for(z in 0 until laneSize) block(x, y, z)
     }
 
-    private fun loopPush(block: (idx: Int, idy: Int, idz: Int) -> Unit): Unit {
-        for (y in 0 until 5) for (x in 0 until 5) for(z in 0 until b.wSize) block(x, y, z)
+    private fun loopPlane(block: (idx: Int, idz: Int) -> Unit): Unit {
+        for (x in 0 until 5) for(z in 0 until laneSize) block(x, z)
+    }
+
+    private fun loopAbsorb(block: (idx: Int, idy: Int, idz: Int) -> Unit): Unit {
+        for (y in 0 until 5) for (x in 0 until 5) for(z in 0 until laneSize) block(x, y, z)
     }
 
     private fun loopPull(block: (idi: Int, idj: Int, ids: Int) -> Unit): Unit {
         for (j in 0 until 5) for (i in 0 until 5) block(i, j, i + j * 5)
     }
 
-    private fun loopPlane(block: (idx: Int, idz: Int) -> Unit): Unit {
-        for (x in 0 until 5) for(z in 0 until b.wSize) block(x, z)
-    }
-
-    private fun stepTheta(aState: LongArray): LongArray {
-        val cPlane = createPlane()
+    private fun stepTheta(a: Array<Array<BooleanArray>>): Array<Array<BooleanArray>> {
+        // In 3.2.1, p. 11
+        val c = createPlane()
         loopPlane { idx, idz ->
-            cPlane.setBitOfPlane(idx, idz, aState.getBitOfState(idx, 0, idz
-            ) xor aState.getBitOfState(idx, 1, idz
-            ) xor aState.getBitOfState(idx, 2, idz
-            ) xor aState.getBitOfState(idx, 3, idz
-            ) xor aState.getBitOfState(idx, 4, idz)
-            )
+            c[m(idx)][idz] = a[m(
+                idx)][m(0)][idz] xor a[m(
+                idx)][m(1)][idz] xor a[m(
+                idx)][m(2)][idz] xor a[m(
+                idx)][m(3)][idz] xor a[m(
+                idx)][m(4)][idz]
         }
 
-        val dPlane = createPlane()
-        loopPlane { idx, idz ->
-            dPlane.setBitOfPlane(idx, idz,
-                cPlane.getBitOfPlane((idx - 1).mod(5), idz
-                ) xor cPlane.getBitOfPlane((idx + 1).mod(5), (idz - 1).mod(b.wSize))
-            )
+        val d = createPlane()
+        loopPlane{ idx, idz ->
+            d[m(idx)][idz] = c[(
+                    m(idx) - 1).floorMod(5)][idz] xor c[(
+                    m(idx)+1).floorMod(5)][(idz - 1).floorMod(5)]
         }
 
-        val adState = createState()
+        val ad = createState()
         loopState { idx, idy, idz ->
-            adState.setBitOfState(idx, idy, idz,
-                aState.getBitOfState(idx, idy, idz
-                ) xor dPlane.getBitOfPlane(idx, idz)
-            )
+            ad[m(idx)][m(idy)][idz] = a[m(idx)][m(idy)][idz] xor d[m(idx)][idz]
         }
-        return adState
+
+        return ad
     }
 
-    private fun stepRho(aState: LongArray): LongArray {
-        val adState = createState()
-        (0 until b.wSize).forEach { idz ->
-            adState.setBitOfState(0, 0, idz, aState.getBitOfState(0, 0, idz)) }
+    private fun stepRho(a: Array<Array<BooleanArray>>): Array<Array<BooleanArray>> {
+        // In 3.2.2, p. 12
+        val ad = createState()
+        a[m(0)][m(0)].copyInto(ad[m(0)][m(0)])
 
         var idx = 1
         var idy = 0
-        (0 until 24).forEach { idt ->
-            (0 until b.wSize).forEach { idz ->
-                adState.setBitOfState(
-                    idx, idy, idz,
-                    aState.getBitOfState(
-                        idx, idy, (idz - (idt + 1)*(idt + 2) / 2).mod(b.wSize)
-                    )
-                )
+
+        (0..23).forEach { idt ->
+            (0 until laneSize).forEach { idz ->
+                ad[m(idx)][m(idy)][idz] = a[m(idx)][m(idy)][(idz - (idt + 1) * (idt + 2) / 2).floorMod(laneSize)]
             }
-            val tmp = (2 * idx + 3 * idy).mod(5) // CHECK!!!!
+
+            val tmp = idx
             idx = idy
-            idy = tmp
+            idy = (2 * tmp + 3 * idy).floorMod(5)
         }
 
-        return adState
+        return ad
     }
 
-    private fun stepPi(aState: LongArray): LongArray {
+    // FORTSÄTT HÄR !!!
+    private fun stepPi(a: Array<Array<BooleanArray>>): Array<Array<BooleanArray>> {
+        // In 3.2.3, p. 14
         val adState = createState()
         loopState { idx, idy, idz ->
             adState.setBitOfState(idx, idy, idz,
-                aState.getBitOfState((idx + 3 * idy).mod(5), idx, idz)
+                aState.getBitOfState((idx + 3 * idy).floorMod(5), idx, idz)
             )
         }
         return adState
@@ -144,17 +128,17 @@ internal class Sha3224Hash(private val b: KeccakPValues = KeccakPValues.P_1600):
         loopState { idx, idy, idz ->
             adState.setBitOfState(idx, idy, idz,
                 aState.getBitOfState(idx, idy, idz
-                ) xor ((aState.getBitOfState((idx + 1).mod(5), idy, idz
-                ) xor true) and aState.getBitOfState((idx+2).mod (5), idy, idz)
+                ) xor ((aState.getBitOfState((idx + 1).floorMod(5), idy, idz
+                ) xor true) and aState.getBitOfState((idx+2).floorMod(5), idy, idz)
                         ))
         }
         return adState
     }
 
     private fun roundConstant(t: Int): Boolean {
-        if(t.mod(255) == 0) return true
+        if(t.floorMod(255) == 0) return true
         var r = booleanArrayOf(true, false, false, false, false, false, false, false)
-        for(i in 1 until t.mod(255)) {
+        for(i in 1 until t.floorMod(255)) {
             r = booleanArrayOf(false) + r // a
             r[0] = r[0] xor r[8] // b
             r[4] = r[4] xor r[8] // c
@@ -179,7 +163,7 @@ internal class Sha3224Hash(private val b: KeccakPValues = KeccakPValues.P_1600):
     }
 
     private fun pad10_1(x: Int, m: Int): ByteArray {
-        /*val j = (-m-2).mod(x)
+        /*val j = (-m-2).floorMod(x)
         val p = ByteArray(j / 8) */
         val p = ByteArray(x - m)
         p[0] = p[0].flipOnFlag7() // Normal non domain specific padding
@@ -197,25 +181,27 @@ internal class Sha3224Hash(private val b: KeccakPValues = KeccakPValues.P_1600):
             aState = keccakRnd(aState, i)
 
         return squeeze(aState)
-    }
+    }*/
 
-    private fun absorb(value: ByteArray): LongArray {
+    internal fun absorb(value: ByteArray): Array<Array<BooleanArray>> {
+        // Should comply with 3.1.2, p. 9
         val aState = createState()
-        loopPush { idx, idy, idz ->
-            val pos = b.wSize * (5 * idy + idx) + idz
-            val g = pos.floorDiv(8)
-            val bit = when(pos.mod(8)) {
-                7 -> value[g].checkFlag0()
-                6 -> value[g].checkFlag1()
-                5 -> value[g].checkFlag2()
-                4 -> value[g].checkFlag3()
-                3 -> value[g].checkFlag4()
-                2 -> value[g].checkFlag5()
-                1 -> value[g].checkFlag6()
-                0 -> value[g].checkFlag7()
+        loopAbsorb { idx, idy, idz ->
+            val bitPos = laneSize * (5 * idy + idx) + idz
+            //println("A[$idx, $idy, $idz] = S[$bitPos]")
+            val ids = bitPos.floorDiv(8)
+            val bit = when(bitPos.floorMod(8)) {
+                7 -> value[ids].checkFlag0()
+                6 -> value[ids].checkFlag1()
+                5 -> value[ids].checkFlag2()
+                4 -> value[ids].checkFlag3()
+                3 -> value[ids].checkFlag4()
+                2 -> value[ids].checkFlag5()
+                1 -> value[ids].checkFlag6()
+                0 -> value[ids].checkFlag7()
                 else -> false
             }
-            aState.setBitOfState(idx, idy, idz, bit)
+            aState[m(idx)][m(idy)][idz] = bit
         }
         return aState
     }
@@ -230,10 +216,12 @@ internal class Sha3224Hash(private val b: KeccakPValues = KeccakPValues.P_1600):
 
     private fun push(chunk: ByteArray): Unit {
         val p = chunk + ByteArray(capacitySize)
-        string.indices.forEach { idx -> string[idx] = (string[idx].toInt() xor p[idx].toInt()).toByte() }
+        string.indices.forEach { ids -> string[ids] = (string[ids].toInt() xor p[ids].toInt()).toByte() }
     }
 
-    private fun transform() { string = keccakPRound(string, rounds) }
+    private fun transform() {
+        //string = keccakPRound(string, rounds)
+    }
 
     override fun update(messagePart: ByteArray) {
         val buffer = lasting + messagePart
@@ -266,9 +254,9 @@ internal class Sha3224Hash(private val b: KeccakPValues = KeccakPValues.P_1600):
             transform()
         }
 
-        val last = lasting.copyOfRange(0, lasting.size) + pad10_1(rateSize, count)
+        /*val last = lasting.copyOfRange(0, lasting.size) + pad10_1(rateSize, count)
         push(last)
-        transform()
+        transform()*/
 
         var z = byteArrayOf()
         while(true) {
@@ -284,15 +272,14 @@ internal class Sha3224Hash(private val b: KeccakPValues = KeccakPValues.P_1600):
 
     public companion object: Hash {
         public override val name: String = "${KeccakHashEngine.TYPE}3-224"
-        public override val blockSize: Int = 1152 / ShaHashEngine.byteSize
-        public override val wordSize: Int = 64 / ShaHashEngine.byteSize
-        public override val messageDigestSize: Int = 224 / ShaHashEngine.byteSize // d
+        public override val blockSize: Int = 1152.inByteSize
+        public override val wordSize: Int = 64.inByteSize
+        public override val messageDigestSize: Int = 224.inByteSize // d
         public val permutationWidth: Int = 1600 // b
-        public val permutationSize: Int = permutationWidth / ShaHashEngine.byteSize // b / 8
-        public val laneSize: Int = permutationWidth / 25 / ShaHashEngine.byteSize // w = b/25
+        public val laneSize: Int = permutationWidth / 25 // w = b/25
         public val log2: Int = 6 // log2(b / 25) = log2(w)
         public val capacitySize: Int = messageDigestSize * 2 // d2
-        public val rateSize: Int = permutationSize - capacitySize // r
+        public val rateSize: Int = permutationWidth.inByteSize - capacitySize // r
         public val rounds: Int = 24 // n
 
         //     P_1600(1600, 64, 6, 0xffffffffffffffffuL.toLong(), 200)
