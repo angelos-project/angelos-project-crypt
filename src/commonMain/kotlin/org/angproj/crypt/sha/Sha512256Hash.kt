@@ -30,9 +30,9 @@ internal class Sha512256Hash: AbstractSha512HashEngine() {
 
     public companion object: Hash {
         public override val name: String = "${Hash.TYPE}-512/256"
-        public override val blockSize: Int = 1024 / ShaHashEngine.byteSize
-        public override val wordSize: Int = 64 / ShaHashEngine.byteSize
-        public override val messageDigestSize: Int = 256 / ShaHashEngine.byteSize
+        public override val blockSize: Int = 1024.inByteSize
+        public override val wordSize: Int = 64.inByteSize
+        public override val messageDigestSize: Int = 256.inByteSize
 
         public override fun create(): Sha512256Hash = Sha512256Hash()
     }

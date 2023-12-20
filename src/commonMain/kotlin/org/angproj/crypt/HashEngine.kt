@@ -18,6 +18,8 @@ public interface HashEngine {
 
     public val type: String
 
+    public fun Int.inBytes(): Int = this.floorDiv(8)
+
     public fun update(messagePart: ByteArray)
     public fun final(): ByteArray
 }

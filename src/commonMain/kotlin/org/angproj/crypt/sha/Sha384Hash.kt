@@ -30,9 +30,9 @@ internal class Sha384Hash: AbstractSha512HashEngine() {
 
     public companion object: Hash {
         public override val name: String = "${Hash.TYPE}-384"
-        public override val blockSize: Int = 1024 / ShaHashEngine.byteSize
-        public override val wordSize: Int = 64 / ShaHashEngine.byteSize
-        public override val messageDigestSize: Int = 384 / ShaHashEngine.byteSize
+        public override val blockSize: Int = 1024.inByteSize
+        public override val wordSize: Int = 64.inByteSize
+        public override val messageDigestSize: Int = 384.inByteSize
 
         public override fun create(): Sha384Hash = Sha384Hash()
     }

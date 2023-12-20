@@ -41,9 +41,9 @@ internal class Ripemd320Hash: AbstractRipemdHashEngine() {
 
     public companion object: Hash {
         public override val name: String = "${Hash.TYPE}-320"
-        public override val blockSize: Int = 512 / Byte.SIZE_BITS
-        public override val wordSize: Int = 32 / Byte.SIZE_BITS
-        public override val messageDigestSize: Int = 320 / Byte.SIZE_BITS
+        public override val blockSize: Int = 512.inByteSize
+        public override val wordSize: Int = 32.inByteSize
+        public override val messageDigestSize: Int = 320.inByteSize
 
         public override fun create(): Ripemd320Hash = Ripemd320Hash()
 

@@ -15,5 +15,12 @@
 package org.angproj.crypt
 
 public interface Crypto {
+
+    public val Int.inByteSize: Int
+        get() = this.floorDiv(Byte.SIZE_BITS)
+
+    public val Int.inBitLength: Int
+        get() = this * Byte.SIZE_BITS
+
     public fun create(): Any
 }

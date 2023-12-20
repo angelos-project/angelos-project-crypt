@@ -118,9 +118,9 @@ internal class Sha1Hash: AbstractShaHashEngine(), EndianAware {
 
     public companion object: Hash {
         public override val name: String = "${Hash.TYPE}-1"
-        public override val blockSize: Int = 512 / ShaHashEngine.byteSize
-        public override val wordSize: Int = 32 / ShaHashEngine.byteSize
-        public override val messageDigestSize: Int = 160 / ShaHashEngine.byteSize
+        public override val blockSize: Int = 512.inByteSize
+        public override val wordSize: Int = 32.inByteSize
+        public override val messageDigestSize: Int = 160.inByteSize
 
         public override fun create(): Sha1Hash = Sha1Hash()
 

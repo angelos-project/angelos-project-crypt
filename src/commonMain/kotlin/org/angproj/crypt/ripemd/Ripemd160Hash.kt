@@ -40,16 +40,14 @@ internal class Ripemd160Hash: AbstractRipemdHashEngine() {
         h[0] = h1[3]
     }
 
-    //fun truncate(hash: ByteArray): ByteArray = hash
-
     override val type: String
         get() = "RIPEMD"
 
     public companion object: Hash {
         public override val name: String = "${Hash.TYPE}-160"
-        public override val blockSize: Int = 512 / Byte.SIZE_BITS
-        public override val wordSize: Int = 32 / Byte.SIZE_BITS
-        public override val messageDigestSize: Int = 160 / Byte.SIZE_BITS
+        public override val blockSize: Int = 512.inByteSize
+        public override val wordSize: Int = 32.inByteSize
+        public override val messageDigestSize: Int = 160.inByteSize
 
         public override fun create(): Ripemd160Hash = Ripemd160Hash()
 

@@ -17,6 +17,7 @@ package org.angproj.crypt.ripemd
 import org.angproj.aux.util.EndianAware
 import org.angproj.aux.util.readIntAt
 import org.angproj.aux.util.writeIntAt
+import org.angproj.crypt.Crypto
 import org.angproj.crypt.sha.RipemdHashEngine
 import kotlin.jvm.JvmStatic
 
@@ -74,9 +75,10 @@ public abstract class AbstractRipemdHashEngine: RipemdHashEngine, EndianAware {
         h.indices.forEach { hash.writeIntAt(it * wordSize, h[it].asLittle()) }
         return hash
     }
-    public companion object {
-        public const val blockSize: Int = 512 / RipemdHashEngine.byteSize
-        public const val wordSize: Int = 32 / RipemdHashEngine.byteSize
+    public companion object: Crypto {
+        public val blockSize: Int = 512.inByteSize
+        public val wordSize: Int = 32.inByteSize
+
         @JvmStatic
         protected fun f(j: Int, x: Int, y: Int, z: Int): Int = when(j) {
             in 0..15 -> x xor y xor z
@@ -122,5 +124,9 @@ public abstract class AbstractRipemdHashEngine: RipemdHashEngine, EndianAware {
             15, 5, 8, 11, 14, 14, 6, 14, 6, 9, 12, 9, 12, 5, 15, 8,
             8, 5, 12, 9, 12, 5, 14, 6, 8, 13, 6, 5, 15, 13, 11, 11
         )
+
+        override fun create(): Any {
+            TODO("Not yet implemented")
+        }
     }
 }

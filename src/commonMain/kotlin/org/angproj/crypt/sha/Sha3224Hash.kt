@@ -29,8 +29,7 @@ import org.angproj.crypt.keccak.KeccakPValues
 
 internal class Sha3224Hash(private val b: KeccakPValues = KeccakPValues.P_1600): AbstractKeccakHashEngine() {
 
-    private val xIndices = listOf(3, 4, 0, 1, 2)
-    private val yIndices = xIndices
+    private val stepMapping = listOf(3, 4, 0, 1, 2)
 
     protected var string = ByteArray(permutationSize)
 
@@ -41,9 +40,9 @@ internal class Sha3224Hash(private val b: KeccakPValues = KeccakPValues.P_1600):
     private fun createState(): LongArray = LongArray(5 * 5)
     private fun createPlane(): LongArray = LongArray(5)
 
-    private fun LongArray.getBitOfState(x: Int, y: Int, z: Int): Boolean = this[y + 5 * x] and (1 shl (b.wSize - z - 1)).toLong() != 0L
+    private fun LongArray.getBitOfState(x: Int, y: Int, z: Int): Boolean = this[stepMapping[y] + 5 * stepMapping[x]] and (1 shl (b.wSize - z - 1)).toLong() != 0L
     private fun LongArray.setBitOfState(x: Int, y: Int, z: Int, v: Boolean) {
-        val ids = y + 5 * x
+        val ids = stepMapping[y] + 5 * stepMapping[x]
         val mask = (1 shl (b.wSize - z - 1)).toLong()
         when(v) {
             true -> this[ids] = this[ids] or mask
@@ -51,12 +50,13 @@ internal class Sha3224Hash(private val b: KeccakPValues = KeccakPValues.P_1600):
         }
     }
 
-    private fun LongArray.getBitOfPlane(x: Int, z: Int): Boolean = this[x] and (1 shl (b.wSize - z - 1)).toLong() != 0L
+    private fun LongArray.getBitOfPlane(x: Int, z: Int): Boolean = this[stepMapping[x]] and (1 shl (b.wSize - z - 1)).toLong() != 0L
     private fun LongArray.setBitOfPlane(x: Int, z: Int, v: Boolean)  {
+        val mX = stepMapping[x]
         val mask = (1 shl (b.wSize - z - 1)).toLong()
         when(v) {
-            true -> this[x] = this[x] or mask
-            else -> this[x] = this[x] and mask.inv()
+            true -> this[mX] = this[mX] or mask
+            else -> this[mX] = this[mX] and mask.inv()
         }
     }
 
@@ -121,7 +121,7 @@ internal class Sha3224Hash(private val b: KeccakPValues = KeccakPValues.P_1600):
                     )
                 )
             }
-            val tmp = (2 * idx + 3 * idy).mod(5)
+            val tmp = (2 * idx + 3 * idy).mod(5) // CHECK!!!!
             idx = idy
             idy = tmp
         }
@@ -179,10 +179,11 @@ internal class Sha3224Hash(private val b: KeccakPValues = KeccakPValues.P_1600):
     }
 
     private fun pad10_1(x: Int, m: Int): ByteArray {
-        val j = (-m-2).mod(x)
-        val p = ByteArray(j / 8)
-        p[0].flipOnFlag7()
-        p[p.lastIndex].flipOnFlag0()
+        /*val j = (-m-2).mod(x)
+        val p = ByteArray(j / 8) */
+        val p = ByteArray(x - m)
+        p[0] = p[0].flipOnFlag7() // Normal non domain specific padding
+        p[p.lastIndex] = p[p.lastIndex].flipOnFlag0()
         return p
     }
 
@@ -270,8 +271,9 @@ internal class Sha3224Hash(private val b: KeccakPValues = KeccakPValues.P_1600):
         transform()
 
         var z = byteArrayOf()
-        while(messageDigestSize >= z.size) {
+        while(true) {
             z += string.copyOfRange(0, rateSize)
+            if(messageDigestSize < z.size) break
             transform()
         }
         return z.copyOfRange(0, messageDigestSize)

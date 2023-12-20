@@ -30,9 +30,9 @@ internal class Sha224Hash: AbstractSha256HashEngine() {
 
     public companion object: Hash {
         public override val name: String = "${Hash.TYPE}-224"
-        public override val blockSize: Int = 512 / ShaHashEngine.byteSize
-        public override val wordSize: Int = 32 / ShaHashEngine.byteSize
-        public override val messageDigestSize: Int = 224 / ShaHashEngine.byteSize
+        public override val blockSize: Int = 512.inByteSize
+        public override val wordSize: Int = 32.inByteSize
+        public override val messageDigestSize: Int = 224.inByteSize
 
         public override fun create(): Sha224Hash = Sha224Hash()
     }

@@ -1,6 +1,7 @@
 package org.angproj.crypt.sha
 
 import org.angproj.aux.util.BinHex
+import kotlin.math.absoluteValue
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -8,13 +9,16 @@ class Sha3224HashTest: HashVectorParsing {
 
     @Test
     fun testSha3224Short() {
+        println(Math.floorMod(-11, 5))
         msgIter(SHA3224ShortMsg.testVectors) { msg, md ->
-            println(msg.size)
             val algo = Sha3224Hash()
             algo.update(msg)
             assertEquals(BinHex.encodeToHex(algo.final()), md.lowercase())
         }
     }
+
+    // 0a21c91b3f22026e4adabd476d0f39e3d731c3f3a64b4655200e284f
+    // 6d0f39bd4731c3f3e3d7465520a64bc91b3f0a216e4ada22021d9166
 
     @Test
     fun testSha3224Long() {

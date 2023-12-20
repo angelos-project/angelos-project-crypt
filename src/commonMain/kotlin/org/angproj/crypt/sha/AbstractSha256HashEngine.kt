@@ -17,6 +17,7 @@ package org.angproj.crypt.sha
 import org.angproj.aux.util.EndianAware
 import org.angproj.aux.util.readIntAt
 import org.angproj.aux.util.writeIntAt
+import org.angproj.crypt.Crypto
 
 public abstract class AbstractSha256HashEngine : AbstractShaHashEngine(), EndianAware {
     abstract override val h: IntArray
@@ -101,9 +102,10 @@ public abstract class AbstractSha256HashEngine : AbstractShaHashEngine(), Endian
 
     abstract override fun truncate(hash: ByteArray): ByteArray
 
-    public  companion object {
-        public const val blockSize: Int = 512 / ShaHashEngine.byteSize
-        public const val wordSize: Int = 32 / ShaHashEngine.byteSize
+    public  companion object: Crypto {
+        public val blockSize: Int = 512.inByteSize
+        public val wordSize: Int = 32.inByteSize
+
         private fun ch(x: Int, y: Int, z: Int): Int = x and y or (x.inv() and z)
         private fun maj(x: Int, y: Int, z: Int): Int = x and y or (x and z) or (y and z)
         private fun bigSig0(x: Int): Int = x.rotateRight(2) xor x.rotateRight(
@@ -140,5 +142,9 @@ public abstract class AbstractSha256HashEngine : AbstractShaHashEngine(), Endian
             0x748f82ee, 0x78a5636f, -0x7b3787ec, -0x7338fdf8,
             -0x6f410006, -0x5baf9315, -0x41065c09, -0x398e870e
         )
+
+        override fun create(): Any {
+            TODO("Not yet implemented")
+        }
     }
 }

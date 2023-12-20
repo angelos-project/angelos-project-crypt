@@ -30,9 +30,9 @@ public class Sha256Hash: AbstractSha256HashEngine() {
 
     public companion object: Hash {
         public override val name: String = "${Hash.TYPE}-256"
-        public override val blockSize: Int = 512 / ShaHashEngine.byteSize
-        public override val wordSize: Int = 32 / ShaHashEngine.byteSize
-        public override val messageDigestSize: Int = 256 / ShaHashEngine.byteSize
+        public override val blockSize: Int = 512.inByteSize
+        public override val wordSize: Int = 32.inByteSize
+        public override val messageDigestSize: Int = 256.inByteSize
 
         public override fun create(): Sha256Hash = Sha256Hash()
     }
