@@ -16,7 +16,7 @@ package org.angproj.crypt.ripemd
 
 import org.angproj.crypt.Hash
 
-internal class Ripemd128Hash: AbstractRipemdHashEngine() {
+internal class Ripemd128Hash : AbstractRipemdHashEngine() {
 
     override val h: IntArray = intArrayOf(
         0x67452301, -0x10325477, -0x67452302, 0x10325476
@@ -26,10 +26,10 @@ internal class Ripemd128Hash: AbstractRipemdHashEngine() {
         val h0 = h.copyOf()
         val h1 = h.copyOf()
 
-        round(x, h0, h1 , 0..15, k0[0], k1[0])
-        round(x, h0, h1 , 16..31, k0[1], k1[1])
-        round(x, h0, h1 , 32..47, k0[2], k1[2])
-        round(x, h0, h1 , 48..63, k0[3], k1[3])
+        round(x, h0, h1, 0..15, k0[0], k1[0])
+        round(x, h0, h1, 16..31, k0[1], k1[1])
+        round(x, h0, h1, 32..47, k0[2], k1[2])
+        round(x, h0, h1, 48..63, k0[3], k1[3])
 
         val t = h[1] + h0[2] + h1[3]
         h[1] = h[2] + h0[3] + h1[0]
@@ -41,13 +41,13 @@ internal class Ripemd128Hash: AbstractRipemdHashEngine() {
     override val type: String
         get() = "RIPEMD"
 
-    public companion object: Hash {
-        public override val name: String = "${Hash.TYPE}-128"
-        public override val blockSize: Int = 512.inByteSize
-        public override val wordSize: Int = 32.inByteSize
-        public override val messageDigestSize: Int = 128.inByteSize
+    companion object : Hash {
+        override val name: String = "${Hash.TYPE}-128"
+        override val blockSize: Int = 512.inByteSize
+        override val wordSize: Int = 32.inByteSize
+        override val messageDigestSize: Int = 128.inByteSize
 
-        public override fun create(): Ripemd128Hash = Ripemd128Hash()
+        override fun create(): Ripemd128Hash = Ripemd128Hash()
 
         private fun round(x: IntArray, h0: IntArray, h1: IntArray, range: IntRange, k0: Int, k1: Int) {
             range.forEach { j ->
@@ -57,7 +57,7 @@ internal class Ripemd128Hash: AbstractRipemdHashEngine() {
                 h0[2] = h0[1]
                 h0[1] = t
 
-                t = (h1[0] + f(63-j, h1[1], h1[2], h1[3]) + x[r1[j]] + k1).rotateLeft(s1[j])
+                t = (h1[0] + f(63 - j, h1[1], h1[2], h1[3]) + x[r1[j]] + k1).rotateLeft(s1[j])
                 h1[0] = h1[3]
                 h1[3] = h1[2]
                 h1[2] = h1[1]

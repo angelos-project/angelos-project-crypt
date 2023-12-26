@@ -14,7 +14,7 @@
  */
 package org.angproj.crypt.sha
 
-public abstract class AbstractShaHashEngine: ShaHashEngine {
+public abstract class AbstractShaHashEngine : ShaHashEngine {
     protected abstract val h: Any
 
     protected abstract val w: Any

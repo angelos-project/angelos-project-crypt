@@ -102,7 +102,7 @@ public abstract class AbstractSha256HashEngine : AbstractShaHashEngine(), Endian
 
     abstract override fun truncate(hash: ByteArray): ByteArray
 
-    public  companion object: Crypto {
+    public companion object : Crypto {
         public val blockSize: Int = 512.inByteSize
         public val wordSize: Int = 32.inByteSize
 

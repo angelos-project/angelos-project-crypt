@@ -16,7 +16,7 @@ package org.angproj.crypt.sha
 
 import org.angproj.crypt.Hash
 
-internal class Sha512256Hash: AbstractSha512HashEngine() {
+internal class Sha512256Hash : AbstractSha512HashEngine() {
 
     override val h: LongArray = longArrayOf(
         0x22312194FC2BF72CL, -0x60aaa05c37b39b3eL, 0x2393B86B6F53B151L, -0x69c788e6a6bf1543L,
@@ -28,12 +28,12 @@ internal class Sha512256Hash: AbstractSha512HashEngine() {
     override val type: String
         get() = "SHA512/256"
 
-    public companion object: Hash {
-        public override val name: String = "${Hash.TYPE}-512/256"
-        public override val blockSize: Int = 1024.inByteSize
-        public override val wordSize: Int = 64.inByteSize
-        public override val messageDigestSize: Int = 256.inByteSize
+    companion object : Hash {
+        override val name: String = "${Hash.TYPE}-512/256"
+        override val blockSize: Int = 1024.inByteSize
+        override val wordSize: Int = 64.inByteSize
+        override val messageDigestSize: Int = 256.inByteSize
 
-        public override fun create(): Sha512256Hash = Sha512256Hash()
+        override fun create(): Sha512256Hash = Sha512256Hash()
     }
 }

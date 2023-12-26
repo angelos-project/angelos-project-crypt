@@ -16,7 +16,7 @@ package org.angproj.crypt.ripemd
 
 import org.angproj.crypt.Hash
 
-internal class Ripemd320Hash: AbstractRipemdHashEngine() {
+internal class Ripemd320Hash : AbstractRipemdHashEngine() {
 
     override val h: IntArray = intArrayOf(
         0x67452301, -0x10325477, -0x67452302, 0x10325476, -0x3c2d1e10,
@@ -27,11 +27,11 @@ internal class Ripemd320Hash: AbstractRipemdHashEngine() {
         val h0 = h.copyOfRange(0, 5)
         val h1 = h.copyOfRange(5, 10)
 
-        round(x, h0, h1 , 0..15, k0[0], k1[0])
-        round(x, h0, h1 , 16..31, k0[1], k1[1])
-        round(x, h0, h1 , 32..47, k0[2], k1[2])
-        round(x, h0, h1 , 48..63, k0[3], k1[3])
-        round(x, h0, h1 , 64..79, k0[4], k1[4])
+        round(x, h0, h1, 0..15, k0[0], k1[0])
+        round(x, h0, h1, 16..31, k0[1], k1[1])
+        round(x, h0, h1, 32..47, k0[2], k1[2])
+        round(x, h0, h1, 48..63, k0[3], k1[3])
+        round(x, h0, h1, 64..79, k0[4], k1[4])
 
         (h0 + h1).forEachIndexed { idx, value -> h[idx] += value }
     }
@@ -39,13 +39,13 @@ internal class Ripemd320Hash: AbstractRipemdHashEngine() {
     override val type: String
         get() = "RIPEMD"
 
-    public companion object: Hash {
-        public override val name: String = "${Hash.TYPE}-320"
-        public override val blockSize: Int = 512.inByteSize
-        public override val wordSize: Int = 32.inByteSize
-        public override val messageDigestSize: Int = 320.inByteSize
+    companion object : Hash {
+        override val name: String = "${Hash.TYPE}-320"
+        override val blockSize: Int = 512.inByteSize
+        override val wordSize: Int = 32.inByteSize
+        override val messageDigestSize: Int = 320.inByteSize
 
-        public override fun create(): Ripemd320Hash = Ripemd320Hash()
+        override fun create(): Ripemd320Hash = Ripemd320Hash()
 
         private fun round(x: IntArray, h0: IntArray, h1: IntArray, range: IntRange, k0: Int, k1: Int) {
             var t: Int
@@ -57,40 +57,45 @@ internal class Ripemd320Hash: AbstractRipemdHashEngine() {
                 h0[2] = h0[1]
                 h0[1] = t
 
-                t = (h1[0] + f(79-j, h1[1], h1[2], h1[3]) + x[r1[j]] + k1).rotateLeft(s1[j]) + h1[4]
+                t = (h1[0] + f(79 - j, h1[1], h1[2], h1[3]) + x[r1[j]] + k1).rotateLeft(s1[j]) + h1[4]
                 h1[0] = h1[4]
                 h1[4] = h1[3]
                 h1[3] = h1[2].rotateLeft(10)
                 h1[2] = h1[1]
                 h1[1] = t
             }
-            when(range.last) {
+            when (range.last) {
                 15 -> {
                     t = h0[1]
                     h0[1] = h1[1]
                     h1[1] = t
 
                 }
+
                 31 -> {
                     t = h0[3]
                     h0[3] = h1[3]
                     h1[3] = t
                 }
+
                 47 -> {
                     t = h0[0]
                     h0[0] = h1[0]
                     h1[0] = t
                 }
+
                 63 -> {
                     t = h0[2]
                     h0[2] = h1[2]
                     h1[2] = t
                 }
+
                 79 -> {
                     t = h0[4]
                     h0[4] = h1[4]
                     h1[4] = t
                 }
+
                 else -> Unit
             }
         }

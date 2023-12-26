@@ -16,7 +16,7 @@ package org.angproj.crypt.ripemd
 
 import org.angproj.crypt.Hash
 
-internal class Ripemd160Hash: AbstractRipemdHashEngine() {
+internal class Ripemd160Hash : AbstractRipemdHashEngine() {
 
     override val h: IntArray = intArrayOf(
         0x67452301, -0x10325477, -0x67452302, 0x10325476, -0x3c2d1e10
@@ -43,13 +43,13 @@ internal class Ripemd160Hash: AbstractRipemdHashEngine() {
     override val type: String
         get() = "RIPEMD"
 
-    public companion object: Hash {
-        public override val name: String = "${Hash.TYPE}-160"
-        public override val blockSize: Int = 512.inByteSize
-        public override val wordSize: Int = 32.inByteSize
-        public override val messageDigestSize: Int = 160.inByteSize
+    companion object : Hash {
+        override val name: String = "${Hash.TYPE}-160"
+        override val blockSize: Int = 512.inByteSize
+        override val wordSize: Int = 32.inByteSize
+        override val messageDigestSize: Int = 160.inByteSize
 
-        public override fun create(): Ripemd160Hash = Ripemd160Hash()
+        override fun create(): Ripemd160Hash = Ripemd160Hash()
 
         private fun round(x: IntArray, h0: IntArray, h1: IntArray, range: IntRange, k0: Int, k1: Int) {
             var t: Int

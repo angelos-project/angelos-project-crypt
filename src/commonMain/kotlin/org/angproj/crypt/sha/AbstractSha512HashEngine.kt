@@ -18,7 +18,6 @@ import org.angproj.aux.util.EndianAware
 import org.angproj.aux.util.readLongAt
 import org.angproj.aux.util.writeLongAt
 import org.angproj.crypt.Crypto
-import org.angproj.crypt.Hash
 
 public abstract class AbstractSha512HashEngine : AbstractShaHashEngine(), EndianAware {
     abstract override val h: LongArray
@@ -102,7 +101,7 @@ public abstract class AbstractSha512HashEngine : AbstractShaHashEngine(), Endian
 
     abstract override fun truncate(hash: ByteArray): ByteArray
 
-    internal companion object: Crypto {
+    internal companion object : Crypto {
         val blockSize: Int = 1024.inByteSize
         val wordSize: Int = 64.inByteSize
 

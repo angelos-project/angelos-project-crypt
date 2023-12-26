@@ -19,7 +19,7 @@ import org.angproj.aux.util.readIntAt
 import org.angproj.aux.util.writeIntAt
 import org.angproj.crypt.Hash
 
-internal class Sha1Hash: AbstractShaHashEngine(), EndianAware {
+internal class Sha1Hash : AbstractShaHashEngine(), EndianAware {
 
     override val h: IntArray = intArrayOf(
         0x67452301, -0x10325477, -0x67452302, 0x10325476, -0x3c2d1e10
@@ -35,18 +35,18 @@ internal class Sha1Hash: AbstractShaHashEngine(), EndianAware {
 
     private fun transform() {
         (16 until w.size).forEach { i ->
-            w[i] = (w[i-3] xor w[i-8] xor w[i-14] xor w[i-16]).rotateLeft(1)
+            w[i] = (w[i - 3] xor w[i - 8] xor w[i - 14] xor w[i - 16]).rotateLeft(1)
         }
         val temp = h.copyOf()
         w.indices.forEach { i ->
-            val f = when(i) {
+            val f = when (i) {
                 in 0 until 20 -> (temp[1] and temp[2]) or (temp[1].inv() and temp[3])
                 in 20 until 40 -> temp[1] xor temp[2] xor temp[3]
                 in 40 until 60 -> (temp[1] and temp[2]) or (temp[1] and temp[3]) or (temp[2] and temp[3])
                 in 60 until 80 -> temp[1] xor temp[2] xor temp[3]
                 else -> error("Won't happen!")
             }
-            val x = temp[0].rotateLeft(5) + f + temp[4] + k[i/20] + w[i]
+            val x = temp[0].rotateLeft(5) + f + temp[4] + k[i / 20] + w[i]
             temp[4] = temp[3]
             temp[3] = temp[2]
             temp[2] = temp[1].rotateLeft(30)
@@ -116,13 +116,13 @@ internal class Sha1Hash: AbstractShaHashEngine(), EndianAware {
     override val type: String
         get() = "SHA1"
 
-    public companion object: Hash {
-        public override val name: String = "${Hash.TYPE}-1"
-        public override val blockSize: Int = 512.inByteSize
-        public override val wordSize: Int = 32.inByteSize
-        public override val messageDigestSize: Int = 160.inByteSize
+    companion object : Hash {
+        override val name: String = "${Hash.TYPE}-1"
+        override val blockSize: Int = 512.inByteSize
+        override val wordSize: Int = 32.inByteSize
+        override val messageDigestSize: Int = 160.inByteSize
 
-        public override fun create(): Sha1Hash = Sha1Hash()
+        override fun create(): Sha1Hash = Sha1Hash()
 
         private val k = intArrayOf(0x5A827999, 0x6ED9EBA1, -0x70e44324, -0x359d3e2a)
     }

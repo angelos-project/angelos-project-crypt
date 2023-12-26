@@ -21,7 +21,7 @@ import org.angproj.crypt.Crypto
 import org.angproj.crypt.sha.RipemdHashEngine
 import kotlin.jvm.JvmStatic
 
-public abstract class AbstractRipemdHashEngine: RipemdHashEngine, EndianAware {
+public abstract class AbstractRipemdHashEngine : RipemdHashEngine, EndianAware {
 
     protected abstract val h: IntArray
 
@@ -62,7 +62,7 @@ public abstract class AbstractRipemdHashEngine: RipemdHashEngine, EndianAware {
         val wordCount = buffer.size.floorDiv(wordSize)
         (0 until wordCount).forEach { idx -> x[idx] = buffer.readIntAt(idx * wordSize).asLittle() }
 
-        if(wordCount > 14) {
+        if (wordCount > 14) {
             transform(x)
             x.fill(0)
         }
@@ -75,12 +75,13 @@ public abstract class AbstractRipemdHashEngine: RipemdHashEngine, EndianAware {
         h.indices.forEach { hash.writeIntAt(it * wordSize, h[it].asLittle()) }
         return hash
     }
-    public companion object: Crypto {
+
+    public companion object : Crypto {
         public val blockSize: Int = 512.inByteSize
         public val wordSize: Int = 32.inByteSize
 
         @JvmStatic
-        protected fun f(j: Int, x: Int, y: Int, z: Int): Int = when(j) {
+        protected fun f(j: Int, x: Int, y: Int, z: Int): Int = when (j) {
             in 0..15 -> x xor y xor z
             in 16..31 -> (x and y) or (x.inv() and z)
             in 32..47 -> (x or y.inv()) xor z
