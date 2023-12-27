@@ -14,14 +14,14 @@
  */
 package org.angproj.crypt.sec
 
-import org.angproj.aux.util.BinHex
+import org.angproj.crypt.number.BigInt
 
 public object Sect283Random1 : SecTRandom {
     public override val name: String = "sect283r1"
     public override val strength: Int = 128
     public override val size: Int = 283
 
-    private val _a: ByteArray by lazy { BinHex.decodeToBin(
+    private val _a: BigInt by fromHex {
         "00000000" +
                 "00000000" +
                 "00000000" +
@@ -31,9 +31,9 @@ public object Sect283Random1 : SecTRandom {
                 "00000000" +
                 "00000000" +
                 "00000001"
-    ) }
+    }
 
-    private val _b: ByteArray by lazy { BinHex.decodeToBin(
+    private val _b: BigInt by fromHex {
         "027B680A" +
                 "C8B8596D" +
                 "A5A4AF8A" +
@@ -43,17 +43,17 @@ public object Sect283Random1 : SecTRandom {
                 "A581485A" +
                 "F6263E31" +
                 "3B79A2F5"
-    ) }
+    }
 
-    private val _S: ByteArray by lazy { BinHex.decodeToBin(
+    private val _S: BigInt by fromHex {
         "77E2B073" +
                 "70EB0F83" +
                 "2A6DD5B6" +
                 "2DFC88CD" +
                 "06BB84BE"
-    ) }
+    }
 
-    private val _G: ByteArray by lazy { BinHex.decodeToBin(
+    private val _G: BigInt by fromHex {
         "03" +
                 "05F93925" +
                 "8DB7DD90" +
@@ -64,9 +64,9 @@ public object Sect283Random1 : SecTRandom {
                 "80E2E198" +
                 "F8CDBECD" +
                 "86B12053"
-    ) }
+    }
 
-    private val _Gc: ByteArray by lazy { BinHex.decodeToBin(
+    private val _Gc: BigInt by fromHex {
         "04" +
                 "05F93925" +
                 "8DB7DD90" +
@@ -86,9 +86,9 @@ public object Sect283Random1 : SecTRandom {
                 "826779C8" +
                 "13F0DF45" +
                 "BE8112F4"
-    ) }
+    }
 
-    private val _n: ByteArray by lazy { BinHex.decodeToBin(
+    private val _n: BigInt by fromHex {
         "03FFFFFF" +
                 "FFFFFFFF" +
                 "FFFFFFFF" +
@@ -98,24 +98,24 @@ public object Sect283Random1 : SecTRandom {
                 "938A9016" +
                 "5B042A7C" +
                 "EFADB307"
-    ) }
+    }
 
-    private val _h: ByteArray = BinHex.decodeToBin(
+    private val _h: BigInt by fromHex {
         "02"
-    )
+    }
 
-    override val a: ByteArray
+    override val a: BigInt
         get() = _a.copyOf()
-    override val b: ByteArray
+    override val b: BigInt
         get() = _b.copyOf()
-    override val S: ByteArray
+    override val S: BigInt
         get() = _S.copyOf()
-    override val G: ByteArray
+    override val G: BigInt
         get() = _G.copyOf()
-    override val Gc: ByteArray
+    override val Gc: BigInt
         get() = _Gc.copyOf()
-    override val n: ByteArray
+    override val n: BigInt
         get() = _n.copyOf()
-    override val h: ByteArray
+    override val h: BigInt
         get() = _h.copyOf()
 }

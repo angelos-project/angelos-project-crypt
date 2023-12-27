@@ -14,13 +14,41 @@
  */
 package org.angproj.crypt.kp
 
+import org.angproj.aux.util.EndianAware
+import org.angproj.aux.util.readLongAt
 import kotlin.jvm.JvmStatic
 
 /**
  *  ===== WARNING! EXPERIMENTAL USE ONLY =====
  * */
 public typealias StateBuffer = LongArray
+
+public typealias InitVector = StateBuffer
+
 public typealias Sponge = Pair<StateBuffer, LongArray>
+
+public fun InitVector.setKey(key: StateBuffer) {
+    key.copyInto(this, 0, 0, 8) }
+public fun InitVector.setSalt(salt: StateBuffer) {
+    salt.copyInto(this, 8, 0, 4) }
+public fun InitVector.setEntropy(entropy: Long) { this[13] = entropy }
+public fun InitVector.setDomain(domain: Long) { this[14] = domain }
+public fun InitVector.setOffset(offset: Long) { this[15] = offset }
+public fun InitVector.increase() { this[15] = this[15] + 1 }
+
+public fun InitVector.toSponge(): Sponge {
+    val state = PaulssonSponge.sponge()
+    PaulssonSponge.absorb(this, state)
+    return state
+}
+
+public fun InitVector.toScrambledSponge(): Sponge {
+    val state = PaulssonSponge.sponge()
+    PaulssonSponge.absorb(this, state)
+    PaulssonSponge.scramble(state)
+    return state
+}
+
 public interface PaulssonSponge {
     public companion object {
 
@@ -110,6 +138,26 @@ public interface PaulssonSponge {
         }
 
         @JvmStatic
+        public fun scramble(state: Sponge): Unit = repeat(15) { cycle(state.second, state.first) }
+
+        @JvmStatic
+        public fun absorb(inBuf: StateBuffer, state: Sponge) {
+            for (idx in 0 until 16) state.first[idx] = state.first[idx] xor inBuf[idx]
+            cycle(state.second, state.first)
+        }
+
+        @JvmStatic
+        public fun squeeze(outBuf: StateBuffer, state: Sponge) {
+            state.first.copyInto(outBuf)
+            cycle(state.second, state.first)
+        }
+
+        @JvmStatic
+        public fun squeezeEnd(outBuf: StateBuffer, state: Sponge) {
+            state.first.copyInto(outBuf)
+        }
+
+        @JvmStatic
         public fun scrambleLock(mask: StateBuffer) {
             val side = LongArray(4)
             val history = buffer()
@@ -122,15 +170,16 @@ public interface PaulssonSponge {
         }
 
         @JvmStatic
-        public fun absorb(inBuf: StateBuffer, state: Sponge) {
-            for (idx in 0 until 16) state.first[idx] = state.first[idx] xor inBuf[idx]
-            cycle(state.second, state.first)
-        }
-
-        @JvmStatic
-        public fun squeeze(outBuf: StateBuffer, state: Sponge) {
-            state.first.copyInto(outBuf)
-            cycle(state.second, state.first)
+        public fun saltBytes(salt: ByteArray): StateBuffer {
+            val data = salt + ByteArray(128 - salt.size.mod(128))
+            val state = sponge()
+            val inBuf = buffer()
+            (data.indices step 128).forEach { i ->
+                inBuf.indices.forEach { j -> inBuf[j] = data.readLongAt(i + j * Long.SIZE_BYTES) }
+                absorb(inBuf, state)
+            }
+            scramble(state)
+            return state.first
         }
 
         @JvmStatic
@@ -169,5 +218,8 @@ public interface PaulssonSponge {
 
         @JvmStatic
         public fun buffer(from: StateBuffer): StateBuffer = from.copyOf()
+
+        @JvmStatic
+        public fun initVector(): InitVector = InitVector(stateSize)
     }
 }

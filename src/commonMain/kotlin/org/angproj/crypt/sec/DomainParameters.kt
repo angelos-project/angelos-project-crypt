@@ -14,6 +14,12 @@
  */
 package org.angproj.crypt.sec
 
+import org.angproj.aux.util.BinHex
+import org.angproj.crypt.number.BigInt
+import org.angproj.crypt.number.bigIntOf
+
 public interface DomainParameters {
     public val name: String
+
+    public fun fromHex(block: () -> String): Lazy<BigInt> = lazy { bigIntOf(BinHex.decodeToBin(block())) }
 }

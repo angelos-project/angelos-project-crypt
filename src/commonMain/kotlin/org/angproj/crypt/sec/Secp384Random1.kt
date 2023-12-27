@@ -14,14 +14,14 @@
  */
 package org.angproj.crypt.sec
 
-import org.angproj.aux.util.BinHex
+import org.angproj.crypt.number.BigInt
 
 public object Secp384Random1 : SecPRandom {
     public override val name: String = "secp384r1"
     public override val strength: Int = 192
     public override val size: Int = 384
 
-    private val _p: ByteArray by lazy { BinHex.decodeToBin(
+    private val _p: BigInt by fromHex {
         "FFFFFFFF" +
                 "FFFFFFFF" +
                 "FFFFFFFF" +
@@ -34,9 +34,9 @@ public object Secp384Random1 : SecPRandom {
                 "00000000" +
                 "00000000" +
                 "FFFFFFFF"
-    ) }
+    }
 
-    private val _a: ByteArray by lazy { BinHex.decodeToBin(
+    private val _a: BigInt by fromHex {
         "FFFFFFFF" +
                 "FFFFFFFF" +
                 "FFFFFFFF" +
@@ -49,9 +49,9 @@ public object Secp384Random1 : SecPRandom {
                 "00000000" +
                 "00000000" +
                 "FFFFFFFC"
-    ) }
+    }
 
-    private val _b: ByteArray by lazy { BinHex.decodeToBin(
+    private val _b: BigInt by fromHex {
         "B3312FA7" +
                 "E23EE7E4" +
                 "988E056B" +
@@ -64,17 +64,17 @@ public object Secp384Random1 : SecPRandom {
                 "8A2ED19D" +
                 "2A85C8ED" +
                 "D3EC2AEF"
-    ) }
+    }
 
-    private val _S: ByteArray by lazy { BinHex.decodeToBin(
+    private val _S: BigInt by fromHex {
         "A335926A" +
                 "A319A27A" +
                 "1D00896A" +
                 "6773A482" +
                 "7ACDAC73"
-    ) }
+    }
 
-    private val _G: ByteArray by lazy { BinHex.decodeToBin(
+    private val _G: BigInt by fromHex {
         "03" +
                 "AA87CA22" +
                 "BE8B0537" +
@@ -88,9 +88,9 @@ public object Secp384Random1 : SecPRandom {
                 "BF55296C" +
                 "3A545E38" +
                 "72760AB7"
-    ) }
+    }
 
-    private val _Gc: ByteArray by lazy { BinHex.decodeToBin(
+    private val _Gc: BigInt by fromHex {
         "04" +
                 "AA87CA22" +
                 "BE8B0537" +
@@ -116,9 +116,9 @@ public object Secp384Random1 : SecPRandom {
                 "1D7E819D" +
                 "7A431D7C" +
                 "90EA0E5F"
-    ) }
+    }
 
-    private val _n: ByteArray by lazy { BinHex.decodeToBin(
+    private val _n: BigInt by fromHex {
         "FFFFFFFF" +
                 "FFFFFFFF" +
                 "FFFFFFFF" +
@@ -131,26 +131,26 @@ public object Secp384Random1 : SecPRandom {
                 "48B0A77A" +
                 "ECEC196A" +
                 "CCC52973"
-    ) }
+    }
 
-    private val _h: ByteArray = BinHex.decodeToBin(
+    private val _h: BigInt by fromHex {
         "01"
-    )
+    }
 
-    override val p: ByteArray
+    override val p: BigInt
         get() = _p.copyOf()
-    override val a: ByteArray
+    override val a: BigInt
         get() = _a.copyOf()
-    override val b: ByteArray
+    override val b: BigInt
         get() = _b.copyOf()
-    override val S: ByteArray
+    override val S: BigInt
         get() = _S.copyOf()
-    override val G: ByteArray
+    override val G: BigInt
         get() = _G.copyOf()
-    override val Gc: ByteArray
+    override val Gc: BigInt
         get() = _Gc.copyOf()
-    override val n: ByteArray
+    override val n: BigInt
         get() = _n.copyOf()
-    override val h: ByteArray
+    override val h: BigInt
         get() = _h.copyOf()
 }

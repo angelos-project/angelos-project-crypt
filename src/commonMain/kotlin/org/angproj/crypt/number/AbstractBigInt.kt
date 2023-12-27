@@ -12,7 +12,7 @@
  * Contributors:
  *      Kristoffer Paulsson - initial implementation
  */
-package org.angproj.crypt.dsa
+package org.angproj.crypt.number
 
 import org.angproj.aux.util.readIntAt
 import org.angproj.aux.util.swapEndian

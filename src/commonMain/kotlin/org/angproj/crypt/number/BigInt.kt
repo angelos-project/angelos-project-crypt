@@ -12,7 +12,7 @@
  * Contributors:
  *      Kristoffer Paulsson - initial implementation
  */
-package org.angproj.crypt.dsa
+package org.angproj.crypt.number
 
 /**
  * pow mod log sqrt abs ceil floor lt gt le ge ne odd even

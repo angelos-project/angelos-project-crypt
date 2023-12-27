@@ -14,12 +14,14 @@
  */
 package org.angproj.crypt.sec
 
+import org.angproj.crypt.number.BigInt
+
 public interface SecPKoblitz: SecDomainParameters {
-    public val p: ByteArray
-    public override val a: ByteArray
-    public override val b: ByteArray
-    public override val G: ByteArray
-    public override val Gc: ByteArray
-    public override val n: ByteArray
-    public override val h: ByteArray
+    public val p: BigInt
+    public override val a: BigInt
+    public override val b: BigInt
+    public override val G: BigInt
+    public override val Gc: BigInt
+    public override val n: BigInt
+    public override val h: BigInt
 }

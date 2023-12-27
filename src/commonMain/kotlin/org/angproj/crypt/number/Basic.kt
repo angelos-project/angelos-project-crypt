@@ -14,8 +14,7 @@
  */
 package org.angproj.crypt.number
 
-import org.angproj.crypt.dsa.*
-import org.angproj.crypt.dsa.AbstractBigInt.Companion.getL
+import org.angproj.crypt.number.AbstractBigInt.Companion.getL
 
 public operator fun AbstractBigInt<*>.unaryMinus(): AbstractBigInt<*> = negate()
 

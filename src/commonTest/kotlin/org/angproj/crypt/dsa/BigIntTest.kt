@@ -1,5 +1,6 @@
 package org.angproj.crypt.dsa
 
+import org.angproj.crypt.number.bigIntOf
 import org.angproj.crypt.sec.*
 import kotlin.test.Test
 import kotlin.test.assertContentEquals

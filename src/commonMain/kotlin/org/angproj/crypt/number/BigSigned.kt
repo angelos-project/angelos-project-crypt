@@ -12,7 +12,7 @@
  * Contributors:
  *      Kristoffer Paulsson - initial implementation
  */
-package org.angproj.crypt.dsa
+package org.angproj.crypt.number
 
 public enum class BigSigned(public val state: Int, public val signed: Int) {
     POSITIVE(1, 0),

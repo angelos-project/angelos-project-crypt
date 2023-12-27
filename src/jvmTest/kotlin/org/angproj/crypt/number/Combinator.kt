@@ -3,8 +3,6 @@ package org.angproj.crypt.number
 import org.angproj.aux.util.BinHex
 import org.angproj.aux.util.swapEndian
 import org.angproj.aux.util.writeLongAt
-import org.angproj.crypt.dsa.AbstractBigInt
-import org.angproj.crypt.dsa.bigIntOf
 import java.math.BigInteger
 import kotlin.random.Random
 import kotlin.random.nextInt
@@ -200,7 +198,7 @@ object Combinator {
     fun doMatrixPairTests(
         vector1: List<BigInteger>,
         vector2: List<BigInteger>,
-        action: (xbi: AbstractBigInt<*>, ybi: AbstractBigInt<*>, x: BigInteger, y: BigInteger) -> Pair<Pair<AbstractBigInt<*>,AbstractBigInt<*>>, Array<BigInteger>>
+        action: (xbi: AbstractBigInt<*>, ybi: AbstractBigInt<*>, x: BigInteger, y: BigInteger) -> Pair<Pair<AbstractBigInt<*>, AbstractBigInt<*>>, Array<BigInteger>>
     ) {
         vector1.forEach { x ->
             val xbi = bigIntOf(x.toByteArray())

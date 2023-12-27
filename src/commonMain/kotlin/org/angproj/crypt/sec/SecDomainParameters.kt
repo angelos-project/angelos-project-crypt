@@ -14,14 +14,16 @@
  */
 package org.angproj.crypt.sec
 
+import org.angproj.crypt.number.BigInt
+
 public interface SecDomainParameters: DomainParameters {
     public val strength: Int
     public val size: Int
 
-    public val a: ByteArray
-    public val b: ByteArray
-    public val G: ByteArray
-    public val Gc: ByteArray
-    public val n: ByteArray
-    public val h: ByteArray
+    public val a: BigInt
+    public val b: BigInt
+    public val G: BigInt
+    public val Gc: BigInt
+    public val n: BigInt
+    public val h: BigInt
 }

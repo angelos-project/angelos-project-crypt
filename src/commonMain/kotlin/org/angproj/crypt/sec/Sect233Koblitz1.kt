@@ -14,14 +14,14 @@
  */
 package org.angproj.crypt.sec
 
-import org.angproj.aux.util.BinHex
+import org.angproj.crypt.number.BigInt
 
 public object Sect233Koblitz1 : SecTKoblitz {
     public override val name: String = "sect233k1"
     public override val strength: Int = 112
     public override val size: Int = 233
 
-    private val _a: ByteArray by lazy { BinHex.decodeToBin(
+    private val _a: BigInt by fromHex {
         "0000" +
                 "00000000" +
                 "00000000" +
@@ -30,9 +30,9 @@ public object Sect233Koblitz1 : SecTKoblitz {
                 "00000000" +
                 "00000000" +
                 "00000000"
-    ) }
+    }
 
-    private val _b: ByteArray by lazy { BinHex.decodeToBin(
+    private val _b: BigInt by fromHex {
         "0000" +
                 "00000000" +
                 "00000000" +
@@ -41,9 +41,9 @@ public object Sect233Koblitz1 : SecTKoblitz {
                 "00000000" +
                 "00000000" +
                 "00000001"
-    ) }
+    }
 
-    private val _G: ByteArray by lazy { BinHex.decodeToBin(
+    private val _G: BigInt by fromHex {
         "020172" +
                 "32BA853A" +
                 "7E731AF1" +
@@ -52,9 +52,9 @@ public object Sect233Koblitz1 : SecTKoblitz {
                 "19C26BF5" +
                 "0A4C9D6E" +
                 "EFAD6126"
-    ) }
+    }
 
-    private val _Gc: ByteArray by lazy { BinHex.decodeToBin(
+    private val _Gc: BigInt by fromHex {
         "04" +
                 "017232BA" +
                 "853A7E73" +
@@ -71,9 +71,9 @@ public object Sect233Koblitz1 : SecTKoblitz {
                 "F18AEB9B" +
                 "56E0C110" +
                 "56FAE6A3"
-    ) }
+    }
 
-    private val _n: ByteArray by lazy { BinHex.decodeToBin(
+    private val _n: BigInt by fromHex {
         "80" +
                 "00000000" +
                 "00000000" +
@@ -82,22 +82,22 @@ public object Sect233Koblitz1 : SecTKoblitz {
                 "B915BCD4" +
                 "6EFB1AD5" +
                 "F173ABDF"
-    ) }
+    }
 
-    private val _h: ByteArray = BinHex.decodeToBin(
+    private val _h: BigInt by fromHex {
         "04"
-    )
+    }
 
-    override val a: ByteArray
+    override val a: BigInt
         get() = _a.copyOf()
-    override val b: ByteArray
+    override val b: BigInt
         get() = _b.copyOf()
-    override val G: ByteArray
+    override val G: BigInt
         get() = _G.copyOf()
-    override val Gc: ByteArray
+    override val Gc: BigInt
         get() = _Gc.copyOf()
-    override val n: ByteArray
+    override val n: BigInt
         get() = _n.copyOf()
-    override val h: ByteArray
+    override val h: BigInt
         get() = _h.copyOf()
 }

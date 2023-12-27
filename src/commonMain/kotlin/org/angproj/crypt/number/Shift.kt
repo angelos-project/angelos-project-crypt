@@ -14,9 +14,6 @@
  */
 package org.angproj.crypt.number
 
-import org.angproj.crypt.dsa.AbstractBigInt
-import org.angproj.crypt.dsa.BigInt
-
 public infix fun AbstractBigInt<*>.shl(count: Int): AbstractBigInt<*> = shiftLeft(count)
 
 public fun AbstractBigInt<*>.shiftLeft(n: Int): AbstractBigInt<*> = when {
