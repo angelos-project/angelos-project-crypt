@@ -12,17 +12,17 @@
  * Contributors:
  *      Kristoffer Paulsson - initial implementation
  */
-package org.angproj.crypt.sec
+package org.angproj.crypt.ecc
 
 import org.angproj.crypt.number.BigInt
+import org.angproj.crypt.sec.SecDomainParameters
 
-public interface SecPRandom: SecDomainParameters {
-    public val p: BigInt
-    public override val a: BigInt
-    public override val b: BigInt
-    public val S: BigInt
-    public override val G: BigInt
-    public override val Gc: Pair<BigInt, BigInt>
-    public override val n: BigInt
-    public override val h: BigInt
+public class EccPoint (
+    public val x: BigInt,
+    public val y: BigInt,
+    public val z: BigInt = BigInt.zero
+) {
+    public constructor(coordinates: Pair<BigInt, BigInt>): this(coordinates.first, coordinates.second)
 }
+
+public fun SecDomainParameters.getCoord(): EccPoint = EccPoint(this.Gc)

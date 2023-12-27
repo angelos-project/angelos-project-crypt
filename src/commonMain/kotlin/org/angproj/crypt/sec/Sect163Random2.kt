@@ -56,7 +56,7 @@ public object Sect163Random2 : SecTRandom {
                 "E8343E36"
     }
 
-    private val _Gc: BigInt by fromHex {
+    private val _Gc: Pair<BigInt, BigInt> by xyFromHex {
         "0403F0" +
                 "EBA16286" +
                 "A2D57EA0" +
@@ -91,8 +91,8 @@ public object Sect163Random2 : SecTRandom {
         get() = _S.copyOf()
     override val G: BigInt
         get() = _G.copyOf()
-    override val Gc: BigInt
-        get() = _Gc.copyOf()
+    override val Gc: Pair<BigInt, BigInt>
+        get() = _Gc.copy()
     override val n: BigInt
         get() = _n.copyOf()
     override val h: BigInt

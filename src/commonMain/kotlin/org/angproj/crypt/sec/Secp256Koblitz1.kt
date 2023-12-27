@@ -66,7 +66,7 @@ public object Secp256Koblitz1 : SecPKoblitz {
                 "16F81798"
     }
 
-    private val _Gc: BigInt by fromHex {
+    private val _Gc: Pair<BigInt, BigInt> by xyFromHex {
         "04" +
                 "79BE667E" +
                 "F9DCBBAC" +
@@ -75,7 +75,7 @@ public object Secp256Koblitz1 : SecPKoblitz {
                 "029BFCDB" +
                 "2DCE28D9" +
                 "59F2815B" +
-                "16F81798" +
+                "16F81798" + // End
                 "483ADA77" +
                 "26A3C465" +
                 "5DA4FBFC" +
@@ -83,7 +83,7 @@ public object Secp256Koblitz1 : SecPKoblitz {
                 "FD17B448" +
                 "A6855419" +
                 "9C47D08F" +
-                "FB10D4B8"
+                "FB10D4B8" // End 2
     }
 
     private val _n: BigInt by fromHex {
@@ -109,8 +109,8 @@ public object Secp256Koblitz1 : SecPKoblitz {
         get() = _b.copyOf()
     override val G: BigInt
         get() = _G.copyOf()
-    override val Gc: BigInt
-        get() = _Gc.copyOf()
+    override val Gc: Pair<BigInt, BigInt>
+        get() = _Gc.copy()
     override val n: BigInt
         get() = _n.copyOf()
     override val h: BigInt

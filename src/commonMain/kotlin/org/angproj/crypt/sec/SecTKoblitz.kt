@@ -21,7 +21,7 @@ public interface SecTKoblitz: SecDomainParameters {
     public override val a: BigInt
     public override val b: BigInt
     public override val G: BigInt
-    public override val Gc: BigInt
+    public override val Gc: Pair<BigInt, BigInt>
     public override val n: BigInt
     public override val h: BigInt
 }

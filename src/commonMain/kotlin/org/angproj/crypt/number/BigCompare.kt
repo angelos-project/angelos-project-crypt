@@ -24,6 +24,8 @@ public enum class BigCompare(public val state: Int) {
 
     public fun isEqual(): Boolean = this == EQUAL
 
+    public fun isNotEqual(): Boolean = this != EQUAL
+
     public fun isLesser(): Boolean = this == LESSER
 
     public fun withSigned(sigNum: BigSigned): BigSigned = when (state == sigNum.state) {

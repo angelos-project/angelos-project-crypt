@@ -74,7 +74,7 @@ public object Secp256Random1 : SecPRandom {
                 "D898C296"
     }
 
-    private val _Gc: BigInt by fromHex {
+    private val _Gc: Pair<BigInt, BigInt> by xyFromHex {
         "04" +
                 "6B17D1F2" +
                 "E12C4247" +
@@ -119,8 +119,8 @@ public object Secp256Random1 : SecPRandom {
         get() = _S.copyOf()
     override val G: BigInt
         get() = _G.copyOf()
-    override val Gc: BigInt
-        get() = _Gc.copyOf()
+    override val Gc: Pair<BigInt, BigInt>
+        get() = _Gc.copy()
     override val n: BigInt
         get() = _n.copyOf()
     override val h: BigInt

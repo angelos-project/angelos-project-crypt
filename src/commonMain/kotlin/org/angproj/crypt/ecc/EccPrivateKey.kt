@@ -12,17 +12,19 @@
  * Contributors:
  *      Kristoffer Paulsson - initial implementation
  */
-package org.angproj.crypt.sec
+package org.angproj.crypt.ecc
 
-import org.angproj.crypt.number.BigInt
+import org.angproj.crypt.number.*
+import org.angproj.crypt.sec.SecPKoblitz
 
-public interface SecPRandom: SecDomainParameters {
-    public val p: BigInt
-    public override val a: BigInt
-    public override val b: BigInt
-    public val S: BigInt
-    public override val G: BigInt
-    public override val Gc: Pair<BigInt, BigInt>
-    public override val n: BigInt
-    public override val h: BigInt
+public class EccPrivateKey (
+    public val secret: BigInt,
+    public val curve: SecPKoblitz
+) {
+    public fun publicKey(): EccPublicKey {
+        return EccPublicKey(
+            JacobianMath.multiply(curve.getCoord(), this.secret, curve.n, curve.a, curve.p),
+            curve
+        )
+    }
 }

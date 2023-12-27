@@ -22,7 +22,7 @@ public interface SecTRandom: SecDomainParameters {
     public override val b: BigInt
     public val S: BigInt
     public override val G: BigInt
-    public override val Gc: BigInt
+    public override val Gc: Pair<BigInt, BigInt>
     public override val n: BigInt
     public override val h: BigInt
 }

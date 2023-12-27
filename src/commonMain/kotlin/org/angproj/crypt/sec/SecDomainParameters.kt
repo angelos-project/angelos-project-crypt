@@ -14,7 +14,9 @@
  */
 package org.angproj.crypt.sec
 
+import org.angproj.aux.util.BinHex
 import org.angproj.crypt.number.BigInt
+import org.angproj.crypt.number.bigIntOf
 
 public interface SecDomainParameters: DomainParameters {
     public val strength: Int
@@ -23,7 +25,17 @@ public interface SecDomainParameters: DomainParameters {
     public val a: BigInt
     public val b: BigInt
     public val G: BigInt
-    public val Gc: BigInt
+    public val Gc: Pair<BigInt, BigInt>
     public val n: BigInt
     public val h: BigInt
+
+    public fun xyFromHex(block: () -> String): Lazy<Pair<BigInt, BigInt>> = lazy {
+        val data = BinHex.decodeToBin(block())
+        val size = data.size / 2
+        Pair(
+            bigIntOf(data.sliceArray(1 until (1 + size))),
+            bigIntOf(data.sliceArray((1 + size) until data.size))
+        )
+    }
+
 }
