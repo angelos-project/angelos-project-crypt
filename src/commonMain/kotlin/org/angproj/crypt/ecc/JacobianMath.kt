@@ -35,7 +35,7 @@ public object JacobianMath {
     public fun multiply(
         p: EccPoint, n: BigInt, N: BigInt, A: BigInt, P: BigInt
     ): EccPoint {
-        return eccJacobian(eccMultiply(eccJacobian(p), n, N, A, P), P)
+        return eccFrom(eccMultiply(eccTo(p), n, N, A, P), P)
     }
 
     /**
@@ -48,9 +48,7 @@ public object JacobianMath {
      * @return Point that represents the sum of First and Second Point
      */
     public fun add(p: EccPoint, q: EccPoint, A: BigInt, P: BigInt): EccPoint {
-        return eccJacobian(eccAdd(
-            eccJacobian(p),
-            eccJacobian(q), A, P), P)
+        return eccFrom(eccAdd(eccTo(p), eccTo(q), A, P), P)
     }
 
     /**
@@ -86,7 +84,7 @@ public object JacobianMath {
      * @param p the point you want to transform
      * @return Point in Jacobian coordinates
      */
-    public fun eccJacobian(p: EccPoint): EccPoint {
+    public fun eccTo(p: EccPoint): EccPoint {
         return EccPoint(p.x, p.y, BigInt.one)
     }
 
@@ -97,7 +95,7 @@ public object JacobianMath {
      * @param P Prime number in the module of the equation Y^2 = X^3 + A*X + B (mod P)
      * @return Point in default coordinates
      */
-    public fun eccJacobian(p: EccPoint, P: BigInt): EccPoint {
+    public fun eccFrom(p: EccPoint, P: BigInt): EccPoint {
         val z = inv(p.z, P)
         val x = p.x.multiply(z.pow(2)).mod(P)
         val y = p.y.multiply(z.pow(3)).mod(P)
@@ -175,14 +173,14 @@ public object JacobianMath {
     public fun eccMultiply(
         p: EccPoint, n: BigInt, N: BigInt, A: BigInt, P: BigInt
     ): EccPoint = when {
-        (BigInt.zero.compareTo(p.y).isEqual() || BigInt.zero.compareTo(n).isEqual()) -> EccPoint(
+        BigInt.zero.compareTo(p.y).isEqual() || BigInt.zero.compareTo(n).isEqual() -> EccPoint(
             BigInt.zero, BigInt.zero, BigInt.one)
-        (BigInt.one.compareTo(n).isEqual()) -> p
-        (n.compareTo(BigInt.zero).isLesser() || n.compareTo(N).isGreater()) -> eccMultiply(
+        BigInt.one.compareTo(n).isEqual() -> p
+        n.compareTo(BigInt.zero).isLesser() || n.compareTo(N).isGreater() -> eccMultiply(
             p, n.mod(N).toBigInt(), N, A, P)
-        (n.mod(bigIntOf(2)).compareTo(BigInt.zero).isEqual()) -> eccDouble(
+        n.mod(bigIntOf(2)).compareTo(BigInt.zero).isEqual() -> eccDouble(
             eccMultiply(p, n.divide(bigIntOf(2)).toBigInt(), N, A, P), A, P)
-        (n.mod(bigIntOf(2)).compareTo(BigInt.one).isEqual()) -> eccAdd(
+        n.mod(bigIntOf(2)).compareTo(BigInt.one).isEqual() -> eccAdd(
             eccDouble(eccMultiply(p, n.divide(bigIntOf(2)).toBigInt(), N, A, P), A, P), p, A, P)
         else -> error("Must not happen!")
     }
