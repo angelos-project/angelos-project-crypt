@@ -12,19 +12,15 @@
  * Contributors:
  *      Kristoffer Paulsson - initial implementation
  */
-package org.angproj.crypt
+package org.angproj.crypt.drbg
 
-public interface Crypto {
+public abstract class AbstractDrbgEngine: DeterministicRandomBitGenerator {
+    //public val securityStrength: Any
+    //public val workingState: Any
 
-    public val Int.inByteSize: Int
-        get() = this.floorDiv(Byte.SIZE_BITS)
-
-    public val Int.inBitLength: Int
-        get() = this * Byte.SIZE_BITS
-
-    public fun create(): Any
-
-    public companion object {
-        public val empty: ByteArray = byteArrayOf()
-    }
+    /**
+     * A count of the number of requests produced since the instantiation was seeded or
+     * reseeded.
+     */
+    //public val requestCount: Long = 0
 }

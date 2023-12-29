@@ -17,11 +17,8 @@ package org.angproj.crypt.kp
 /**
  *  ===== WARNING! EXPERIMENTAL USE ONLY =====
  * */
-public abstract class AbstractPaulssonSponge(
-    absorb: Boolean = false,
-    squeeze: Boolean = false
-): PaulssonSponge {
-    protected val inBuf: StateBuffer = if(absorb) PaulssonSponge.buffer() else longArrayOf()
-    protected val outBuf: StateBuffer = if(squeeze) PaulssonSponge.buffer() else longArrayOf()
-    protected val state: Sponge = PaulssonSponge.sponge()
+public abstract class AbstractPaulssonSponge {
+    protected val buffer: LongArray = LongArray(16)
+    protected val initVector: PaulssonSpongeInitVector = PaulssonSpongeInitVector()
+    protected lateinit var sponge: PaulssonSponge
 }

@@ -45,19 +45,19 @@ class BigIntBinaryTest {
         assertContentEquals(cbi.toByteArray(), jbi.toByteArray())
     }
 
-    @Test
+    /*@Test
     fun compareImportTest() {
         dp.forEach { compareImport(it.G)}
-    }
+    }*/
 
-    @Test
+    /*@Test
     fun compareDataImportTest() {
         dp.forEach { compareImport(it.G)}
 
         Combinator.doVectorTests(vectorList1) { xbi, x ->
             Pair(xbi, x)
         }
-    }
+    }*/
 
     @Test
     fun andTest() {

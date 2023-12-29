@@ -16,6 +16,7 @@
  *
  * Original code:
  *      https://github.com/starkbank/ecdsa-java/blob/master/src/main/java/com/starkbank/ellipticcurve/Math.java
+ *      https://github.com/starkbank/ecdsa-java/blob/master/LICENSE
  */
 package org.angproj.crypt.ecc
 

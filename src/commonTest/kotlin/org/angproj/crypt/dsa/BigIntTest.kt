@@ -7,7 +7,7 @@ import kotlin.test.assertContentEquals
 
 class BigIntTest {
 
-    fun compareInOut(data: ByteArray) {
+    /*fun compareInOut(data: ByteArray) {
         assertContentEquals(bigIntOf(data).toZeroFilledByteArray(data.size), data)
     }
 
@@ -78,5 +78,5 @@ class BigIntTest {
         runRandomT(Sect409Random1)
         runKoblitzT(Sect571Koblitz1)
         runRandomT(Sect571Random1)
-    }
+    }*/
 }

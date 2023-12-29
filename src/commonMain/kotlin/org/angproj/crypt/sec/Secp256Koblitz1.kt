@@ -75,7 +75,7 @@ public object Secp256Koblitz1 : SecPKoblitz {
                 "029BFCDB" +
                 "2DCE28D9" +
                 "59F2815B" +
-                "16F81798" + // End
+                "16F81798" + // End of x
                 "483ADA77" +
                 "26A3C465" +
                 "5DA4FBFC" +
@@ -83,7 +83,7 @@ public object Secp256Koblitz1 : SecPKoblitz {
                 "FD17B448" +
                 "A6855419" +
                 "9C47D08F" +
-                "FB10D4B8" // End 2
+                "FB10D4B8" // End of y
     }
 
     private val _n: BigInt by fromHex {

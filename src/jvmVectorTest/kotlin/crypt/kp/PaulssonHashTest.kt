@@ -1,22 +1,24 @@
 package crypt.kp
 
 import org.angproj.aux.util.BinHex
+import org.angproj.aux.util.Nonce
 import org.angproj.crypt.kp.PaulssonHash
+import org.angproj.crypt.kp.PaulssonSponge
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
 class PaulssonHashTest {
 
     val testVectorsDigest = listOf(
-        "d0746597a56a36d65a828deeed71879ae47e173ed36d92b5bec6c41ac467b13fdb8974cdef65ea3ada8d6e2742553bb2d907294ca257d6f6af5b7ddf2782ea4c7b7070ca104fa6a5748c20e92e25a5f0d52dfddb1eaaf7194f7f2abb8580d9caa9ccf68d66b30836af4d60687ed027949e5c1db3a46bc9b7b398a6665cf97329",
-        "f18f617b63126f01e43ca8c05d22de4afa4d07d1520d40b7fe6d43e45fc6530f50016612aa933b4964b15e39234afa211014ba7ce525a5e2ec133d4861a92b2c4737c9c37236ea64bd2e26e143c2f286052f07ffbfceff876bb1661ec00c7536ecaf8601aaa0d135d8fa6a5abc4d9669a7ef67489703bacbc0e3f426524dd85c",
-        "5a594b57311b712c3584c31731798db0dbfbf32559bd786b39dcf0123cf9428a23bae1e4dbd33f6667a7281571aba0976d93d6193f757e1183b9640a098c841b4822c5ae08bd370b65202f34b7722b076de7a1d7e254cccba891f9823395072073e59c661434d5ba16e03f867b13ceb1c8cbf1ae7451243f70be44cd3ea37a81",
-        "0466e0f2146af24b2450d8654498ae94486c75f003cb5d7cb1d4502132eeb743ec8c17df1cbd26f2c6a68c53b8644ddafff19486264ae2674253860c48178255538ae66aa1bdb599ca5b5ae8487ba35d4dd67a8c67a6ac8eed4479b076c58c8a63360cc3875a6a96d5aa2dc57d58c6610982f5768994e75d4c6d4fee6276d3fb",
-        "04e802543a89988eae179c0efdafa82179c14c0c564a233d92afd9f85abc3411ce14e812d53bc84edc830426657ce97f6a92f49d78063f431ad573f294d389a6bf267d4eead5ca1cc104df50d03482f87d63a71fffaa6a48dc23fa7be81e012362abbc2c1cec355c633906078ae2b71063b004d2a5f9baeeb79f4e7255972bfa",
-        "800e6c5821ef8edd62bcae8661314eb6efc04df6738bd5726be0c47b3f7315053fe5daa8023e0cf9bba918705a8030eef1581f851760705d1cb41837a201098b34962403f80cbcecbac85672e7f324209ab32cfe942047def48fff23794bfe4c30891f63a3ddd61d9383e59071e33d50c966c30d94fd4976af668d757e585c5d",
-        "2a6b328040935e178bb172d723b97945928d9c61e37bbd88268f883ce2e66c8e2357958b4e793b4758c9555ee3a7ca95ef1f77a22d4e433da368c849eddeefe3deeae89850db902b6507faa16c5d6c7b0e2003b0fb54d62f47b6f4c013a5fd18c3316ef760ccf28d51c8a0040f231353286951b358f43bca6457ba0259b60d45",
-        "ccc4952b6a05bead139ea9e8234bf2b60cc43a4fce5fcf99ecccabcacf7dc32004b0678265673da8dc2542613d04d06708391f1750c20a0491d45a3d7e4471116a3c612933f1727b176e84b2145a650378c0d6b67c5a51863ef3d478d10ee8c679678f9f99c00aec6a051fc598a193769092d7c44987e26b8e1a0ac330a22d3c",
-        "89956378902832390b3cd7407f486e043f32bbda60b8d543d8ef4366f2231794cca47b231966385678b96bca1682871c710b1bd42d779c499cbdf754ade3bc55a2b276f9f810ccc3d9f8fbe1f3344aae1f7e28d901bd36059c52dce402d264f86775367723ec5322100d912507b1d625a1e92ec282565f9ddf0de20dda521900"
+        "d382ee733f5225c5d4acdf24bd68bc44a0c72c7500a0abc468d4f1f6324b508fc0178df218cd2306b2002fe4b37d448d54db5695408c34d77321e6519cc509a4a219497e4b0852a391153d70930d276a433bc955d65b6d00bd5856c156ae6eddc8d4778eed3fa3408521a0f8c8d0810e33edf2f51d1ae94513e4f73ba3b0c32f",
+        "bdffdaac44d842c9a4c597cba4e9db310c821ed198dba1df18004eed164c86edfabaab3874267f4df66563295b99eb264a15825dbe473a4cb37f56f4a9cf4003214ce4ace60ebffd4798098ff1f500f52e8de8397e9ecea7378dfc5f139ecb284c9504e0c078d85715843fbb3d7cfd30786eb7d5b3c051bcdf4d8b57390041fa",
+        "1d6d8134a359b96bb90db02db83bb899810a1dad8a3e7f5929590161d7dd7857aa90a32875520959060418d48531e9efeb629df5da165b144869095ead20c653df808ef84130762203e1b117f7335c528231a9715f9725fe98b09ff6084e7b3b766a781cbab57ca2f57aeb6f78bf30d399ab9aa608595fed82247bc847d2eb5f",
+        "36580fe18244f0658e3c4ba74774782a5c06de027378d0b681dfc85aae9764623263984c6c96d37ef270ae9c36bf2194e230ac746470cec2d66d8014716e67a4923dcee86d203895a3aa7e15c97da485856c61ef96d6745eac637f130453dda3f7912da9833a4c140c67141c0b51fcea24d8766bb7d694127cf0064ec6c848fc",
+        "f22a4c6398b55ea7d0065d0346c9004a734f8475c0533aafd15400b7ac2901f430054ed027be1d9d2b7b951a229d51ed7b03bf09ff523a7a661b0edabb18b2905e62c28aabe7df198ef6baf0e20b2b34b49eaccafe42af8e21096c67d9fa6ae99469dc58be098dd8ffd4df42da398461ed1f9b25bedc0f2c53b3863ef6e033b0",
+        "3781081099218afbc1851c02b9c9f5114305afb2b87f48a7e6520a5bb6e4719afcb2864a141f7135a6ad5b45b5b240d5672f3a744c6a2f2898bf30979b7955412c31e1a511ba6507bb188a0e20d2ba9cc82a34a308806e12a834b65231ba4a1dafcfc5d6fccca5fac70f39e90a90f89dff5ea6ff1e9d8bc8f84ad0a165ca1172",
+        "ab3761e5428265cebcaf2e4e30c862690dc012999a577d07a95c9a522a2942fb13ef8b31d31cf956646d4110b489acc12c648437ca6760831eca3218bde91faa4b3f4be9b7c30400baa68ab201827935ff9effe53612037571e996cd83c7fe8c7c4966d81f5e4c4f5e4660c0a39fe839b7b56d6a5383575dee2f9781293757f7",
+        "f6966928cfe7de655e47fd1664e140ee9e3f21cb1be721faed8d28eb64654d8403c4669487f80d5c121cd75fb95a8e2be437282dfcaab56d46e3c0eb6a5bc71b2cdd30b6f6874dac5296d9658d9101d024166d4ee66038ea8415922e2fdd47c1c5614c25dd3efc320ed35b69d7aa0748d16bc020073bef1a57fef233181ec121",
+        "91b220b6b30a29459f96ea81367a99bc4fa0870455aa2786194cdbe5fb9553ddbab3c722daa4352f4879ffadd54ca849ed804d671868f55b9bbecbc84a144f5b773e95894afbf01d7dcc8cdfdc30eb40011ee814659d9fc0254b284e5c905f29029c6c41cea8c52e3858c718f2810ebf5694f1a0e1d6a21f80b1e8818dbe516a"
     )
 
     val testVectors = listOf(
@@ -37,6 +39,45 @@ class PaulssonHashTest {
             val algo = PaulssonHash()
             algo.update(msg)
             assertEquals(BinHex.encodeToHex(algo.final()), testVectorsDigest[idx].lowercase())
+        }
+    }
+
+    @Test
+    fun testPaulssonRandom() {
+        val data = LongArray(16)
+        repeat(1000) {
+            Nonce.reseedWithTimestamp()
+            val nonce = Nonce.getFastNonce()
+            val sponge = PaulssonSponge(nonce, preScramble = true)
+            val monteCarlo = Benchmark()
+            repeat(1_125_000) {
+                sponge.squeeze(data)
+                monteCarlo.scatterPoint(data[0], data[1])
+                monteCarlo.scatterPoint(data[2], data[3])
+                monteCarlo.scatterPoint(data[4], data[5])
+                monteCarlo.scatterPoint(data[6], data[7])
+                monteCarlo.scatterPoint(data[8], data[9])
+                monteCarlo.scatterPoint(data[10], data[11])
+                monteCarlo.scatterPoint(data[12], data[13])
+                monteCarlo.scatterPoint(data[14], data[15])
+            }
+            println(monteCarlo.distribution())
+            //println(BinHex.encodeToHex(nonce.toByteArray()))
+        }
+    }
+
+    @Test
+    fun testPaulssonRandomIntrospeection() {
+        repeat(1000) {
+            Nonce.reseedWithTimestamp()
+            val monteCarlo = Benchmark()
+            repeat(5_000_000) {
+                val nonce = Nonce.getFastNonce()
+                monteCarlo.scatterPoint(nonce[0], nonce[1])
+                monteCarlo.scatterPoint(nonce[2], nonce[3])
+            }
+            println(monteCarlo.distribution())
+            //println(BinHex.encodeToHex(nonce.toByteArray()))
         }
     }
 }
