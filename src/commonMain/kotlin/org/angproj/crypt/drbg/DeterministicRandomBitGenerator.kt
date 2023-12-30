@@ -25,10 +25,10 @@ public interface DeterministicRandomBitGenerator {
      * The instantiate function acquires entropy input and may combine it with a nonce and a
      * personalization string to create a seed from which the initial internal state is created.
      * */
-    public fun instantiate(
-        personalization: ByteArray,
-        nonce: ByteArray = byteArrayOf(),
-        entropy: ByteArray = byteArrayOf()
+    public fun initialize(
+        requestedInstantiationSecurityStrength: Int,
+        predictionResistanceFlag: Boolean,
+        personalizationString: ByteArray
     )
 
     /**
@@ -38,23 +38,31 @@ public interface DeterministicRandomBitGenerator {
      *
      * A DRBG mechanism includes an optional reseed function.
      * */
-    public fun reseed(entropy: ByteArray, additional: ByteArray)
+    public fun reseed(
+        predictionResistanceRequest: Boolean,
+        additionalInput: ByteArray
+    )
 
     /**
      * The generate function generates pseudorandom bits upon request, using the current
      * internal state and possibly additional input; a new internal state for the next request is also
      * generated.
      * */
-    public fun generate(additional: ByteArray): ByteArray
+    public fun generate(
+        requestedNumberOfBits: Int,
+        requestedSecurityStrength: Int,
+        predictionResistanceRequest: Boolean,
+        additionalInput: ByteArray
+    ): ByteArray
 
     /**
      * The uninstantiate function zeroizes (i.e., erases) the internal state.
      */
-    public fun uninstantiate()
+    public fun finalize(): Int
 
     /**
      * The health test function determines that the DRBG mechanism continues to function
      * correctly.
      * */
-    public fun healthTest()
+    public fun checkHealth()
 }
