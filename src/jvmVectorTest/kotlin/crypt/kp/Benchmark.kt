@@ -11,8 +11,8 @@ class Benchmark {
         get() = r + b
 
     fun scatterPoint(x: Long, y: Long) {
-        val a = x.absoluteValue / longMax
-        val b = y.absoluteValue / longMax
+        val a = x.toULong().toDouble() / longMax.toDouble()
+        val b = y.toULong().toDouble() / longMax.toDouble()
         val c = sqrt(a * a + b * b)
         when (c < 1) {
             true -> this.r++
@@ -26,6 +26,6 @@ class Benchmark {
     }
 
     companion object {
-        const val longMax = Long.MAX_VALUE.toDouble()
+        const val longMax = ULong.MAX_VALUE
     }
 }

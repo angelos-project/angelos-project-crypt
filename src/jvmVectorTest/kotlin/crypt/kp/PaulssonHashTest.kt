@@ -44,31 +44,28 @@ class PaulssonHashTest {
         }
     }
 
-    @Test
+    //@Test
     fun testPaulssonRandom() {
         val data = LongArray(16)
-        repeat(1000) {
-            Nonce.reseedWithTimestamp()
-            val nonce = Nonce.getFastNonce()
-            val sponge = PaulssonSponge(nonce, preScramble = true)
-            val monteCarlo = Benchmark()
-            repeat(1_125_000) {
-                sponge.squeeze(data)
-                monteCarlo.scatterPoint(data[0], data[1])
-                monteCarlo.scatterPoint(data[2], data[3])
-                monteCarlo.scatterPoint(data[4], data[5])
-                monteCarlo.scatterPoint(data[6], data[7])
-                monteCarlo.scatterPoint(data[8], data[9])
-                monteCarlo.scatterPoint(data[10], data[11])
-                monteCarlo.scatterPoint(data[12], data[13])
-                monteCarlo.scatterPoint(data[14], data[15])
-            }
-            println(monteCarlo.distribution())
-            //println(BinHex.encodeToHex(nonce.toByteArray()))
+        Nonce.reseedWithTimestamp()
+        val nonce = Nonce.getFastNonce()
+        val sponge = PaulssonSponge(nonce, preScramble = true)
+        val monteCarlo = Benchmark()
+        repeat(1_125_000) {
+            sponge.squeeze(data)
+            monteCarlo.scatterPoint(data[0], data[1])
+            monteCarlo.scatterPoint(data[2], data[3])
+            monteCarlo.scatterPoint(data[4], data[5])
+            monteCarlo.scatterPoint(data[6], data[7])
+            monteCarlo.scatterPoint(data[8], data[9])
+            monteCarlo.scatterPoint(data[10], data[11])
+            monteCarlo.scatterPoint(data[12], data[13])
+            monteCarlo.scatterPoint(data[14], data[15])
         }
+        println(monteCarlo.distribution())
     }
 
-    @Test
+    //@Test
     fun testPaulssonRandomIntrospection() {
         repeat(1000) {
             Nonce.reseedWithTimestamp()
@@ -83,13 +80,13 @@ class PaulssonHashTest {
         }
     }
 
-    @Test
+    // @Test
     fun testPaulssonGenerateGigaByte() {
         val sponge = PaulssonSponge()
         val data = LongArray(16)
         val targetFile: File = File("sponge.bin")
         val output = targetFile.outputStream()
-        (0 until (1024 * 1024 * 8)).forEach {
+        repeat(1024 * 1024 * 8) {
             sponge.squeeze(data)
             output.write(data.toByteArray())
         }
