@@ -2,8 +2,10 @@ package crypt.kp
 
 import org.angproj.aux.util.BinHex
 import org.angproj.aux.util.Nonce
+import org.angproj.aux.util.toByteArray
 import org.angproj.crypt.kp.PaulssonHash
 import org.angproj.crypt.kp.PaulssonSponge
+import java.io.File
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -67,7 +69,7 @@ class PaulssonHashTest {
     }
 
     @Test
-    fun testPaulssonRandomIntrospeection() {
+    fun testPaulssonRandomIntrospection() {
         repeat(1000) {
             Nonce.reseedWithTimestamp()
             val monteCarlo = Benchmark()
@@ -79,5 +81,18 @@ class PaulssonHashTest {
             println(monteCarlo.distribution())
             //println(BinHex.encodeToHex(nonce.toByteArray()))
         }
+    }
+
+    @Test
+    fun testPaulssonGenerateGigaByte() {
+        val sponge = PaulssonSponge()
+        val data = LongArray(16)
+        val targetFile: File = File("sponge.bin")
+        val output = targetFile.outputStream()
+        (0 until (1024 * 1024 * 8)).forEach {
+            sponge.squeeze(data)
+            output.write(data.toByteArray())
+        }
+        output.close()
     }
 }

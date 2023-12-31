@@ -22,7 +22,6 @@ import kotlin.math.min
  * */
 public class PaulssonSponge(iv: LongArray = LongArray(16), preScramble: Boolean = false) {
 
-    private var counter: Long = 0
     private var side = LongArray(4)
     private var state = iv.copyOf(16)
 
@@ -35,10 +34,9 @@ public class PaulssonSponge(iv: LongArray = LongArray(16), preScramble: Boolean 
         xorColFromStateRows(side, state)
         shuffleState(state)
         rotateStateLeft(state)
-        oddNegateEvenInvertOnState(state, counter)
+        oddNegateEvenInvertOnState(state)
         nonLinearFeedbackInState(state)
         xorMergeRowToStateCols(side, state)
-        counter++
     }
 
     public fun scramble(): Unit = repeat(15) { cycle() }
@@ -91,10 +89,10 @@ public class PaulssonSponge(iv: LongArray = LongArray(16), preScramble: Boolean 
             }
         }
 
-        private fun oddNegateEvenInvertOnState(state: LongArray, counter: Long) {
+        private fun oddNegateEvenInvertOnState(state: LongArray) {
             (state.indices step 2).forEach { idx ->
-                state[idx] = (state[idx] + counter).inv()
-                state[idx + 1] = -(state[idx + 1] - counter)
+                state[idx] = (state[idx]).inv()
+                state[idx + 1] = -(state[idx + 1])
             }
         }
 
