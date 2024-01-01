@@ -44,25 +44,28 @@ class PaulssonHashTest {
         }
     }
 
-    //@Test
+    @Test
     fun testPaulssonRandom() {
         val data = LongArray(16)
-        Nonce.reseedWithTimestamp()
-        val nonce = Nonce.getFastNonce()
-        val sponge = PaulssonSponge(nonce, preScramble = true)
-        val monteCarlo = Benchmark()
-        repeat(1_125_000) {
-            sponge.squeeze(data)
-            monteCarlo.scatterPoint(data[0], data[1])
-            monteCarlo.scatterPoint(data[2], data[3])
-            monteCarlo.scatterPoint(data[4], data[5])
-            monteCarlo.scatterPoint(data[6], data[7])
-            monteCarlo.scatterPoint(data[8], data[9])
-            monteCarlo.scatterPoint(data[10], data[11])
-            monteCarlo.scatterPoint(data[12], data[13])
-            monteCarlo.scatterPoint(data[14], data[15])
+        repeat(1000) {
+            Nonce.reseedWithTimestamp()
+            val nonce = Nonce.getFastNonce()
+            //println(BinHex.encodeToHex(nonce.toByteArray()))
+            val sponge = PaulssonSponge(nonce, preScramble = true)
+            val monteCarlo = Benchmark()
+            repeat(1_125_000) {
+                sponge.squeeze(data)
+                monteCarlo.scatterPoint(data[0], data[1])
+                monteCarlo.scatterPoint(data[2], data[3])
+                monteCarlo.scatterPoint(data[4], data[5])
+                monteCarlo.scatterPoint(data[6], data[7])
+                monteCarlo.scatterPoint(data[8], data[9])
+                monteCarlo.scatterPoint(data[10], data[11])
+                monteCarlo.scatterPoint(data[12], data[13])
+                monteCarlo.scatterPoint(data[14], data[15])
+            }
+            println(monteCarlo.distribution())
         }
-        println(monteCarlo.distribution())
     }
 
     //@Test
@@ -80,15 +83,23 @@ class PaulssonHashTest {
         }
     }
 
-    // @Test
+    @Test
     fun testPaulssonGenerateGigaByte() {
-        val sponge = PaulssonSponge()
+        Nonce.reseedWithTimestamp()
+        val sponge = PaulssonSponge(Nonce.getFastNonce(), preScramble = true)
         val data = LongArray(16)
-        val targetFile: File = File("sponge.bin")
-        val output = targetFile.outputStream()
-        repeat(1024 * 1024 * 8) {
+        generateGibaByte("sponge.bin", 4) {
             sponge.squeeze(data)
-            output.write(data.toByteArray())
+            data.toByteArray()
+        }
+    }
+
+    fun generateGibaByte(name: String, gigs: Long, block: () -> ByteArray) {
+        val targetFile = File(name)
+        val output = targetFile.outputStream()
+        val times = gigs * 1024L * 1024L * 1024L / block().size.toLong() + 1
+        repeat(times.toInt()) {
+            output.write(block())
         }
         output.close()
     }
