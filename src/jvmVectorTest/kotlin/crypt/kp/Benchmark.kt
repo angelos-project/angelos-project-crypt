@@ -1,6 +1,5 @@
 package crypt.kp
 
-import kotlin.math.absoluteValue
 import kotlin.math.sqrt
 
 class Benchmark {
@@ -10,9 +9,9 @@ class Benchmark {
     val n: Long
         get() = r + b
 
-    fun scatterPoint(x: Long, y: Long) {
-        val a = x.toULong().toDouble() / longMax.toDouble()
-        val b = y.toULong().toDouble() / longMax.toDouble()
+    fun scatterPoint(x: ULong, y: ULong) {
+        val a = x.toDouble() / longMax
+        val b = y.toDouble() / longMax
         val c = sqrt(a * a + b * b)
         when (c < 1) {
             true -> this.r++
@@ -26,6 +25,6 @@ class Benchmark {
     }
 
     companion object {
-        const val longMax = ULong.MAX_VALUE
+        val longMax: Double = ULong.MAX_VALUE.toDouble()
     }
 }

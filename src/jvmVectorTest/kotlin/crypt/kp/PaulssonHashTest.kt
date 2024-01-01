@@ -2,6 +2,7 @@ package crypt.kp
 
 import org.angproj.aux.util.BinHex
 import org.angproj.aux.util.Nonce
+import org.angproj.aux.util.readULongAt
 import org.angproj.aux.util.toByteArray
 import org.angproj.crypt.kp.PaulssonHash
 import org.angproj.crypt.kp.PaulssonSponge
@@ -55,21 +56,17 @@ class PaulssonHashTest {
             val monteCarlo = Benchmark()
             repeat(1_125_000) {
                 sponge.squeeze(data)
-                monteCarlo.scatterPoint(data[0], data[1])
-                monteCarlo.scatterPoint(data[2], data[3])
-                monteCarlo.scatterPoint(data[4], data[5])
-                monteCarlo.scatterPoint(data[6], data[7])
-                monteCarlo.scatterPoint(data[8], data[9])
-                monteCarlo.scatterPoint(data[10], data[11])
-                monteCarlo.scatterPoint(data[12], data[13])
-                monteCarlo.scatterPoint(data[14], data[15])
+                val bytes = data.toByteArray()
+                (bytes.indices step ULong.SIZE_BYTES * 2).forEach {
+                    monteCarlo.scatterPoint(bytes.readULongAt(it), bytes.readULongAt(it + ULong.SIZE_BYTES))
+                }
             }
             println(monteCarlo.distribution())
         }
     }
 
     //@Test
-    fun testPaulssonRandomIntrospection() {
+    /*fun testPaulssonRandomIntrospection() {
         repeat(1000) {
             Nonce.reseedWithTimestamp()
             val monteCarlo = Benchmark()
@@ -81,7 +78,7 @@ class PaulssonHashTest {
             println(monteCarlo.distribution())
             //println(BinHex.encodeToHex(nonce.toByteArray()))
         }
-    }
+    }*/
 
     @Test
     fun testPaulssonGenerateGigaByte() {

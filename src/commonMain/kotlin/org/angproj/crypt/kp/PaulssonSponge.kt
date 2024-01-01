@@ -37,7 +37,7 @@ public class PaulssonSponge(iv: LongArray = LongArray(16), preScramble: Boolean 
         xorColFromStateRows(side, state)
         shuffleState(state)
         rotateStateLeft(state)
-        oddNegateEvenInvertOnState(state)
+        oddNegateEvenInvertOnState(state, counter)
         nonLinearFeedbackInState(state, nlf, counter)
         xorMergeRowToStateCols(side, state)
         counter++
@@ -95,19 +95,23 @@ public class PaulssonSponge(iv: LongArray = LongArray(16), preScramble: Boolean 
             }
         }
 
-        private fun oddNegateEvenInvertOnState(state: LongArray) {
-            (state.indices step 2).forEach { idx ->
-                state[idx] = state[idx].inv()
-                state[idx + 1] = -state[idx + 1]
+        private fun oddNegateEvenInvertOnState(state: LongArray, counter: Long) {
+            state.indices.forEach { idx ->
+                when(idx % 2) {
+                    0 -> state[idx] = (state[idx] - counter).inv()
+                    1 -> state[idx] = -(state[idx] + counter)
+                }
             }
         }
 
         private fun nonLinearFeedbackInState(state: LongArray, nlf: LongArray, counter: Long) {
-            nlf[counter.floorMod(nlf.size.toLong()).toInt()] = (state[1] and state[2] and state[3] and state[4] and state[5]) xor
+            val idn = counter.floorMod(4).toInt()
+            nlf[idn] = nlf[idn] xor (
+                    state[1] and state[2] and state[3] and state[4] and state[5]) xor
                     ((state[6] and state[7] and state[8] and state[9]) * 2) xor
                     ((state[10] and state[11] and state[12]) * 4) xor
                     ((state[13] and state[14]) * 8) xor
-                    (state[15] * 16)
+                    (state[15] * 16) xor counter
         }
 
         private fun xorColFromStateRows(side: LongArray, state: LongArray): Unit = side.indices.forEach { idx ->
