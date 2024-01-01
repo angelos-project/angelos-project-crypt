@@ -24,12 +24,12 @@ import kotlin.math.min
 public class PaulssonSponge(iv: LongArray = LongArray(16), preScramble: Boolean = false) {
 
     private var side = LongArray(4)
-    private var nlf = LongArray(4)
-    private var state = iv.copyOf(16)
+    private var mask = LongArray(4)
+    private var state = LongArray(16)
     private var counter: Long = 0
 
     init {
-        absorb(iv)
+        if(iv.sum() != 0L) absorb(iv)
         if(preScramble) scrambleFull()
     }
 
@@ -37,8 +37,8 @@ public class PaulssonSponge(iv: LongArray = LongArray(16), preScramble: Boolean 
         xorColFromStateRows(side, state)
         shuffleState(state)
         rotateStateLeft(state)
-        oddNegateEvenInvertOnState(state, 0)
-        nonLinearFeedbackInState(state, nlf, counter)
+        oddNegateEvenInvertOnState(state)
+        nonLinearFeedbackFromAll(state, mask, counter)
         xorMergeRowToStateCols(side, state)
         counter++
     }
@@ -59,19 +59,19 @@ public class PaulssonSponge(iv: LongArray = LongArray(16), preScramble: Boolean 
 
     public fun squeeze(outBuf: LongArray) {
         state.copyInto(outBuf)
-        xorMergeNlfToStateRows(nlf, outBuf)
+        xorMergeMaskToOutput(mask, outBuf)
         cycle()
     }
 
     public fun squeezeOne(): Long {
-        val outValue = state[0] xor nlf[0]
+        val outValue = state[0] xor mask[0]
         cycle()
         return outValue
     }
 
     public fun squeezeEnd(outBuf: LongArray) {
         state.copyInto(outBuf)
-        xorMergeNlfToStateRows(nlf, outBuf)
+        xorMergeMaskToOutput(mask, outBuf)
     }
 
     private companion object {
@@ -95,18 +95,18 @@ public class PaulssonSponge(iv: LongArray = LongArray(16), preScramble: Boolean 
             }
         }
 
-        private fun oddNegateEvenInvertOnState(state: LongArray, counter: Long) {
+        private fun oddNegateEvenInvertOnState(state: LongArray) {
             state.indices.forEach { idx ->
                 when(idx % 2) {
-                    0 -> state[idx] = (state[idx] - counter).inv()
-                    1 -> state[idx] = -(state[idx] + counter)
+                    0 -> state[idx] = state[idx].inv()
+                    1 -> state[idx] = -state[idx]
                 }
             }
         }
 
-        private fun nonLinearFeedbackInState(state: LongArray, nlf: LongArray, counter: Long) {
+        private fun nonLinearFeedbackFromAll(state: LongArray, mask: LongArray, counter: Long) {
             val idn = counter.floorMod(4).toInt()
-            nlf[idn] = (nlf[0] and nlf[1] and nlf[2] and nlf[3] and counter and state[0]) xor
+            mask[idn] = (mask[0] and mask[1] and mask[2] and mask[3] and counter and state[0]) xor
                     ((state[1] and state[2] and state[3] and state[4] and state[5]) * 2) xor
                     ((state[6] and state[7] and state[8] and state[9]) * 4) xor
                     ((state[10] and state[11] and state[12]) * 8) xor
@@ -126,12 +126,12 @@ public class PaulssonSponge(iv: LongArray = LongArray(16), preScramble: Boolean 
             state[idy + 12] = side[idy] xor state[idy + 12]
         }
 
-        private fun xorMergeNlfToStateRows(nlf: LongArray, state: LongArray): Unit = nlf.indices.forEach { idx ->
+        private fun xorMergeMaskToOutput(mask: LongArray, state: LongArray): Unit = mask.indices.forEach { idx ->
             val idy = idx * 4
-            state[idy] = nlf[idx] xor state[idy]
-            state[idy + 1] = nlf[idx] xor state[idy + 1]
-            state[idy + 2] = nlf[idx] xor state[idy + 2]
-            state[idy + 3] = nlf[idx] xor state[idy + 3]
+            state[idy] = mask[idx] xor state[idy]
+            state[idy + 1] = mask[idx] xor state[idy + 1]
+            state[idy + 2] = mask[idx] xor state[idy + 2]
+            state[idy + 3] = mask[idx] xor state[idy + 3]
         }
     }
 }
