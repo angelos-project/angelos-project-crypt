@@ -1,9 +1,6 @@
 package crypt.kp
 
-import org.angproj.aux.util.BinHex
-import org.angproj.aux.util.Nonce
-import org.angproj.aux.util.readULongAt
-import org.angproj.aux.util.toByteArray
+import org.angproj.aux.util.*
 import org.angproj.crypt.kp.PaulssonHash
 import org.angproj.crypt.kp.PaulssonSponge
 import java.io.File
@@ -49,16 +46,13 @@ class PaulssonHashTest {
     fun testPaulssonRandom() {
         val data = LongArray(16)
         repeat(1000) {
-            Nonce.reseedWithTimestamp()
-            val nonce = Nonce.getFastNonce()
-            //println(BinHex.encodeToHex(nonce.toByteArray()))
-            val sponge = PaulssonSponge(nonce, preScramble = true)
+            val sponge = PaulssonSponge(Nonce.someEntropy(), preScramble = true)
             val monteCarlo = Benchmark()
             repeat(1_125_000) {
                 sponge.squeeze(data)
                 val bytes = data.toByteArray()
                 (bytes.indices step ULong.SIZE_BYTES * 2).forEach {
-                    monteCarlo.scatterPoint(bytes.readULongAt(it), bytes.readULongAt(it + ULong.SIZE_BYTES))
+                    monteCarlo.scatterPoint(bytes.readLongAt(it), bytes.readLongAt(it + ULong.SIZE_BYTES))
                 }
             }
             println(monteCarlo.distribution())
@@ -82,12 +76,20 @@ class PaulssonHashTest {
 
     @Test
     fun testPaulssonGenerateGigaByte() {
-        Nonce.reseedWithTimestamp()
-        val sponge = PaulssonSponge(Nonce.getFastNonce(), preScramble = true)
+        val sponge = PaulssonSponge(Nonce.someEntropy(), preScramble = true)
         val data = LongArray(16)
         generateGibaByte("sponge.bin", 4) {
             sponge.squeeze(data)
             data.toByteArray()
+        }
+    }
+
+    @Test
+    fun testNonceGenerateGigaByte() {
+        val data = ByteArray(4096)
+        generateGibaByte("nonce.bin", 4) {
+            Nonce.someEntropy(data)
+            data
         }
     }
 
@@ -99,5 +101,19 @@ class PaulssonHashTest {
             output.write(block())
         }
         output.close()
+    }
+
+    @Test
+    fun testPaulssonRandomIntrospection() {
+        repeat(1000) {
+            val monteCarlo = Benchmark()
+            repeat(5_000_000) {
+                val nonce = Nonce.someEntropy()
+                monteCarlo.scatterPoint(nonce[0], nonce[1])
+                monteCarlo.scatterPoint(nonce[2], nonce[3])
+            }
+            println(monteCarlo.distribution())
+            //println(BinHex.encodeToHex(nonce.toByteArray()))
+        }
     }
 }

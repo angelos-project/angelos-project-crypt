@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2023 by Kristoffer Paulsson <kristoffer.paulsson@talenten.se>.
+ * Copyright (c) 2023-2024 by Kristoffer Paulsson <kristoffer.paulsson@talenten.se>.
  *
  * This software is available under the terms of the MIT license. Parts are licensed
  * under different terms if stated. The legal terms are attached to the LICENSE file
@@ -15,7 +15,7 @@
 package org.angproj.crypt.kp
 
 import org.angproj.aux.util.readLongAt
-import org.angproj.aux.util.floorMod
+import kotlin.math.max
 import kotlin.math.min
 
 /**
@@ -26,7 +26,7 @@ public class PaulssonSponge(iv: LongArray = LongArray(16), preScramble: Boolean 
     private var side = LongArray(4)
     private var mask = LongArray(4)
     private var state = LongArray(16)
-    private var counter: Long = 0
+    private var counter: Long = 1
 
     init {
         if(iv.sum() != 0L) absorb(iv)
@@ -40,7 +40,7 @@ public class PaulssonSponge(iv: LongArray = LongArray(16), preScramble: Boolean 
         oddNegateEvenInvertOnState(state)
         nonLinearFeedbackFromAll(state, mask, counter)
         xorMergeRowToStateCols(side, state)
-        counter++
+        counter = max(1, counter + 1)
     }
 
     public fun scramble(): Unit = repeat(15) { cycle() }
@@ -105,7 +105,7 @@ public class PaulssonSponge(iv: LongArray = LongArray(16), preScramble: Boolean 
         }
 
         private fun nonLinearFeedbackFromAll(state: LongArray, mask: LongArray, counter: Long) {
-            val idn = counter.floorMod(4).toInt()
+            val idn = counter.mod(4)
             mask[idn] = (mask[0] and mask[1] and mask[2] and mask[3] and counter and state[0]) xor
                     ((state[1] and state[2] and state[3] and state[4] and state[5]) * 2) xor
                     ((state[6] and state[7] and state[8] and state[9]) * 4) xor
