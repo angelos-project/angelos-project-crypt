@@ -21,6 +21,10 @@ package org.angproj.crypt.drbg
  */
 public interface DeterministicRandomBitGenerator {
 
+    public val highestSupportedSecurityStrength: Int
+    public val maxPersonalizationStringLength: Int
+    public val securityStrength: Int
+
     /**
      * The instantiate function acquires entropy input and may combine it with a nonce and a
      * personalization string to create a seed from which the initial internal state is created.
@@ -29,7 +33,7 @@ public interface DeterministicRandomBitGenerator {
         requestedInstantiationSecurityStrength: Int,
         predictionResistanceFlag: Boolean,
         personalizationString: ByteArray
-    )
+    ): Pair<Int, Int>
 
     /**
      * The reseed function acquires new entropy input and combines it with the current internal
@@ -65,4 +69,10 @@ public interface DeterministicRandomBitGenerator {
      * correctly.
      * */
     public fun checkHealth()
+
+    public companion object {
+        public const val SUCCESS: Int = 0
+        public const val ERROR_FLAG: Int = 1
+        public const val CATASTROPHIC_ERROR_FLAG: Int = 2
+    }
 }

@@ -14,11 +14,12 @@
  */
 package org.angproj.crypt.drbg
 
-import org.angproj.crypt.hmac.AbstractHmacEngine
+import org.angproj.crypt.Hash
+import org.angproj.crypt.Hmac
 
 // https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-90Ar1.pdf
 
-public class HmacDrbg: AbstractDrbgEngine() {
+public abstract class HmacDrbg(private val algo: Hash): AbstractDrbgEngine<Hash>() {
 
 }
 
