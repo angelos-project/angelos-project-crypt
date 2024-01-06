@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2023 by Kristoffer Paulsson <kristoffer.paulsson@talenten.se>.
+ * Copyright (c) 2023-2024 by Kristoffer Paulsson <kristoffer.paulsson@talenten.se>.
  *
  * This software is available under the terms of the MIT license. Parts are licensed
  * under different terms if stated. The legal terms are attached to the LICENSE file
@@ -14,13 +14,35 @@
  */
 package org.angproj.crypt.drbg
 
-import org.angproj.crypt.Hash
-import org.angproj.crypt.Hmac
-
 // https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-90Ar1.pdf
 
-public abstract class HmacDrbg(private val algo: Hash): AbstractDrbgEngine<Hash>() {
+public interface HmacDrbg {
 
+    public val securityStrength: Int
+
+    public val predictionResistanceFlag: Boolean
+
+    public val maxNumberOfBitsPerRequest: Int
+
+    public val maxAdditionalInputLength: Int
+
+    public val reseedRequiredFlag: Boolean
+
+    public val reseedInterval: Int
+
+    public fun reseed(
+        predictionResistanceRequest: Boolean,
+        additionalInput: ByteArray
+    )
+
+    public fun generate(
+        requestedNumberOfBits: Int,
+        requestedSecurityStrength: Int,
+        predictionResistanceRequest: Boolean,
+        additionalInput: ByteArray = byteArrayOf()
+    ): ByteArray
+
+    public fun checkHealth()
 }
 
 /**
