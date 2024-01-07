@@ -9,6 +9,8 @@ import kotlin.test.assertEquals
 
 class PaulssonHashTest {
 
+    val nonceGenerator = Random.receive(Random.lookup("NonceRandom-Standard"))
+
     val testVectorsDigest = listOf(
         "d382ee733f5225c5d4acdf24bd68bc44a0c72c7500a0abc468d4f1f6324b508fc0178df218cd2306b2002fe4b37d448d54db5695408c34d77321e6519cc509a4a219497e4b0852a391153d70930d276a433bc955d65b6d00bd5856c156ae6eddc8d4778eed3fa3408521a0f8c8d0810e33edf2f51d1ae94513e4f73ba3b0c32f",
         "bdffdaac44d842c9a4c597cba4e9db310c821ed198dba1df18004eed164c86edfabaab3874267f4df66563295b99eb264a15825dbe473a4cb37f56f4a9cf4003214ce4ace60ebffd4798098ff1f500f52e8de8397e9ecea7378dfc5f139ecb284c9504e0c078d85715843fbb3d7cfd30786eb7d5b3c051bcdf4d8b57390041fa",
@@ -46,7 +48,7 @@ class PaulssonHashTest {
     fun testPaulssonRandom() {
         val data = LongArray(16)
         repeat(1000) {
-            val sponge = PaulssonSponge(Nonce.someEntropy(), preScramble = true)
+            val sponge = PaulssonSponge(nonceGenerator.getLongArray(16), preScramble = true)
             val monteCarlo = Benchmark()
             repeat(1_125_000) {
                 sponge.squeeze(data)
@@ -76,7 +78,7 @@ class PaulssonHashTest {
 
     @Test
     fun testPaulssonGenerateGigaByte() {
-        val sponge = PaulssonSponge(Nonce.someEntropy(), preScramble = true)
+        val sponge = PaulssonSponge(nonceGenerator.getLongArray(16), preScramble = true)
         val data = LongArray(16)
         generateGibaByte("sponge.bin", 4) {
             sponge.squeeze(data)
@@ -86,10 +88,8 @@ class PaulssonHashTest {
 
     @Test
     fun testNonceGenerateGigaByte() {
-        val data = ByteArray(4096)
         generateGibaByte("nonce.bin", 4) {
-            Nonce.someEntropy(data)
-            data
+            nonceGenerator.getByteArray(4096)
         }
     }
 
@@ -108,7 +108,7 @@ class PaulssonHashTest {
         repeat(1000) {
             val monteCarlo = Benchmark()
             repeat(5_000_000) {
-                val nonce = Nonce.someEntropy()
+                val nonce = nonceGenerator.getLongArray(4)
                 monteCarlo.scatterPoint(nonce[0], nonce[1])
                 monteCarlo.scatterPoint(nonce[2], nonce[3])
             }

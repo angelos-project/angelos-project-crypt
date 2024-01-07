@@ -14,6 +14,7 @@
  */
 package org.angproj.crypt.drbg
 
+import org.angproj.aux.util.BinHex
 import org.angproj.aux.util.Random
 import org.angproj.aux.util.reg.RegistryItem
 import org.angproj.crypt.Hash
@@ -40,11 +41,11 @@ public class HmacDrbgEngine(
     public override val predictionResistanceFlag: Boolean
         get() = _predictionResistanceFlag
 
-    private var _maxNumberOfBitsPerRequest: Int = 0
+    private var _maxNumberOfBitsPerRequest: Int = 8192
     public override val maxNumberOfBitsPerRequest: Int
         get() = _maxNumberOfBitsPerRequest
 
-    private var _maxAdditionalInputLength: Int = 0
+    private var _maxAdditionalInputLength: Int = 8192
     override val maxAdditionalInputLength: Int
         get() = _maxAdditionalInputLength
 
@@ -52,15 +53,15 @@ public class HmacDrbgEngine(
     override val reseedRequiredFlag: Boolean
         get() = _reseedRequiredFlag
 
-    private var _reseedInterval: Int = 0
+    private var _reseedInterval: Int = 100_000
     override val reseedInterval: Int
         get() = _reseedInterval
 
     init {
-        require (requestedInstantiationSecurityStrength > highestSupportedSecurityStrength) {
+        require (requestedInstantiationSecurityStrength <= highestSupportedSecurityStrength) {
             "Requested security strength is higher than highest supported security strength." }
         _predictionResistanceFlag = predictionResistanceFlag
-        require (personalizationString.size > maxPersonalizationStringLength) {
+        require (personalizationString.size <= maxPersonalizationStringLength) {
             "Personalization string is longer than allowed maximum." }
 
         _securityStrength = when(requestedInstantiationSecurityStrength) {
@@ -99,7 +100,6 @@ public class HmacDrbgEngine(
             it.update(v)
             it.final()
         }
-
         return Pair(k, v)
     }
 
@@ -155,6 +155,7 @@ public class HmacDrbgEngine(
         val reseedMaterial = entropyInput + additionalInput
         val kv = update(reseedMaterial, workingState.first, workingState.second)
         val reseedCounter = 1
+        _reseedRequiredFlag = false
         return HmacDrbgState(kv.first, kv.second, reseedCounter)
     }
 
@@ -172,7 +173,9 @@ public class HmacDrbgEngine(
             securityStrength, securityStrength,
             highestSupportedSecurityStrength, predictionResistanceFlag
         )
+        println("Before reseed: " + BinHex.encodeToHex(state.first) + " : " + BinHex.encodeToHex(state.second))
         state = reseedAlgorithm(state, entropyInput, additionalInput)
+        println("After reseed: " + BinHex.encodeToHex(state.first) + " : " + BinHex.encodeToHex(state.second))
     }
 
     protected fun generateFromAlgorithm(
@@ -186,10 +189,10 @@ public class HmacDrbgEngine(
             additionalInput,
             workingState.first,
             workingState.second
-        ) else Pair(byteArrayOf(), byteArrayOf())
+        ) else Pair(workingState.first, workingState.second)
 
         var temp = byteArrayOf()
-        while(temp.size * Byte.SIZE_BITS < requestedNumberOfBits) {
+        while(temp.size < requestedNumberOfBits / Byte.SIZE_BITS) {
             v = KeyHashedMac.create(key, algorithm).let {
                 it.update(v)
                 it.final()
@@ -200,6 +203,7 @@ public class HmacDrbgEngine(
         val returnedBits = temp.copyOf(requestedNumberOfBits / Byte.SIZE_BITS)
         val kv = update(additionalInput, key, v)
         val reseedCounter = workingState.third + 1
+        if(reseedCounter > reseedInterval) _reseedRequiredFlag = true
         return Pair(returnedBits, HmacDrbgState(kv.first, kv.second, reseedCounter))
     }
 
@@ -220,26 +224,7 @@ public class HmacDrbgEngine(
             check(predictionResistanceRequest_ == predictionResistanceFlag) {
                 "Prediction resistance is not granted." }
 
-        _reseedRequiredFlag = false
-        var output: Pair<ByteArray, HmacDrbgState> = Pair(
-            byteArrayOf(), HmacDrbgState(byteArrayOf(), byteArrayOf(), -1))
-
-        while(reseedRequiredFlag) {
-            if(reseedRequiredFlag or predictionResistanceFlag) try {
-                reseed(predictionResistanceRequest_, additionalInput)
-                _reseedRequiredFlag = false
-            } catch (_: IllegalArgumentException) {
-                throw IllegalStateException("Couldn't reseed DRBG.")
-            }
-
-            output = try {
-                generateFromAlgorithm(state, requestedNumberOfBits, additionalInput)
-            } catch (_: IllegalArgumentException) {
-                _reseedRequiredFlag = true
-                predictionResistanceRequest_ = true
-                continue
-            }
-        }
+        val output = generateFromAlgorithm(state, requestedNumberOfBits, additionalInput)
 
         state = output.second
         return output.first

@@ -167,9 +167,7 @@ internal class Sha3224Hash : AbstractKeccakHashEngine() {
         val permutationSize: Int = 1600.inByteSize
         val rounds: Int = 24
 
-        override fun create(): HashEngine {
-            TODO("Not yet implemented")
-        }
+        override fun create(): Sha3224Hash = Sha3224Hash()
 
         protected val prTo = intArrayOf(
             10, 1, 6, 9, 22, 14, 20, 2, 12, 13, 19, 23, 15, 4, 24, 21, 8, 16, 5, 3, 18, 17, 11
