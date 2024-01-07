@@ -209,25 +209,40 @@ public class HmacDrbgEngine(
         predictionResistanceRequest: Boolean,
         additionalInput: ByteArray
     ): ByteArray {
+        var predictionResistanceRequest_ = predictionResistanceRequest
         check(requestedNumberOfBits <= maxNumberOfBitsPerRequest) {
             "The requested number of bits are higher than maximum possible." }
         check(requestedSecurityStrength <= securityStrength) {
             "Requested security strength is higher than currently possible." }
         check(additionalInput.size <= maxAdditionalInputLength) {
             "Additional input too long to be accepted currently." }
-        if(predictionResistanceRequest)
-            check(predictionResistanceRequest == predictionResistanceFlag) {
+        if(predictionResistanceRequest_)
+            check(predictionResistanceRequest_ == predictionResistanceFlag) {
                 "Prediction resistance is not granted." }
 
         _reseedRequiredFlag = false
-        if(reseedRequiredFlag or predictionResistanceFlag) {
-            reseed(predictionResistanceRequest, additionalInput)
-            _reseedRequiredFlag = false
+        var output: Pair<ByteArray, HmacDrbgState> = Pair(
+            byteArrayOf(), HmacDrbgState(byteArrayOf(), byteArrayOf(), -1))
+
+        while(reseedRequiredFlag) {
+            if(reseedRequiredFlag or predictionResistanceFlag) try {
+                reseed(predictionResistanceRequest_, additionalInput)
+                _reseedRequiredFlag = false
+            } catch (_: IllegalArgumentException) {
+                throw IllegalStateException("Couldn't reseed DRBG.")
+            }
+
+            output = try {
+                generateFromAlgorithm(state, requestedNumberOfBits, additionalInput)
+            } catch (_: IllegalArgumentException) {
+                _reseedRequiredFlag = true
+                predictionResistanceRequest_ = true
+                continue
+            }
         }
 
-        TODO("Fix the last stuff")
-        return byteArrayOf()
-        //return generateFromAlgorithm(requestedNumberOfBits)
+        state = output.second
+        return output.first
     }
 
     public override fun checkHealth() {

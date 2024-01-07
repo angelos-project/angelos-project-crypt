@@ -18,6 +18,6 @@ import org.angproj.aux.util.reg.AbstractRegistry
 
 public object HmacDrbgManager: AbstractRegistry<HmacDrbgEngine, HmacDrbgProxy>() {
     override fun wrapInProxy(item: HmacDrbgEngine): HmacDrbgProxy {
-        TODO("Not yet implemented")
+        return HmacDrbgProxy(item)
     }
 }

@@ -23,8 +23,17 @@ public class HmacDrbgProxy(private val engine: HmacDrbgEngine): HmacDrbg, Regist
         get() = engine.securityStrength
     override val predictionResistanceFlag: Boolean
         get() = engine.predictionResistanceFlag
+    override val maxNumberOfBitsPerRequest: Int
+        get() = engine.maxNumberOfBitsPerRequest
+    override val maxAdditionalInputLength: Int
+        get() = engine.maxAdditionalInputLength
+    override val reseedRequiredFlag: Boolean
+        get() = engine.reseedRequiredFlag
+    override val reseedInterval: Int
+        get() = engine.reseedInterval
+
     override fun reseed(predictionResistanceRequest: Boolean, additionalInput: ByteArray) {
-        TODO("Not yet implemented")
+        engine.reseed(predictionResistanceRequest, additionalInput)
     }
 
     override fun generate(
@@ -33,7 +42,10 @@ public class HmacDrbgProxy(private val engine: HmacDrbgEngine): HmacDrbg, Regist
         predictionResistanceRequest: Boolean,
         additionalInput: ByteArray
     ): ByteArray {
-        TODO("Not yet implemented")
+        return engine.generate(
+            requestedNumberOfBits, requestedSecurityStrength,
+            predictionResistanceRequest, additionalInput
+        )
     }
 
     override fun checkHealth() {
