@@ -10,15 +10,8 @@ class HmacDrbgTest {
 
     @Test
     fun testFacadeAndGenerate() {
-        val handle = HmacDrbgManager.register(
-            HmacDrbgEngine(
-                Sha256Hash,
-                128,
-                true,
-                "Hello, World!".encodeToByteArray()
-            )
-        )
-
+        val handle = HmacDrbgManager.register(HmacDrbgEngine(
+            Sha256Hash, 128, true, byteArrayOf()))
         val instance = HmacDrbgManager.receive(handle)
         repeat(10) {
             val random = instance.generate(128, 128, true)
