@@ -41,7 +41,7 @@ public class HmacDrbgEngine(
     public override val predictionResistanceFlag: Boolean
         get() = _predictionResistanceFlag
 
-    private var _maxNumberOfBitsPerRequest: Int = 8192
+    private var _maxNumberOfBitsPerRequest: Int = 1024 * 32 * 8
     public override val maxNumberOfBitsPerRequest: Int
         get() = _maxNumberOfBitsPerRequest
 
