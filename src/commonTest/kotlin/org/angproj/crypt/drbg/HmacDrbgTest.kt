@@ -12,7 +12,7 @@ class HmacDrbgTest {
     fun testFacadeAndGenerate() {
         val handle = HmacDrbgManager.register(
             HmacDrbgEngine(
-                Sha3512Hash,
+                Sha256Hash,
                 128,
                 true,
                 "Hello, World!".encodeToByteArray()
