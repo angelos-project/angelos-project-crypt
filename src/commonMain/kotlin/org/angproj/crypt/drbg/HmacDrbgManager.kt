@@ -14,7 +14,7 @@
  */
 package org.angproj.crypt.drbg
 
-import org.angproj.aux.util.reg.AbstractRegistry
+import org.angproj.aux.reg.AbstractRegistry
 
 public object HmacDrbgManager: AbstractRegistry<HmacDrbgEngine, HmacDrbgProxy>() {
     override fun wrapInProxy(item: HmacDrbgEngine): HmacDrbgProxy {

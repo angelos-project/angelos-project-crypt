@@ -14,7 +14,7 @@
  */
 package org.angproj.crypt.ecc
 
-import org.angproj.crypt.number.*
+import org.angproj.aux.num.BigInt
 import org.angproj.crypt.sec.SecPKoblitz
 
 public class EccPrivateKey (

@@ -14,9 +14,9 @@
  */
 package org.angproj.crypt.sec
 
+import org.angproj.aux.num.BigInt
+import org.angproj.aux.num.bigIntOf
 import org.angproj.aux.util.BinHex
-import org.angproj.crypt.number.BigInt
-import org.angproj.crypt.number.bigIntOf
 
 public interface SecDomainParameters: DomainParameters {
     public val strength: Int

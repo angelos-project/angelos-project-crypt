@@ -4,7 +4,7 @@ plugins {
 }
 
 group = "org.angproj.crypt"
-version = "0.1"
+version = "0.2"
 
 repositories {
     mavenCentral()
@@ -37,7 +37,7 @@ kotlin {
     sourceSets {
         val commonMain by getting {
             dependencies {
-                implementation("org.angproj.aux.util:angelos-project-aux:0.5.1")
+                implementation("org.angproj.aux:angelos-project-aux:0.5.2")
             }
         }
         val commonTest by getting {

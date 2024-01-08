@@ -14,7 +14,7 @@
  */
 package org.angproj.crypt.sec
 
-import org.angproj.crypt.number.BigInt
+import org.angproj.aux.num.BigInt
 
 public object Secp224Random1 : SecPRandom {
     public override val name: String = "secp224r1"

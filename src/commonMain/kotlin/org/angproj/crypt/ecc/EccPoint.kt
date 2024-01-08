@@ -14,7 +14,7 @@
  */
 package org.angproj.crypt.ecc
 
-import org.angproj.crypt.number.BigInt
+import org.angproj.aux.num.BigInt
 import org.angproj.crypt.sec.SecDomainParameters
 
 public class EccPoint (

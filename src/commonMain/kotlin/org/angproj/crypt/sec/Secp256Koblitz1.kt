@@ -14,7 +14,7 @@
  */
 package org.angproj.crypt.sec
 
-import org.angproj.crypt.number.BigInt
+import org.angproj.aux.num.BigInt
 
 public object Secp256Koblitz1 : SecPKoblitz {
     public override val name: String = "secp256k1"

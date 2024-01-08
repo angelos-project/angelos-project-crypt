@@ -20,6 +20,8 @@
  */
 package org.angproj.crypt.ecc
 
+import org.angproj.aux.num.BigInt
+import org.angproj.aux.num.bigIntOf
 import org.angproj.crypt.number.*
 
 public object JacobianMath {

@@ -14,7 +14,7 @@
  */
 package org.angproj.crypt.sec
 
-import org.angproj.crypt.number.BigInt
+import org.angproj.aux.num.BigInt
 
 public interface SecTRandom: SecDomainParameters {
     //public override val p: BigInt

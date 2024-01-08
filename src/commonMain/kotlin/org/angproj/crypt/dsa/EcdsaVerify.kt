@@ -14,13 +14,13 @@
  */
 package org.angproj.crypt.dsa
 
+import org.angproj.aux.num.BigInt
+import org.angproj.aux.num.bigIntOf
 import org.angproj.crypt.SignatureVerificationEngine
 import org.angproj.crypt.ecc.EccPoint
 import org.angproj.crypt.ecc.EccPublicKey
 import org.angproj.crypt.ecc.EccSignature
 import org.angproj.crypt.ecc.JacobianMath
-import org.angproj.crypt.number.BigInt
-import org.angproj.crypt.number.bigIntOf
 import org.angproj.crypt.number.mod
 import org.angproj.crypt.number.multiply
 import org.angproj.crypt.sha.Sha256Hash

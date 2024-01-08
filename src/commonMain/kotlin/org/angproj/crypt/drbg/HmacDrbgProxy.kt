@@ -14,7 +14,7 @@
  */
 package org.angproj.crypt.drbg
 
-import org.angproj.aux.util.reg.RegistryProxy
+import org.angproj.aux.reg.RegistryProxy
 
 public class HmacDrbgProxy(private val engine: HmacDrbgEngine): HmacDrbg, RegistryProxy {
     override val identifier: String

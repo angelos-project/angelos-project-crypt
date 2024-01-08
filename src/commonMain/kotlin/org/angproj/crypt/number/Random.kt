@@ -14,6 +14,8 @@
  */
 package org.angproj.crypt.number
 
+import org.angproj.aux.num.BigInt
+import org.angproj.aux.num.bigIntOf
 import org.angproj.crypt.drbg.HmacDrbgEngine
 import org.angproj.crypt.drbg.HmacDrbgManager
 import org.angproj.crypt.drbg.HmacDrbgProxy

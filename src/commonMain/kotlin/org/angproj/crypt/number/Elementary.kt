@@ -14,6 +14,10 @@
  */
 package org.angproj.crypt.number
 
+import org.angproj.aux.num.AbstractBigInt
+import org.angproj.aux.num.BigInt
+import org.angproj.aux.num.MutableBigInt
+
 public infix fun AbstractBigInt<*>.pow(exponent: Int): AbstractBigInt<*> = when {
     exponent < 0 -> error("Negative exponent")
     exponent == 0 -> BigInt.one

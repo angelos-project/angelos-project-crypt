@@ -20,7 +20,6 @@ import org.angproj.crypt.Hash
 import org.angproj.crypt.HashEngine
 import org.angproj.crypt.keccak.AbstractKeccakHashEngine
 import org.angproj.crypt.keccak.KeccakHashEngine
-import org.angproj.crypt.sha.Sha3256Hash.Companion.inByteSize
 
 internal class Shake128Hash(val vMessageDigestSize: Int = messageDigestSize): AbstractKeccakHashEngine() {
 

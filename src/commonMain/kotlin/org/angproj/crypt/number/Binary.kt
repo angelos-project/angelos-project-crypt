@@ -14,9 +14,10 @@
  */
 package org.angproj.crypt.number
 
-import org.angproj.crypt.number.AbstractBigInt.Companion.revIdx
-import org.angproj.crypt.number.AbstractBigInt.Companion.revSet
-import org.angproj.crypt.number.AbstractBigInt.Companion.revGet
+import org.angproj.aux.num.AbstractBigInt
+import org.angproj.aux.num.AbstractBigInt.Companion.revGet
+import org.angproj.aux.num.AbstractBigInt.Companion.revIdx
+import org.angproj.aux.num.AbstractBigInt.Companion.revSet
 import kotlin.math.max
 
 public infix fun AbstractBigInt<*>.and(value: AbstractBigInt<*>): AbstractBigInt<*> {

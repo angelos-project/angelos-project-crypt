@@ -17,7 +17,6 @@ package org.angproj.crypt.sha
 import org.angproj.aux.util.readLongAt
 import org.angproj.aux.util.writeLongAt
 import org.angproj.crypt.Hash
-import org.angproj.crypt.HashEngine
 import org.angproj.crypt.keccak.AbstractKeccakHashEngine
 import org.angproj.crypt.keccak.KeccakHashEngine
 

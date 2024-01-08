@@ -14,8 +14,8 @@
  */
 package org.angproj.crypt.number
 
-import org.angproj.crypt.number.AbstractBigInt.Companion.getL
-
+import org.angproj.aux.num.AbstractBigInt.Companion.getL
+import org.angproj.aux.num.MutableBigInt
 
 internal fun MutableBigInt.Companion.divWord(n: Long, d: Int): Long {
     val dLong = d.getL()
