@@ -138,4 +138,12 @@ class HmacDrgbTest {
         }
         output.close()
     }
+
+    @Test
+    fun testApa() {
+        val handle = HmacDrbgManager.register(HmacDrbgEngine(
+            Sha512Hash, 256,
+            true, byteArrayOf()))
+        println(HmacDrbgManager.receive(handle).identifier)
+    }
 }

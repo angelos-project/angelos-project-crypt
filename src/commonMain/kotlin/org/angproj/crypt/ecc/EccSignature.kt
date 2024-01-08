@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2023 by Kristoffer Paulsson <kristoffer.paulsson@talenten.se>.
+ * Copyright (c) 2024 by Kristoffer Paulsson <kristoffer.paulsson@talenten.se>.
  *
  * This software is available under the terms of the MIT license. Parts are licensed
  * under different terms if stated. The legal terms are attached to the LICENSE file
@@ -14,9 +14,10 @@
  */
 package org.angproj.crypt.ecc
 
-import org.angproj.crypt.sec.SecPKoblitz
+import org.angproj.crypt.number.BigInt
 
-public class EccPublicKey(
-    public val point: EccPoint,
-    public val curve: SecPKoblitz
+
+public class EccSignature(
+    public val r: BigInt,
+    public val s: BigInt
 )

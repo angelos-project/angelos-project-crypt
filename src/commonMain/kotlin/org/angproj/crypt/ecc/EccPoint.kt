@@ -23,6 +23,8 @@ public class EccPoint (
     public val z: BigInt = BigInt.zero
 ) {
     public constructor(coordinates: Pair<BigInt, BigInt>): this(coordinates.first, coordinates.second)
+
+    public fun isAtInfinity(): Boolean = this.y.equals(BigInt.zero)
 }
 
 public fun SecDomainParameters.getCoord(): EccPoint = EccPoint(this.Gc)

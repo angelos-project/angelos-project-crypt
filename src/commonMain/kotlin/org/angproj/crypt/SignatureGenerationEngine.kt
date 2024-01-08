@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2023 by Kristoffer Paulsson <kristoffer.paulsson@talenten.se>.
+ * Copyright (c) 2024 by Kristoffer Paulsson <kristoffer.paulsson@talenten.se>.
  *
  * This software is available under the terms of the MIT license. Parts are licensed
  * under different terms if stated. The legal terms are attached to the LICENSE file
@@ -12,11 +12,13 @@
  * Contributors:
  *      Kristoffer Paulsson - initial implementation
  */
-package org.angproj.crypt.ecc
+package org.angproj.crypt
 
-import org.angproj.crypt.sec.SecPKoblitz
+public interface SignatureGenerationEngine<P, S> {
 
-public class EccPublicKey(
-    public val point: EccPoint,
-    public val curve: SecPKoblitz
-)
+    public val type: String
+
+    public fun update(messagePart: ByteArray)
+
+    public fun final(privKey: P): S
+}
