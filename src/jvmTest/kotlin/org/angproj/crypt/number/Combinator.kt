@@ -1,7 +1,7 @@
 package org.angproj.crypt.number
 
 import org.angproj.aux.num.AbstractBigInt
-import org.angproj.aux.num.bigIntOf
+import org.angproj.aux.util.bigIntOf
 import org.angproj.aux.util.BinHex
 import org.angproj.aux.util.swapEndian
 import org.angproj.aux.util.writeLongAt

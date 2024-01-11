@@ -15,7 +15,7 @@
 package org.angproj.crypt.sec
 
 import org.angproj.aux.num.BigInt
-import org.angproj.aux.num.bigIntOf
+import org.angproj.aux.util.bigIntOf
 import org.angproj.aux.util.BinHex
 
 public interface DomainParameters {

@@ -20,11 +20,20 @@
  */
 package org.angproj.crypt.ecc
 
+import org.angproj.aux.num.BigCompare
 import org.angproj.aux.num.BigInt
-import org.angproj.aux.num.bigIntOf
+import org.angproj.aux.util.bigIntOf
 import org.angproj.crypt.number.*
 
 public object JacobianMath {
+
+    public val zero: BigInt by lazy { bigIntOf(0) }
+    public val one: BigInt by lazy { bigIntOf(1) }
+    public val two: BigInt by lazy { bigIntOf(2) }
+    public val three: BigInt by lazy { bigIntOf(3) }
+    public val four: BigInt by lazy { bigIntOf(4) }
+    public val eight: BigInt by lazy { bigIntOf(8) }
+
     /**
      * Fast way to multiply point and scalar in elliptic curves
      *
@@ -62,14 +71,14 @@ public object JacobianMath {
      * @return Value representing the division
      */
     public fun inv(x: BigInt, n: BigInt): BigInt {
-        if (x.compareTo(BigInt.zero).isEqual()) {
-            return BigInt.zero
+        if (x.compareTo(zero).isEqual()) {
+            return zero
         }
-        var lm = BigInt.one
-        var hm = BigInt.zero
+        var lm = one
+        var hm = zero
         var high = n
         var low = x.mod(n)
-        while (low.compareTo(BigInt.one).isGreater()) {
+        while (low.compareTo(one).isGreater()) {
             val r = high.divide(low)
             val nm = hm.subtract(lm.multiply(r))
             val nw = high.subtract(low.multiply(r))
@@ -88,7 +97,7 @@ public object JacobianMath {
      * @return Point in Jacobian coordinates
      */
     public fun eccTo(p: EccPoint): EccPoint {
-        return EccPoint(p.x, p.y, BigInt.one)
+        return EccPoint(p.x, p.y, one)
     }
 
     /**
@@ -102,7 +111,7 @@ public object JacobianMath {
         val z = inv(p.z, P)
         val x = p.x.multiply(z.pow(2)).mod(P)
         val y = p.y.multiply(z.pow(3)).mod(P)
-        return EccPoint(x.toBigInt(), y.toBigInt(), BigInt.zero)
+        return EccPoint(x.toBigInt(), y.toBigInt(), zero)
     }
 
     /**
@@ -114,15 +123,15 @@ public object JacobianMath {
      * @return the result point doubled in elliptic curves
      */
     public fun eccDouble(p: EccPoint, A: BigInt, P: BigInt): EccPoint {
-        if (p.y.equals(BigInt.zero)) {
-            return EccPoint(BigInt.zero, BigInt.zero, BigInt.zero)
+        if (p.y.equals(zero)) {
+            return EccPoint(zero, zero, zero)
         }
         val ysq = p.y.pow(2).mod(P)
-        val S = bigIntOf(4).multiply(p.x).multiply(ysq).mod(P)
-        val M = bigIntOf(3).multiply(p.x.pow(2)).add(A.multiply(p.z.pow(4))).mod(P)
-        val nx = M.pow(2).subtract(bigIntOf(2).multiply(S)).mod(P)
-        val ny = M.multiply(S.subtract(nx)).subtract(bigIntOf(8).multiply(ysq.pow(2))).mod(P)
-        val nz = bigIntOf(2).multiply(p.y).multiply(p.z).mod(P)
+        val S = four.multiply(p.x).multiply(ysq).mod(P)
+        val M = three.multiply(p.x.pow(2)).add(A.multiply(p.z.pow(4))).mod(P)
+        val nx = M.pow(2).subtract(two.multiply(S)).mod(P)
+        val ny = M.multiply(S.subtract(nx)).subtract(eight.multiply(ysq.pow(2))).mod(P)
+        val nz = two.multiply(p.y).multiply(p.z).mod(P)
         return EccPoint(nx.toBigInt(), ny.toBigInt(), nz.toBigInt())
     }
 
@@ -136,10 +145,10 @@ public object JacobianMath {
      * @return Point that represents the sum of First and Second Point
      */
     public fun eccAdd(p: EccPoint, q: EccPoint, A: BigInt, P: BigInt): EccPoint {
-        if (p.y.equals(BigInt.zero)) {
+        if (p.y.equals(zero)) {
             return q
         }
-        if (q.y.equals(BigInt.zero)) {
+        if (q.y.equals(zero)) {
             return p
         }
         val U1 = p.x.multiply(q.z.pow(2)).mod(P)
@@ -148,7 +157,7 @@ public object JacobianMath {
         val S2 = q.y.multiply(p.z.pow(3)).mod(P)
         if (U1.compareTo(U2).isEqual()) {
             if (S1.compareTo(S2).isNotEqual()) {
-                return EccPoint(BigInt.zero, BigInt.zero, BigInt.one)
+                return EccPoint(zero, zero, one)
             }
             return eccDouble(p, A, P)
         }
@@ -157,7 +166,7 @@ public object JacobianMath {
         val H2 = H.multiply(H).mod(P)
         val H3 = H.multiply(H2).mod(P)
         val U1H2 = U1.multiply(H2).mod(P)
-        val nx = R.pow(2).subtract(H3).subtract(bigIntOf(2).multiply(U1H2)).mod(P)
+        val nx = R.pow(2).subtract(H3).subtract(two.multiply(U1H2)).mod(P)
         val ny = R.multiply(U1H2.subtract(nx)).subtract(S1.multiply(H3)).mod(P)
         val nz = H.multiply(p.z).multiply(q.z).mod(P)
         return EccPoint(nx.toBigInt(), ny.toBigInt(), nz.toBigInt())
@@ -175,16 +184,25 @@ public object JacobianMath {
      */
     public fun eccMultiply(
         p: EccPoint, n: BigInt, N: BigInt, A: BigInt, P: BigInt
-    ): EccPoint = when {
-        BigInt.zero.compareTo(p.y).isEqual() || BigInt.zero.compareTo(n).isEqual() -> EccPoint(
-            BigInt.zero, BigInt.zero, BigInt.one)
-        BigInt.one.compareTo(n).isEqual() -> p
-        n.compareTo(BigInt.zero).isLesser() || n.compareTo(N).isGreater() -> eccMultiply(
-            p, n.mod(N).toBigInt(), N, A, P)
-        n.mod(bigIntOf(2)).compareTo(BigInt.zero).isEqual() -> eccDouble(
-            eccMultiply(p, n.divide(bigIntOf(2)).toBigInt(), N, A, P), A, P)
-        n.mod(bigIntOf(2)).compareTo(BigInt.one).isEqual() -> eccAdd(
-            eccDouble(eccMultiply(p, n.divide(bigIntOf(2)).toBigInt(), N, A, P), A, P), p, A, P)
-        else -> error("Must not happen!")
+    ): EccPoint {
+        if(zero.compareTo(p.y).isEqual() || zero.compareTo(n).isEqual()) {
+            return EccPoint(zero, zero, one)
+        }
+        if(one.compareTo(n).isEqual()){
+            return p
+        }
+        if(n.compareTo(zero).isLesser() || n.compareTo(N).isGreaterOrEqual()) {
+            return eccMultiply(p, n.mod(N).toBigInt(), N, A, P)
+        }
+        if(n.mod(two).compareTo(zero).isEqual()) {
+            val mul = eccMultiply(p, n.divide(two).toBigInt(), N, A, P)
+            return eccDouble(mul, A, P)
+        }
+        if(n.mod(two).compareTo(one).isEqual()) {
+            val mul = eccMultiply(p, n.divide(two).toBigInt(), N, A, P)
+            val doub = eccDouble(mul, A, P)
+            return eccAdd(doub, p, A, P)
+        }
+        error("Some error happened")
     }
 }

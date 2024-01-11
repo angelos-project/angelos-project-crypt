@@ -15,14 +15,18 @@
 package org.angproj.crypt.number
 
 import org.angproj.aux.num.BigInt
-import org.angproj.aux.num.bigIntOf
+import org.angproj.aux.util.Random
+import org.angproj.aux.util.bigIntOf
 import org.angproj.crypt.drbg.HmacDrbgEngine
 import org.angproj.crypt.drbg.HmacDrbgManager
 import org.angproj.crypt.drbg.HmacDrbgProxy
 import org.angproj.crypt.sha.Sha512Hash
+import kotlin.math.absoluteValue
+import kotlin.math.max
+import kotlin.math.min
 
 public fun BigInt.Companion.randomBetween(lower: BigInt, upper: BigInt): BigInt {
-    var handle = HmacDrbgManager.lookup("HMAC_DRBG-SHA-512_256")
+    /*var handle = HmacDrbgManager.lookup("HMAC_DRBG-SHA-512_256")
     val random = when {
         handle != 0 -> HmacDrbgManager.receive(handle)
         else -> {
@@ -31,8 +35,12 @@ public fun BigInt.Companion.randomBetween(lower: BigInt, upper: BigInt): BigInt 
                 true, byteArrayOf()))
             HmacDrbgManager.receive(handle)
         }
-    }
-    return bigIntOf(BigInt.randomBits(lower.toByteArray().size * 8 - 1, random)).abs().add(upper).toBigInt()
+    }*/
+    val new = IntArray(upper.mag.size) { Random.default.getInt() }
+    new[0] = min(new[0].absoluteValue, max(upper.mag[0].absoluteValue-1, 1))
+    return bigIntOf(new)
+
+    //return bigIntOf(BigInt.randomBits(lower.toByteArray().size * 8 - 1, random)).abs().add(upper).toBigInt()
 }
 
 private fun BigInt.Companion.randomBits(numBits: Int, rnd: HmacDrbgProxy): ByteArray {
@@ -42,8 +50,7 @@ private fun BigInt.Companion.randomBits(numBits: Int, rnd: HmacDrbgProxy): ByteA
 
     if (numBytes > 0) {
         val excessBits = 8 * numBytes - numBits
-        randomBits[0] = (randomBits[0].toInt() and ((1 shl (8 - excessBits)) - 1).toByte()
-            .toInt()).toByte()
+        randomBits[0] = (randomBits[0].toInt() and ((1 shl (8 - excessBits)) - 1)).toByte()
     }
     return randomBits
 }

@@ -1,6 +1,31 @@
 package crypt.sec
 
+import org.angproj.aux.util.toByteArray
+import org.angproj.crypt.dsa.EcdsaSign
+import org.angproj.crypt.dsa.EcdsaVerify
+import org.angproj.crypt.ecc.EccPrivateKey
+import org.angproj.crypt.sec.BitcoinKoblitz
+import org.angproj.crypt.sec.NistPrime
+import org.angproj.crypt.sec.Secp192Koblitz1
+import org.angproj.crypt.sec.Secp192Random1
+import kotlin.random.Random
+import kotlin.test.Test
+
 class Binary163Test {
+
+    @Test
+    fun justTestIt() {
+        val message = LongArray(20) { Random.nextLong() }.toByteArray()
+        val privKey = EccPrivateKey(Secp192Koblitz1)
+
+        val signer = EcdsaSign()
+        signer.update(message)
+        val signature = signer.final(privKey)
+
+        val verifier = EcdsaVerify()
+        verifier.update(message)
+        println(verifier.final(privKey.publicKey(), signature))
+    }
 
     object B_163_KeyPair {
         val testVectors: String = """#  CAVS 11.1

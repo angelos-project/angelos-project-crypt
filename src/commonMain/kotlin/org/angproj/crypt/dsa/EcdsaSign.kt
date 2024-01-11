@@ -15,7 +15,7 @@
 package org.angproj.crypt.dsa
 
 import org.angproj.aux.num.BigInt
-import org.angproj.aux.num.bigIntOf
+import org.angproj.aux.util.bigIntOf
 import org.angproj.crypt.SignatureGenerationEngine
 import org.angproj.crypt.ecc.EccPoint
 import org.angproj.crypt.ecc.EccPrivateKey

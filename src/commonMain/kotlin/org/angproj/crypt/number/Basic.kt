@@ -14,6 +14,7 @@
  */
 package org.angproj.crypt.number
 
+import org.angproj.aux.util.mutableBigIntOf
 import org.angproj.aux.num.*
 import org.angproj.aux.num.AbstractBigInt.Companion.getL
 

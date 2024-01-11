@@ -1,6 +1,6 @@
 package org.angproj.crypt
 
-import org.angproj.aux.num.bigIntOf
+import org.angproj.aux.util.bigIntOf
 import org.angproj.crypt.number.*
 import java.math.BigInteger
 import kotlin.test.Test
