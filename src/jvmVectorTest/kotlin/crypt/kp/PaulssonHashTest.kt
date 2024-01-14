@@ -1,7 +1,6 @@
 package crypt.kp
 
 import org.angproj.aux.util.*
-import org.angproj.crypt.kp.PaulssonHash
 import org.angproj.crypt.kp.PaulssonSponge
 import java.io.File
 import kotlin.test.Test

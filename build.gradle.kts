@@ -4,7 +4,7 @@ plugins {
 }
 
 group = "org.angproj.crypt"
-version = "0.2"
+version = "0.2.2"
 
 repositories {
     mavenCentral()
@@ -37,7 +37,7 @@ kotlin {
     sourceSets {
         val commonMain by getting {
             dependencies {
-                implementation("org.angproj.aux:angelos-project-aux:0.6.2")
+                implementation("org.angproj.aux:angelos-project-aux:0.6.3")
             }
         }
         val commonTest by getting {
@@ -46,7 +46,11 @@ kotlin {
             }
         }
         val jvmMain by getting
-        val jvmTest by getting
+        val jvmTest by getting {
+            dependencies {
+                implementation("org.bouncycastle:bcpkix-jdk15on:1.65")
+            }
+        }
         val jsMain by getting
         val jsTest by getting
         val nativeMain by getting

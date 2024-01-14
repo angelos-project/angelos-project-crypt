@@ -87,6 +87,7 @@ public object Secp256Koblitz1 : SecPKoblitz {
     }
 
     private val _n: BigInt by fromHex {
+        "00" + // Forcing BigInt to read as UInt.
         "FFFFFFFF" +
                 "FFFFFFFF" +
                 "FFFFFFFF" +

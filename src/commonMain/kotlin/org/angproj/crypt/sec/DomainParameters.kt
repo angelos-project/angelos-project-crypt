@@ -17,6 +17,7 @@ package org.angproj.crypt.sec
 import org.angproj.aux.num.BigInt
 import org.angproj.aux.util.bigIntOf
 import org.angproj.aux.util.BinHex
+import org.angproj.aux.util.unsignedBigIntOf
 
 public interface DomainParameters {
     public val name: String

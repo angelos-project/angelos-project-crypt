@@ -13,65 +13,46 @@
  *      Kristoffer Paulsson - initial implementation
  */
 package org.angproj.crypt.kp
-
-import org.angproj.aux.util.readLongAt
-import kotlin.math.max
 import kotlin.math.min
 
 /**
  *  ===== WARNING! EXPERIMENTAL USE ONLY =====
  * */
-public class PaulssonSponge(iv: LongArray = LongArray(16), preScramble: Boolean = false) {
+public abstract class PaulssonSponge {
 
-    private var side = LongArray(4)
-    private var mask = LongArray(4)
-    private var state = LongArray(16)
-    private var counter: Long = 1
+    private val side = LongArray(4)
+    private val mask = LongArray(4)
+    private val state = LongArray(16)
+    private var counter: Long = 0
 
-    init {
-        if(iv.sum() != 0L) absorb(iv)
-        if(preScramble) scrambleFull()
+    protected fun spongeReset() {
+        side.fill(0)
+        mask.fill(0)
+        state.fill(0)
+        counter = 0
     }
 
-    protected fun cycle() {
+    protected fun round() {
         xorColFromStateRows(side, state)
         shuffleState(state)
         rotateStateLeft(state)
         oddNegateEvenInvertOnState(state)
         nonLinearFeedbackFromAll(state, mask, counter)
         xorMergeRowToStateCols(side, state)
-        counter = max(1, counter + 1)
+        counter++
     }
 
-    public fun scramble(): Unit = repeat(15) { cycle() }
-
-    public fun scrambleFull(): Unit = repeat(16) { cycle() }
-
-    public fun absorbOne(inVal: Long) {
-        state[0] = state[0] xor inVal
-        cycle()
-    }
+    public fun scramble(): Unit = repeat(15) { round() }
 
     public fun absorb(inBuf: LongArray) {
         for (idx in 0 until min(16, inBuf.size)) state[idx] = state[idx] xor inBuf[idx]
-        cycle()
+        round()
     }
 
     public fun squeeze(outBuf: LongArray) {
         state.copyInto(outBuf)
         xorMergeMaskToOutput(mask, outBuf)
-        cycle()
-    }
-
-    public fun squeezeOne(): Long {
-        val outValue = state[0] xor mask[0]
-        cycle()
-        return outValue
-    }
-
-    public fun squeezeEnd(outBuf: LongArray) {
-        state.copyInto(outBuf)
-        xorMergeMaskToOutput(mask, outBuf)
+        round()
     }
 
     private companion object {
@@ -134,25 +115,4 @@ public class PaulssonSponge(iv: LongArray = LongArray(16), preScramble: Boolean 
             state[idy + 3] = mask[idx] xor state[idy + 3]
         }
     }
-}
-
-public fun scrambleLock(sponge: PaulssonSponge) {
-    val history = LongArray(16)
-    repeat(16) {
-        history[it] = sponge.squeezeOne()
-        sponge.absorb(history)
-    }
-}
-
-public fun saltBytes(salt: ByteArray): LongArray {
-    val data = salt + ByteArray(128 - salt.size.mod(128))
-    val sponge = PaulssonSponge()
-    val buffer = LongArray(16)
-    (data.indices step 128).forEach { i ->
-        buffer.indices.forEach { j -> buffer[j] = data.readLongAt(i + j * Long.SIZE_BYTES) }
-        sponge.absorb(buffer)
-    }
-    sponge.scramble()
-    sponge.squeezeEnd(buffer)
-    return buffer
 }
