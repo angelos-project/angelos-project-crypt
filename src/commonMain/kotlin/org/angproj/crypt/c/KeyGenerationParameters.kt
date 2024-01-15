@@ -1,29 +1,24 @@
-package org.angproj.crypto.c
+/**
+ * Copyright (c) 2024 by Kristoffer Paulsson <kristoffer.paulsson@talenten.se>.
+ *
+ * This software is available under the terms of the MIT license. Parts are licensed
+ * under different terms if stated. The legal terms are attached to the LICENSE file
+ * and are made available on:
+ *
+ *      https://opensource.org/licenses/MIT
+ *
+ * SPDX-License-Identifier: MIT
+ *
+ * Contributors:
+ *      Kristoffer Paulsson - initial implementation
+ */
+package org.angproj.crypt.c
 
 import org.angproj.crypt.SecureRandom
 
-/**
- * The base class for parameters to key generators.
- */
+public interface KeyGenerationParameters : Parameters {
 
-/**
- * return the bit strength for keys produced by this generator,
- *
- * @return the strength of the keys this generator produces (in bits).
- */
-public class KeyGenerationParameters
-    (
-    private val random: SecureRandom,
     public val strength: Int
-) {
 
-    /**
-     * return the random source associated with this
-     * generator.
-     *
-     * @return the generators random source.
-     */
-    public fun getRandom(): SecureRandom {
-        return random
-    }
+    public fun getRandom(): SecureRandom
 }

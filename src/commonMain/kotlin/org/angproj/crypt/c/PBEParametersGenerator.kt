@@ -14,10 +14,19 @@
  */
 package org.angproj.crypt.c
 
-public interface AsymmetricCipherKeyPairGenerator<U: AsymmetricKeyParameter, R: AsymmetricKeyParameter> {
+public interface PBEParametersGenerator<P: CipherParameters, M: CipherParameters> {
 
-    public fun setup(param: KeyGenerationParameters)
+    public val password: ByteArray
 
-    public fun generateKeyPair(): AsymmetricCipherKeyPair<U, R>
+    public val salt: ByteArray
+
+    public val iterationCount: Int
+
+    public fun setup(password: ByteArray, salt: ByteArray, iterationCount: Int)
+
+    public fun generateDerivedParameters(keySize: Int): P
+
+    public fun generateDerivedParameters(keySize: Int, ivSize: Int): P
+
+    public fun generateDerivedMacParameters(keySize: Int): M
 }
-

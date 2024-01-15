@@ -1,23 +1,21 @@
-package org.angproj.crypto.c
-
-import kotlin.reflect.KClass
-
 /**
- * this exception is thrown if a buffer that is meant to have output
- * copied into it turns out to be too short, or if we've been given
- * insufficient input. In general this exception will get thrown rather
- * than an ArrayOutOfBounds exception.
+ * Copyright (c) 2024 by Kristoffer Paulsson <kristoffer.paulsson@talenten.se>.
+ *
+ * This software is available under the terms of the MIT license. Parts are licensed
+ * under different terms if stated. The legal terms are attached to the LICENSE file
+ * and are made available on:
+ *
+ *      https://opensource.org/licenses/MIT
+ *
+ * SPDX-License-Identifier: MIT
+ *
+ * Contributors:
+ *      Kristoffer Paulsson - initial implementation
  */
+package org.angproj.crypt.c
+
 public open class DataLengthException : RuntimeCryptoException {
-    /**
-     * base constructor.
-     */
     public constructor()
 
-    /**
-     * create a DataLengthException with the given message.
-     *
-     * @param message the message to be carried with the exception.
-     */
     public constructor(message: String) : super(message)
 }

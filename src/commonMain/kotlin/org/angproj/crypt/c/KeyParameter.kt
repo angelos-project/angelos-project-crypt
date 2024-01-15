@@ -1,20 +1,26 @@
-package org.angproj.crypto.c
+/**
+ * Copyright (c) 2024 by Kristoffer Paulsson <kristoffer.paulsson@talenten.se>.
+ *
+ * This software is available under the terms of the MIT license. Parts are licensed
+ * under different terms if stated. The legal terms are attached to the LICENSE file
+ * and are made available on:
+ *
+ *      https://opensource.org/licenses/MIT
+ *
+ * SPDX-License-Identifier: MIT
+ *
+ * Contributors:
+ *      Kristoffer Paulsson - initial implementation
+ */
+package org.angproj.crypt.c
 
-public class KeyParameter
-private constructor(length: Int) : CipherParameters {
-    public val key: ByteArray = ByteArray(length)
+public interface KeyParameter : CipherParameters {
+
+    public val key: ByteArray
 
     public val keyLength: Int
-        get() = key.size
 
-    public constructor(key: ByteArray, keyOff: Int = 0, keyLen: Int = key.size) : this(keyLen) {
-        key.copyInto(this.key, 0, keyOff, keyLen)
-    }
+    public fun copyTo(buf: ByteArray, off: Int, len: Int)
 
-    public fun copyTo(buf: ByteArray, off: Int, len: Int) {
-        check (key.size == len) { "len" }
-        key.copyInto(buf, 0, off, len)
-    }
-
-    public fun reverse(): KeyParameter = KeyParameter(key.reversedArray())
+    public fun reverse(): KeyParameter
 }

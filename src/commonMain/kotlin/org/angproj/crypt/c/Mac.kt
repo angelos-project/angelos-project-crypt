@@ -1,71 +1,36 @@
-package org.angproj.crypto.c
-
-
 /**
- * The base interface for implementations of message authentication codes (MACs).
+ * Copyright (c) 2024 by Kristoffer Paulsson <kristoffer.paulsson@talenten.se>.
+ *
+ * This software is available under the terms of the MIT license. Parts are licensed
+ * under different terms if stated. The legal terms are attached to the LICENSE file
+ * and are made available on:
+ *
+ *      https://opensource.org/licenses/MIT
+ *
+ * SPDX-License-Identifier: MIT
+ *
+ * Contributors:
+ *      Kristoffer Paulsson - initial implementation
  */
+package org.angproj.crypt.c
+
 public interface Mac {
-    /**
-     * Initialise the MAC.
-     *
-     * @param params the key and other data required by the MAC.
-     * @exception IllegalArgumentException if the params argument is
-     * inappropriate.
-     */
+
     //@Throws(IllegalArgumentException)
     public fun setup(params: KeyParameter)
 
-    /**
-     * Return the name of the algorithm the MAC implements.
-     *
-     * @return the name of the algorithm the MAC implements.
-     */
     public val algorithmName: String
 
-    /**
-     * Return the block size for this MAC (in bytes).
-     *
-     * @return the block size for this MAC in bytes.
-     */
     public val macSize: Int
 
-    /**
-     * add a single byte to the mac for processing.
-     *
-     * @param in the byte to be processed.
-     * @exception IllegalStateException if the MAC is not initialised.
-     */
     //@Throws(IllegalStateException)
     public fun update(input: Byte)
 
-    /**
-     * @param in the array containing the input.
-     * @param inOff the index in the array the data begins at.
-     * @param len the length of the input starting at inOff.
-     * @exception IllegalStateException if the MAC is not initialised.
-     * @exception DataLengthException if there isn't enough data in in.
-     */
     // @Throws(DataLengthException, IllegalStateException)
     public fun update(input: ByteArray, inOff: Int, len: Int)
 
-    /**
-     * Compute the final stage of the MAC writing the output to the out
-     * parameter.
-     *
-     *
-     * doFinal leaves the MAC in the same state it was after the last init.
-     *
-     * @param out the array the MAC is to be output to.
-     * @param outOff the offset into the out buffer the output is to start at.
-     * @exception DataLengthException if there isn't enough space in out.
-     * @exception IllegalStateException if the MAC is not initialised.
-     */
     //@Throws(DataLengthException, IllegalStateException)
     public fun doFinal(out: ByteArray, outOff: Int): Int
 
-    /**
-     * Reset the MAC. At the end of resetting the MAC should be in the
-     * in the same state it was after the last init (if there was one).
-     */
     public fun reset()
 }

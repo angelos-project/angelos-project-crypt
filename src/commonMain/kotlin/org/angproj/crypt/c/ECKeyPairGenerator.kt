@@ -14,10 +14,15 @@
  */
 package org.angproj.crypt.c
 
-public interface AsymmetricCipherKeyPairGenerator<U: AsymmetricKeyParameter, R: AsymmetricKeyParameter> {
+import org.angproj.crypt.SecureRandom
 
-    public fun setup(param: KeyGenerationParameters)
+public interface ECKeyPairGenerator<U: ECPublicKeyParameters, R: ECPrivateKeyParameters>: AsymmetricCipherKeyPairGenerator<U, R> {
 
-    public fun generateKeyPair(): AsymmetricCipherKeyPair<U, R>
+    public val name: String
+    public val params: ECDomainParameters
+    public val random: SecureRandom
+
+    public fun setup(param: ECKeyGenerationParameters)
+
+    public override fun generateKeyPair(): AsymmetricCipherKeyPair<U, R>
 }
-

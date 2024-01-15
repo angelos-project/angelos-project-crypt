@@ -1,42 +1,31 @@
-package org.angproj.crypto.c
-
 /**
- * Generic signer interface for hash based and message recovery signers.
+ * Copyright (c) 2024 by Kristoffer Paulsson <kristoffer.paulsson@talenten.se>.
+ *
+ * This software is available under the terms of the MIT license. Parts are licensed
+ * under different terms if stated. The legal terms are attached to the LICENSE file
+ * and are made available on:
+ *
+ *      https://opensource.org/licenses/MIT
+ *
+ * SPDX-License-Identifier: MIT
+ *
+ * Contributors:
+ *      Kristoffer Paulsson - initial implementation
  */
-public interface Signer {
-    /**
-     * Initialise the signer for signing or verification.
-     *
-     * @param forSigning true if for signing, false otherwise
-     * @param param necessary parameters.
-     */
-    public fun init(forSigning: Boolean, param: CipherParameters)
+package org.angproj.crypt.c
 
-    /**
-     * update the internal digest with the byte b
-     */
+public interface Signer {
+
+    public fun setup(forSigning: Boolean, param: CipherParameters)
+
     public fun update(b: Byte)
 
-    /**
-     * update the internal digest with the byte array in
-     */
     public fun update(`in`: ByteArray, off: Int, len: Int)
 
-    /**
-     * generate a signature for the message we've been loaded with using
-     * the key we were initialised with.
-     */
     //@Throws(CryptoException, DataLengthException)
     public fun generateSignature(): ByteArray
 
-    /**
-     * return true if the internal state represents the signature described
-     * in the passed in array.
-     */
     public fun verifySignature(signature: ByteArray): Boolean
 
-    /**
-     * reset the internal state
-     */
     public fun reset()
 }

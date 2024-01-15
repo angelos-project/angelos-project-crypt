@@ -17,7 +17,7 @@ package org.angproj.crypt.kp
 import org.angproj.aux.util.floorMod
 import org.angproj.aux.util.readLongAt
 import org.angproj.aux.util.toByteArray
-import org.angproj.crypto.c.RandomGenerator
+import org.angproj.crypt.c.RandomGenerator
 import kotlin.math.min
 
 public class PaulssonSpongeRandomGenerator:  PaulssonSponge(), RandomGenerator {

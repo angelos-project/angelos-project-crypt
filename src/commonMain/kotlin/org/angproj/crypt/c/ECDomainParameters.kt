@@ -14,10 +14,27 @@
  */
 package org.angproj.crypt.c
 
-public interface AsymmetricCipherKeyPairGenerator<U: AsymmetricKeyParameter, R: AsymmetricKeyParameter> {
+import org.angproj.aux.num.BigInt
 
-    public fun setup(param: KeyGenerationParameters)
+public interface ECDomainParameters {
 
-    public fun generateKeyPair(): AsymmetricCipherKeyPair<U, R>
+    public val hInv: BigInt
+
+    public fun getCurve(): ECCurve
+
+    public val G: ECPoint
+
+    public val N: BigInt
+
+    public val H: BigInt
+
+    public val seed: ByteArray
+
+    public fun equals(obj: Any): Boolean
+
+    public override fun hashCode(): Int
+
+    public fun validatePrivateScalar(d: BigInt): BigInt
+
+    public fun validatePublicPoint(q: ECPoint): ECPoint
 }
-

@@ -14,8 +14,8 @@
  */
 package org.angproj.crypt.kp
 
-import org.angproj.crypto.c.KeyParameter
-import org.angproj.crypto.c.Mac
+import org.angproj.crypt.c.KeyParameter
+import org.angproj.crypt.c.Mac
 import kotlin.math.max
 
 public class PaulssonMac: Mac {

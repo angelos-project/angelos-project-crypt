@@ -14,10 +14,7 @@
  */
 package org.angproj.crypt.c
 
-public interface AsymmetricCipherKeyPairGenerator<U: AsymmetricKeyParameter, R: AsymmetricKeyParameter> {
+public interface ECKeyParameters : AsymmetricKeyParameter {
 
-    public fun setup(param: KeyGenerationParameters)
-
-    public fun generateKeyPair(): AsymmetricCipherKeyPair<U, R>
+    public val parameters: ECDomainParameters
 }
-

@@ -1,16 +1,20 @@
-package org.angproj.crypto.c
-
 /**
- * Encodable digests allow you to download an encoded copy of their internal state. This is useful for the situation where
- * you need to generate a signature on an external device and it allows for "sign with last round", so a copy of the
- * internal state of the digest, plus the last few blocks of the message are all that needs to be sent, rather than the
- * entire message.
+ * Copyright (c) 2024 by Kristoffer Paulsson <kristoffer.paulsson@talenten.se>.
+ *
+ * This software is available under the terms of the MIT license. Parts are licensed
+ * under different terms if stated. The legal terms are attached to the LICENSE file
+ * and are made available on:
+ *
+ *      https://opensource.org/licenses/MIT
+ *
+ * SPDX-License-Identifier: MIT
+ *
+ * Contributors:
+ *      Kristoffer Paulsson - initial implementation
  */
+package org.angproj.crypt.c
+
 public interface EncodableDigest {
-    /**
-     * Return an encoded byte array for the digest's internal state
-     *
-     * @return an encoding of the digests internal state.
-     */
+
     public val encodedState: ByteArray
 }

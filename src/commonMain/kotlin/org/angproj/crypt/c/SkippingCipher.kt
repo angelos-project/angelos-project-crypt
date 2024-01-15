@@ -1,30 +1,24 @@
-package org.angproj.crypto.c
-
 /**
- * Ciphers producing a key stream which can be reset to particular points in the stream implement this.
+ * Copyright (c) 2024 by Kristoffer Paulsson <kristoffer.paulsson@talenten.se>.
+ *
+ * This software is available under the terms of the MIT license. Parts are licensed
+ * under different terms if stated. The legal terms are attached to the LICENSE file
+ * and are made available on:
+ *
+ *      https://opensource.org/licenses/MIT
+ *
+ * SPDX-License-Identifier: MIT
+ *
+ * Contributors:
+ *      Kristoffer Paulsson - initial implementation
  */
+package org.angproj.crypt.c
+
 public interface SkippingCipher {
-    /**
-     * Skip numberOfBytes forwards, or backwards.
-     *
-     * @param numberOfBytes the number of bytes to skip (positive forward, negative backwards).
-     * @return the number of bytes actually skipped.
-     * @throws java.lang.IllegalArgumentException if numberOfBytes is an invalid value.
-     */
+
+    public val position: Long
+
     public fun skip(numberOfBytes: Long): Long
 
-    /**
-     * Reset the cipher and then skip forward to a given position.
-     *
-     * @param position the number of bytes in to set the cipher state to.
-     * @return the byte position moved to.
-     */
     public fun seekTo(position: Long): Long
-
-    /**
-     * Return the current "position" of the cipher
-     *
-     * @return the current byte position.
-     */
-    public val position: Long
 }

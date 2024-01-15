@@ -13,6 +13,7 @@
  *      Kristoffer Paulsson - initial implementation
  */
 package org.angproj.crypt.kp
+
 import kotlin.math.min
 
 /**

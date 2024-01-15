@@ -14,10 +14,13 @@
  */
 package org.angproj.crypt.c
 
-public interface AsymmetricCipherKeyPairGenerator<U: AsymmetricKeyParameter, R: AsymmetricKeyParameter> {
+public interface AEADParameters : CipherParameters {
 
-    public fun setup(param: KeyGenerationParameters)
+    public val macSize: Int
 
-    public fun generateKeyPair(): AsymmetricCipherKeyPair<U, R>
+    public val key: KeyParameter
+
+    public val associatedText: ByteArray
+
+    public val nonce: ByteArray
 }
-

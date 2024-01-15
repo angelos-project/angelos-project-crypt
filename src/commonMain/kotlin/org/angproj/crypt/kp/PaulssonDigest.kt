@@ -17,7 +17,7 @@ package org.angproj.crypt.kp
 import org.angproj.aux.util.EndianAware
 import org.angproj.aux.util.floorMod
 import org.angproj.aux.util.readLongAt
-import org.angproj.crypto.c.ExtendedDigest
+import org.angproj.crypt.c.ExtendedDigest
 import kotlin.math.min
 
 public class PaulssonDigest: PaulssonSponge(), ExtendedDigest, EndianAware {

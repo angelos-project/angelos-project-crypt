@@ -1,29 +1,23 @@
-package org.angproj.crypto.c
-
 /**
- * Base interface for a cipher engine capable of processing multiple blocks at a time.
+ * Copyright (c) 2024 by Kristoffer Paulsson <kristoffer.paulsson@talenten.se>.
+ *
+ * This software is available under the terms of the MIT license. Parts are licensed
+ * under different terms if stated. The legal terms are attached to the LICENSE file
+ * and are made available on:
+ *
+ *      https://opensource.org/licenses/MIT
+ *
+ * SPDX-License-Identifier: MIT
+ *
+ * Contributors:
+ *      Kristoffer Paulsson - initial implementation
  */
+package org.angproj.crypt.c
+
 public interface MultiBlockCipher : BlockCipher {
-    /**
-     * Return the multi-block size for this cipher (in bytes).
-     *
-     * @return the multi-block size for this cipher in bytes.
-     */
+
     public val multiBlockSize: Int
 
-    /**
-     * Process blockCount blocks from input in offset inOff and place the output in
-     * out from offset outOff.
-     *
-     * @param in input data array.
-     * @param inOff start of input data in in.
-     * @param blockCount number of blocks to be processed.
-     * @param out output data array.
-     * @param outOff start position for output data.
-     * @return number of bytes written to out.
-     * @throws DataLengthException
-     * @throws IllegalStateException
-     */
     //@Throws(DataLengthException, IllegalStateException)
     public fun processBlocks(input: ByteArray, inOff: Int, blockCount: Int, out: ByteArray, outOff: Int): Int
 }

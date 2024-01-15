@@ -1,28 +1,22 @@
-package org.angproj.crypto.c
-
 /**
- * With FIPS PUB 202 a new kind of message digest was announced which supported extendable output, or variable digest sizes.
- * This interface provides the extra method required to support variable output on an extended digest implementation.
+ * Copyright (c) 2024 by Kristoffer Paulsson <kristoffer.paulsson@talenten.se>.
+ *
+ * This software is available under the terms of the MIT license. Parts are licensed
+ * under different terms if stated. The legal terms are attached to the LICENSE file
+ * and are made available on:
+ *
+ *      https://opensource.org/licenses/MIT
+ *
+ * SPDX-License-Identifier: MIT
+ *
+ * Contributors:
+ *      Kristoffer Paulsson - initial implementation
  */
+package org.angproj.crypt.c
+
 public interface Xof : ExtendedDigest {
-    /**
-     * Output the results of the final calculation for this digest to outLen number of bytes.
-     *
-     * @param out output array to write the output bytes to.
-     * @param outOff offset to start writing the bytes at.
-     * @param outLen the number of output bytes requested.
-     * @return the number of bytes written
-     */
+
     public fun doFinal(out: ByteArray, outOff: Int, outLen: Int): Int
 
-    /**
-     * Start outputting the results of the final calculation for this digest. Unlike doFinal, this method
-     * will continue producing output until the Xof is explicitly reset, or signals otherwise.
-     *
-     * @param out output array to write the output bytes to.
-     * @param outOff offset to start writing the bytes at.
-     * @param outLen the number of output bytes requested.
-     * @return the number of bytes written
-     */
     public fun doOutput(out: ByteArray, outOff: Int, outLen: Int): Int
 }

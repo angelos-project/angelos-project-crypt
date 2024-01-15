@@ -1,25 +1,22 @@
-package org.angproj.crypto.c
-
 /**
- * a holding class for public/private parameter pairs.
+ * Copyright (c) 2024 by Kristoffer Paulsson <kristoffer.paulsson@talenten.se>.
+ *
+ * This software is available under the terms of the MIT license. Parts are licensed
+ * under different terms if stated. The legal terms are attached to the LICENSE file
+ * and are made available on:
+ *
+ *      https://opensource.org/licenses/MIT
+ *
+ * SPDX-License-Identifier: MIT
+ *
+ * Contributors:
+ *      Kristoffer Paulsson - initial implementation
  */
-public class AsymmetricCipherKeyPair (
-    private val publicParam: AsymmetricKeyParameter,
-    private val privateParam: AsymmetricKeyParameter
-) {
-    /**
-     * return the public key parameters.
-     *
-     * @return the public key parameters.
-     */
-    public val public: AsymmetricKeyParameter
-        get() = publicParam
+package org.angproj.crypt.c
 
-    /**
-     * return the private key parameters.
-     *
-     * @return the private key parameters.
-     */
-    public val private: AsymmetricKeyParameter
-        get() = privateParam
+public interface AsymmetricCipherKeyPair<U: AsymmetricKeyParameter, R: AsymmetricKeyParameter> {
+
+    public val publicParam: U
+
+    public val privateParam: R
 }

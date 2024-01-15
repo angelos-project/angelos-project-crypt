@@ -14,10 +14,9 @@
  */
 package org.angproj.crypt.c
 
-public interface AsymmetricCipherKeyPairGenerator<U: AsymmetricKeyParameter, R: AsymmetricKeyParameter> {
+import org.angproj.aux.num.BigInt
 
-    public fun setup(param: KeyGenerationParameters)
+public interface ECPrivateKeyParameters : ECKeyParameters {
 
-    public fun generateKeyPair(): AsymmetricCipherKeyPair<U, R>
+    public val d: BigInt
 }
-

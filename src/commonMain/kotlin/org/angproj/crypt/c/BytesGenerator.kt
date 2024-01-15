@@ -14,10 +14,10 @@
  */
 package org.angproj.crypt.c
 
-public interface AsymmetricCipherKeyPairGenerator<U: AsymmetricKeyParameter, R: AsymmetricKeyParameter> {
+public interface BytesGenerator {
 
-    public fun setup(param: KeyGenerationParameters)
+    public fun setup(param: DerivationParameters)
 
-    public fun generateKeyPair(): AsymmetricCipherKeyPair<U, R>
+    //@Throws(DataLengthException, IllegalArgumentException)
+    public fun generateBytes(out: ByteArray, outOff: Int, len: Int): Int
 }
-
