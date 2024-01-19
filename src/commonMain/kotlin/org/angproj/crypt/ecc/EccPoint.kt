@@ -15,7 +15,7 @@
 package org.angproj.crypt.ecc
 
 import org.angproj.aux.num.BigInt
-import org.angproj.crypt.sec.SecDomainParameters
+import org.angproj.crypt.sec.SecCurves
 
 public class EccPoint (
     public val x: BigInt,
@@ -27,4 +27,4 @@ public class EccPoint (
     public fun isAtInfinity(): Boolean = this.y.equals(BigInt.zero)
 }
 
-public fun SecDomainParameters.getCoord(): EccPoint = EccPoint(this.Gc)
+public fun SecCurves.getCoord(): EccPoint = EccPoint(this.Gc)

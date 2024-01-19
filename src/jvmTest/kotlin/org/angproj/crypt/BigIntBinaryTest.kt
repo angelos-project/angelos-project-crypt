@@ -15,7 +15,7 @@ class BigIntBinaryTest {
 
     val vectcorListLong = Combinator.generateLongValueVector()
 
-    val dp: List<SecDomainParameters> = listOf(
+    val dp: List<SecCurves> = listOf(
         Secp192Koblitz1,
         Secp192Random1,
         Secp224Koblitz1,

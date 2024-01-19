@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2023 by Kristoffer Paulsson <kristoffer.paulsson@talenten.se>.
+ * Copyright (c) 2024 by Kristoffer Paulsson <kristoffer.paulsson@talenten.se>.
  *
  * This software is available under the terms of the MIT license. Parts are licensed
  * under different terms if stated. The legal terms are attached to the LICENSE file
@@ -15,14 +15,7 @@
 package org.angproj.crypt.sec
 
 import org.angproj.aux.num.BigInt
+import kotlin.jvm.JvmInline
 
-public interface SecTRandom: SecCurves {
-    //public override val p: BigInt
-    public override val a: BigInt
-    public override val b: BigInt
-    public val S: BigInt
-    public override val G: BigInt
-    public override val Gc: Pair<BigInt, BigInt>
-    public override val n: BigInt
-    public override val h: BigInt
-}
+@JvmInline
+public value class FieldElement(public val value: BigInt)

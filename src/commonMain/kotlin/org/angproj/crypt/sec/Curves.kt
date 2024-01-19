@@ -15,14 +15,11 @@
 package org.angproj.crypt.sec
 
 import org.angproj.aux.num.BigInt
+import org.angproj.aux.util.bigIntOf
+import org.angproj.aux.util.BinHex
 
-public interface SecTRandom: SecCurves {
-    //public override val p: BigInt
-    public override val a: BigInt
-    public override val b: BigInt
-    public val S: BigInt
-    public override val G: BigInt
-    public override val Gc: Pair<BigInt, BigInt>
-    public override val n: BigInt
-    public override val h: BigInt
+public interface Curves {
+    public val name: String
+
+    public fun fromHex(block: () -> String): Lazy<BigInt> = lazy { bigIntOf(BinHex.decodeToBin(block())) }
 }

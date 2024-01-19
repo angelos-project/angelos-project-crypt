@@ -18,7 +18,7 @@ import org.angproj.aux.num.BigInt
 import org.angproj.aux.util.bigIntOf
 import org.angproj.aux.util.BinHex
 
-public interface SecDomainParameters: DomainParameters {
+public interface SecCurves: Curves {
     public val strength: Int
     public val size: Int
 

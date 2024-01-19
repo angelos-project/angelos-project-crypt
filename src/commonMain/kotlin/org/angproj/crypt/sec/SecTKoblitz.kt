@@ -16,7 +16,7 @@ package org.angproj.crypt.sec
 
 import org.angproj.aux.num.BigInt
 
-public interface SecTKoblitz: SecDomainParameters {
+public interface SecTKoblitz: SecCurves {
     //public val p: ByteArray
     public override val a: BigInt
     public override val b: BigInt
