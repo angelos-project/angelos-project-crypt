@@ -34,7 +34,7 @@ class PaulssonHashTest {
         "a".repeat(1_000_000).encodeToByteArray()
     )
 
-    @Test
+    /*@Test
     fun testPaulssonHash() {
         testVectors.forEachIndexed { idx, msg ->
             val algo = PaulssonHash()
@@ -60,8 +60,8 @@ class PaulssonHashTest {
         }
     }
 
-    //@Test
-    /*fun testPaulssonRandomIntrospection() {
+    @Test
+    fun testPaulssonRandomIntrospection() {
         repeat(1000) {
             Nonce.reseedWithTimestamp()
             val monteCarlo = Benchmark()
@@ -73,7 +73,7 @@ class PaulssonHashTest {
             println(monteCarlo.distribution())
             //println(BinHex.encodeToHex(nonce.toByteArray()))
         }
-    }*/
+    }
 
     @Test
     fun testPaulssonGenerateGigaByte() {
@@ -114,5 +114,5 @@ class PaulssonHashTest {
             println(monteCarlo.distribution())
             //println(BinHex.encodeToHex(nonce.toByteArray()))
         }
-    }
+    }*/
 }

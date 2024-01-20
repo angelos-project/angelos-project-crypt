@@ -30,7 +30,7 @@ public interface ECDomainParameters {
 
     public val seed: ByteArray
 
-    public fun equals(obj: Any): Boolean
+    //public fun equals(obj: Any): Boolean
 
     public override fun hashCode(): Int
 

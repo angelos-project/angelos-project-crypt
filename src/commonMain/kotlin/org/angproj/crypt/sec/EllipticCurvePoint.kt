@@ -25,13 +25,14 @@ public class EllipticCurvePoint (
      *  sec1-v2.pdf -- 2.3.3 Elliptic-Curve-Point-to-Octet-String Conversion.
      * */
     public fun toOctetString(compress: Boolean = true): OctetString {
-        if (isAtInfinity()) return OctetString(byteArrayOf(0x00))
+        /*if (isAtInfinity()) return OctetString(byteArrayOf(0x00))
         return when(compress) {
             true -> {
                 val xB = x.toRawOctetString(x.log2() / 8)
             }
             else -> {}
-        }
+        }*/
+        return OctetString(byteArrayOf())
     }
 
     public fun isAtInfinity(): Boolean = y.equals(BigInt.zero)
