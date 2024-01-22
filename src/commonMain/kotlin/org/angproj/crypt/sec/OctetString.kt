@@ -20,7 +20,7 @@ import org.angproj.aux.util.encodeToHex
 import kotlin.jvm.JvmInline
 
 @JvmInline
-public value class OctetString(private val octets: ByteArray) {
+public value class OctetString(internal val octets: ByteArray) {
 
     public val value: ByteArray
         get() = octets.copyOf()

@@ -16,9 +16,7 @@ package org.angproj.crypt.sec
 
 import org.angproj.aux.num.BigInt
 import org.angproj.aux.util.bigIntOf
-import org.angproj.crypt.number.plus
 import org.angproj.crypt.number.pow
-import org.angproj.crypt.number.times
 
 public object Convention {
 
@@ -40,12 +38,38 @@ public object Convention {
     /**
      * sec1-v2.pdf -- 2.3.4 Octet-String-to-Elliptic-Curve-Point Conversion.
      * */
-    public fun octetString2ellipticCurvePoint(o: OctetString): EllipticCurvePoint = TODO("To be implemented soon!")
+    public fun octetString2ellipticCurvePoint(M: OctetString, q: DomainParameters): EllipticCurvePoint {
+        val len = messageLengthOf(q)
+        return when(M.octets.size) {
+            1 -> EllipticCurvePoint(BigInt.minusOne, BigInt.minusOne)
+            len + 1 -> {
+                val Y = OctetString(byteArrayOf(M.octets.first()))
+                val X = OctetString(M.octets.sliceArray(1..M.octets.size))
+                val xp = octetString2fieldElement(X, q)
+                val yp = when(Y.octets.first().toInt()) {
+                    0x02 -> FieldElement(BigInt.zero)
+                    0x03 -> FieldElement(BigInt.one)
+                    else -> error("Invalid Y value, 0x02 or 0x03 expected.")
+                }
+                TODO("CONTINUE HERE, after implementing BigInt sqrt")
+            }
+            2 * len + 1 -> { TODO("IMPLEMENT SOON") }
+            else -> error("Unknown standard of elliptic curve point.")
+        }
+    }
 
     /**
      * sec1-v2.pdf -- 2.3.5 Field-Element-to-Octet-String Conversion.
      * */
-    public fun fieldElement2octetString(e: FieldElement): OctetString = TODO("To be implemented soon!")
+    public fun fieldElement2octetString(a: FieldElement, q: DomainParameters): OctetString {
+        val mlen = messageLengthOf(q)
+        val M = integer2octetSting(Integer(a.value), mlen)
+        return when(q) {
+            is PrimeDomainParameters -> M
+            is Char2DomainParameters -> M.also { setC2LeftmostZero(M.octets, q) }
+            else -> error("Unsupported curve.")
+        }
+    }
 
     /**
      * sec1-v2.pdf -- 2.3.6 Octet-String-to-Field-Element Conversion.
@@ -54,7 +78,18 @@ public object Convention {
         val mlen = messageLengthOf(q)
         check(M.value.size == mlen) {
             "The octet string is not of required size regarding the curve requirements." }
-        TODO("CONTINUE HERE")
+        return when(q) {
+            is PrimeDomainParameters -> {
+                val tmp = octetString2integer(M)
+                check(isWithinFinite(tmp.value, q)) { "Not within the finite field." }
+                FieldElement(tmp.value)
+            }
+            is Char2DomainParameters -> {
+                check(isC2LeftmostZero(M.octets, q)) { "Leftmost bits are not zero." }
+                FieldElement(bigIntOf(M.octets))
+            }
+            else -> error("Unsupported curve")
+        }
     }
 
     /**
@@ -90,7 +125,7 @@ public object Convention {
 
     private fun isWithinFinite(f: BigInt, q: DomainParameters): Boolean = when(q) {
         is PrimeDomainParameters -> f.sigNum.isNonNegative() && f.compareTo(q.p).isLesser()
-        is Char2DomainParameters -> { BigInt.two.pow(q.m.bits - 1).compareTo(f).isGreaterOrEqual() }
+        is Char2DomainParameters -> BigInt.two.pow(q.m.bits - 1).compareTo(f).isGreaterOrEqual()
         else -> error("Unsupported curve!")
     }
 
@@ -99,6 +134,16 @@ public object Convention {
         is Char2DomainParameters -> q.m.bits
         else -> error("Unsupported curve!")
     } / Byte.SIZE_BITS
+
+    private fun isC2LeftmostZero(b: ByteArray, q: Char2DomainParameters): Boolean {
+        val mask = 0xffffffffL shl (8 - (b.size * Byte.SIZE_BITS - q.m.bits))
+        return (b[0].toLong() and 0xffffffffL) and mask == 0L
+    }
+
+    private fun setC2LeftmostZero(b: ByteArray, q: Char2DomainParameters) {
+        val mask = 0xffL shl (b.size * Byte.SIZE_BITS - q.m.bits)
+        b[0] = ((b[0].toLong() and 0xffffffffL) and mask).toByte()
+    }
 
     /**
      * 2.1.1 The Finite Field Fp.
