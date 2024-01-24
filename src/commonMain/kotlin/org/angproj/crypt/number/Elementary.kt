@@ -17,8 +17,15 @@ package org.angproj.crypt.number
 import org.angproj.aux.num.AbstractBigInt
 import org.angproj.aux.num.BigInt
 import org.angproj.aux.num.MutableBigInt
-import kotlin.math.ceil
-import kotlin.math.roundToInt
+import org.angproj.aux.util.BinHex
+import org.angproj.aux.util.bigIntOf
+import kotlin.math.absoluteValue
+import kotlin.math.sqrt
+
+public fun AbstractBigInt<*>.pow2(): AbstractBigInt<*> = when {
+    sigNum.isZero() -> this
+    else -> of((this * this).toRawIntArray())
+}
 
 public infix fun AbstractBigInt<*>.pow(exponent: Int): AbstractBigInt<*> = when {
     exponent < 0 -> error("Negative exponent")
@@ -51,6 +58,33 @@ internal fun MutableBigInt.Companion.power(base: AbstractBigInt<*>, exponent: In
     return total
 }
 
-public fun AbstractBigInt<*>.log2(): Int {
-    return ceil((bitLength + sigNum.signed + 1).toDouble()).roundToInt()
+public fun AbstractBigInt<*>.log2(): Long {
+    return bitLength.toLong()
+}
+
+public fun AbstractBigInt<*>.sqrt(): AbstractBigInt<*> = when {
+    this.sigNum.isNegative() -> error("Negative value")
+    else -> MutableBigInt.squareRoot(this)
+}
+
+internal fun MutableBigInt.Companion.squareRoot(value: AbstractBigInt<*>): AbstractBigInt<*> {
+    var root = value.shr(value.bitLength / 2 + 1)
+    var pow2: AbstractBigInt<*>
+    var diff: AbstractBigInt<*>
+    var loops = 0
+
+    do {
+        pow2 = root.pow2()
+        diff = value - pow2
+        val corr =  diff.shr(pow2.bitLength / 2 + 2)
+        println("C: " + corr.sigNum + " " + BinHex.encodeToHex(corr.toByteArray()))
+        root += corr
+        loops++
+    } while (corr.bitLength != 0)
+    println("LOOPS: " + loops)
+    //val diff = value - pow2
+    println("V: " + value.sigNum + " " + BinHex.encodeToHex(value.toByteArray()))
+    println("P: " + pow2.sigNum + " " + BinHex.encodeToHex(pow2.toByteArray()))
+    println("D: " + diff.sigNum + " " + BinHex.encodeToHex(diff.toByteArray()))
+    return root
 }

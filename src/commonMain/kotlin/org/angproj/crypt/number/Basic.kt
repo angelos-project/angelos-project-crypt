@@ -18,6 +18,16 @@ import org.angproj.aux.util.mutableBigIntOf
 import org.angproj.aux.num.*
 import org.angproj.aux.num.AbstractBigInt.Companion.getL
 
+public fun AbstractBigInt<*>.isOdd(): Boolean = when {
+    sigNum.isZero() -> false
+    else -> mag.last() and 1 == 1
+}
+
+public fun AbstractBigInt<*>.isEven(): Boolean = when {
+    sigNum.isZero() -> true
+    else -> mag.last() and 1 == 0
+}
+
 public operator fun AbstractBigInt<*>.unaryMinus(): AbstractBigInt<*> = negate()
 
 public operator fun AbstractBigInt<*>.plus(other: AbstractBigInt<*>): AbstractBigInt<*> = add(other)

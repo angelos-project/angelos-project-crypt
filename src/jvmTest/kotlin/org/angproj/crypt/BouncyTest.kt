@@ -2,6 +2,7 @@ package org.angproj.crypt
 
 import org.angproj.aux.num.BigInt
 import org.angproj.aux.util.BinHex
+import org.angproj.crypt.number.minus
 import org.angproj.crypt.number.plus
 import org.angproj.crypt.number.pow
 import java.math.BigInteger
@@ -20,6 +21,13 @@ class BouncyTest {
         println(BigInteger(polred.toByteArray()).toString())
         println(BinHex.encodeToHex(polred.toByteArray()))
         println(polred.toByteArray().size * 8)
+
+
+        val prime = BigInt.two.pow(1279) - BigInt.one
+
+        println(BigInteger(prime.toByteArray()).toString())
+        println(BinHex.encodeToHex(prime.toByteArray()))
+        println(prime.toByteArray().size * 8)
 
         /*val plainText = "Apan Herbert!".encodeToByteArray()
 
