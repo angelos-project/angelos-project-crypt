@@ -16,7 +16,7 @@ class BigIntElementaryTest {
 
     val vectorList = Combinator.generateValueVector()
     val exponentList = listOf(0, 1, 2, 3, 4, 5, 6, 7, 8, 9)
-    val longVector = List(128) { Random.nextLong().absoluteValue }
+    val positiveVector = Combinator.generatePositiveValueVector()
 
     @Test
     fun pow2Test() {
@@ -33,9 +33,10 @@ class BigIntElementaryTest {
     }
 
     @Test
-    fun log2Test() {
-        Combinator.doLongVectorTests(longVector) { xbi, x ->
+    fun sqrtTest() {
+        Combinator.doVectorTests(positiveVector) { xbi, x ->
             Pair(xbi.sqrt(), x.sqrt())
         }
     }
 }
+

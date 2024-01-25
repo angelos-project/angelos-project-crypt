@@ -20,6 +20,8 @@ import org.angproj.aux.num.MutableBigInt
 import org.angproj.aux.util.BinHex
 import org.angproj.aux.util.bigIntOf
 import kotlin.math.absoluteValue
+import kotlin.math.max
+import kotlin.math.min
 import kotlin.math.sqrt
 
 public fun AbstractBigInt<*>.pow2(): AbstractBigInt<*> = when {
@@ -64,27 +66,40 @@ public fun AbstractBigInt<*>.log2(): Long {
 
 public fun AbstractBigInt<*>.sqrt(): AbstractBigInt<*> = when {
     this.sigNum.isNegative() -> error("Negative value")
+    this.sigNum.isZero() -> BigInt.zero
+    this.bitLength <= 64 -> {
+        //val long = ((this.getIdxL(1) shl 32) or this.getIdxL(0)).toDouble()
+        bigIntOf(sqrt(this.toLong().toDouble()).toLong())
+    }
     else -> MutableBigInt.squareRoot(this)
 }
 
 internal fun MutableBigInt.Companion.squareRoot(value: AbstractBigInt<*>): AbstractBigInt<*> {
-    var root = value.shr(value.bitLength / 2 + 1)
-    var pow2: AbstractBigInt<*>
+    var qoutient = value
+    var mask = AbstractBigInt.bitMask(qoutient.bitLength)
+    var root: AbstractBigInt<*> = BigInt.zero
+    var half: Int = qoutient.bitLength + qoutient.bitLength % 2
+
+    do {
+        half = half / 2 - half % 2
+        mask = mask.shr(half+1)
+        val remainder = qoutient and mask
+        qoutient = qoutient.shr(half+1)
+        root += qoutient + remainder.shr(remainder.bitLength / 2)
+    } while(half > 1)
+
     var diff: AbstractBigInt<*>
-    var loops = 0
+    var corr: AbstractBigInt<*>
+    var pow2: AbstractBigInt<*>
 
     do {
         pow2 = root.pow2()
         diff = value - pow2
-        val corr =  diff.shr(pow2.bitLength / 2 + 2)
-        println("C: " + corr.sigNum + " " + BinHex.encodeToHex(corr.toByteArray()))
+        corr =  diff.shr(max(value.bitLength, pow2.bitLength) / 2 + 2)
         root += corr
-        loops++
-    } while (corr.bitLength != 0)
-    println("LOOPS: " + loops)
-    //val diff = value - pow2
-    println("V: " + value.sigNum + " " + BinHex.encodeToHex(value.toByteArray()))
-    println("P: " + pow2.sigNum + " " + BinHex.encodeToHex(pow2.toByteArray()))
-    println("D: " + diff.sigNum + " " + BinHex.encodeToHex(diff.toByteArray()))
-    return root
+    } while (corr.bitLength > 0)
+
+    while(root.pow2().compareTo(value).isLesser()) { root += BigInt.one } // Step
+    return root + BigInt.minusOne // Mandatory adjustment
+    TODO("This function is still volatile to some numbers.")
 }

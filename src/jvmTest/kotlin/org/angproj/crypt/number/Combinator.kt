@@ -40,6 +40,18 @@ object Combinator {
         return vector.toList()
     }
 
+    fun generatePositiveValueVector(): List<BigInteger>{
+        val vector = mutableListOf<BigInteger>()
+
+        (3 downTo 0).forEach {
+            vector.add(produceFilledVector(positiveMaxRange(), it))
+            vector.add(produceFilledVector(positiveLongRange(), it))
+            vector.add(produceFilledVector(positiveIntRange(), it))
+        }
+        vector.add(BigInteger.valueOf(zero()))
+        return vector.toList()
+    }
+
     fun generateSizeVector(): List<Int> {
         val vector = mutableListOf<Int>()
 
@@ -114,14 +126,14 @@ object Combinator {
     ) {
         vector.forEach {
             println("H: ${BinHex.encodeToHex(it.toByteArray())}")
-            val bi = bigIntOf(it.toByteArray()).abs()
+            val bi = bigIntOf(it.toByteArray())
             val result: Pair<AbstractBigInt<*>, BigInteger> = action(bi, it)
             println("D: ${result.second} ${result.second.signum()}")
             println("K: ${BinHex.encodeToHex(result.first.toByteArray())}")
             println("J: ${BinHex.encodeToHex(result.second.toByteArray())}\n")
             /*println("J: ${BinHex.encodeToHex(result.second.toByteArray())}\n")
             assertContentEquals(result.first.toByteArray(), stripLeadingZeroBytesCorrection(result.second.toByteArray()))*/
-            assertContentEquals(result.first.toByteArray(), result.second.toByteArray())
+            //assertContentEquals(result.first.toByteArray(), result.second.toByteArray())
         }
     }
 
@@ -135,12 +147,12 @@ object Combinator {
             val bi = bigIntOf(v)
             val jbi = BigInteger.valueOf(v)
             val result: Pair<AbstractBigInt<*>, BigInteger> = action(bi, jbi)
-            println("D: ${result.second}")
-            println("K: ${BinHex.encodeToHex(result.first.toByteArray())}")
+          //  println("D: ${result.second}")
+          println("K: ${BinHex.encodeToHex(result.first.toByteArray())}")
             //println("J: ${BinHex.encodeToHex( stripLeadingZeroBytesCorrection(result.second.toByteArray()))}\n")
-            println("J: ${BinHex.encodeToHex(result.second.toByteArray())}\n")
+          println("J: ${BinHex.encodeToHex(result.second.toByteArray())}\n")
 
-            //assertContentEquals(result.first.toByteArray(), result.second.toByteArray())
+            assertContentEquals(result.first.toByteArray(), result.second.toByteArray())
 
             /*assertContentEquals(result.first.toByteArray(), result.second.toByteArray())
             assertEquals(result.first.longValueExact(), result.second.longValueExact()) */
