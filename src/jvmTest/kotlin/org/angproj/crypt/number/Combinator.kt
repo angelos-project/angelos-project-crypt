@@ -313,14 +313,4 @@ object Combinator {
             }
         }
     }
-
-    fun stripLeadingZeroBytesCorrection(value: ByteArray): ByteArray {
-        val keep = when(val idx = value.indexOfFirst { it.toInt() != 0 }) {
-            //-1 -> value.size
-            //else -> idx
-            -1 -> 0
-            else -> idx
-        }
-        return value.copyOfRange(keep, value.size)
-    }
 }

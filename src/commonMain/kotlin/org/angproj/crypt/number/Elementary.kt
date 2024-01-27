@@ -17,7 +17,6 @@ package org.angproj.crypt.number
 import org.angproj.aux.num.AbstractBigInt
 import org.angproj.aux.num.BigInt
 import org.angproj.aux.num.MutableBigInt
-import org.angproj.aux.util.BinHex
 import org.angproj.aux.util.bigIntOf
 import kotlin.math.*
 
@@ -65,19 +64,41 @@ public fun AbstractBigInt<*>.sqrt(): AbstractBigInt<*> = when {
     this.sigNum.isNegative() -> error("Negative value")
     this.sigNum.isZero() -> BigInt.zero
     this.bitLength <= 64 -> bigIntOf(sqrt(this.toLong().toDouble()).toLong())
+    this.bitLength <= 128 -> MutableBigInt.squareRootBelow128(this)
     else -> MutableBigInt.squareRoot(this)
 }
 
 internal fun MutableBigInt.Companion.squareRoot(value: AbstractBigInt<*>): AbstractBigInt<*> {
+    var qoutient = value
+    var root: AbstractBigInt<*> = BigInt.zero
+
+    do {
+        var shift = qoutient.bitLength - 63
+        if (shift % 2 == 1) shift++
+        val mask = AbstractBigInt.bitMask(shift)
+        val sqrt = bigIntOf(ceil(sqrt(qoutient.shr(shift).toLong().toDouble())).toLong())
+        root += sqrt.shl(shift / 2 - 1) * BigInt.two
+        qoutient = qoutient and mask
+    } while(qoutient.bitLength >= 63)
+
+    while(true) {
+        val tmp = value.divide(root).add(root).shr(1)
+        if (tmp.compareTo(root).isGreaterOrEqual()) break
+        root = tmp
+    }
+    return root
+}
+
+internal fun MutableBigInt.Companion.squareRootBelow128(value: AbstractBigInt<*>): AbstractBigInt<*> {
     var shift = value.bitLength - 63
     if (shift % 2 == 1) shift++
 
-    var xk = bigIntOf(ceil(sqrt(value.shr(shift).toLong().toDouble())).toLong()).shl(shift / 2)
+    var root = bigIntOf(ceil(sqrt(value.shr(shift).toLong().toDouble())).toLong()).shl(shift / 2)
 
     while(true) {
-        val tmp = value.divide(xk).add(xk).shr(1)
-        if (tmp.compareTo(xk).isGreaterOrEqual()) break
-        xk = tmp
+        val corr = value.divide(root).add(root).shr(1)
+        if (corr.compareTo(root).isGreaterOrEqual()) break
+        root = corr
     }
-    return xk
+    return root
 }

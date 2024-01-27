@@ -1,16 +1,7 @@
 package org.angproj.crypt
 
-import org.angproj.aux.num.BigInt
-import org.angproj.aux.util.BinHex
-import org.angproj.aux.util.bigIntOf
 import org.angproj.crypt.number.*
-import java.math.BigInteger
-import kotlin.math.absoluteValue
-import kotlin.math.log2
-import kotlin.random.Random
 import kotlin.test.Test
-import kotlin.test.assertContentEquals
-import kotlin.test.assertEquals
 
 class BigIntElementaryTest {
 
