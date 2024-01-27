@@ -133,7 +133,7 @@ object Combinator {
             println("J: ${BinHex.encodeToHex(result.second.toByteArray())}\n")
             /*println("J: ${BinHex.encodeToHex(result.second.toByteArray())}\n")
             assertContentEquals(result.first.toByteArray(), stripLeadingZeroBytesCorrection(result.second.toByteArray()))*/
-            //assertContentEquals(result.first.toByteArray(), result.second.toByteArray())
+            assertContentEquals(result.first.toByteArray(), result.second.toByteArray())
         }
     }
 

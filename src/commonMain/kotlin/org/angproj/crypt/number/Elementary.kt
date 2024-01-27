@@ -19,10 +19,7 @@ import org.angproj.aux.num.BigInt
 import org.angproj.aux.num.MutableBigInt
 import org.angproj.aux.util.BinHex
 import org.angproj.aux.util.bigIntOf
-import kotlin.math.absoluteValue
-import kotlin.math.max
-import kotlin.math.min
-import kotlin.math.sqrt
+import kotlin.math.*
 
 public fun AbstractBigInt<*>.pow2(): AbstractBigInt<*> = when {
     sigNum.isZero() -> this
@@ -67,39 +64,20 @@ public fun AbstractBigInt<*>.log2(): Long {
 public fun AbstractBigInt<*>.sqrt(): AbstractBigInt<*> = when {
     this.sigNum.isNegative() -> error("Negative value")
     this.sigNum.isZero() -> BigInt.zero
-    this.bitLength <= 64 -> {
-        //val long = ((this.getIdxL(1) shl 32) or this.getIdxL(0)).toDouble()
-        bigIntOf(sqrt(this.toLong().toDouble()).toLong())
-    }
+    this.bitLength <= 64 -> bigIntOf(sqrt(this.toLong().toDouble()).toLong())
     else -> MutableBigInt.squareRoot(this)
 }
 
 internal fun MutableBigInt.Companion.squareRoot(value: AbstractBigInt<*>): AbstractBigInt<*> {
-    var qoutient = value
-    var mask = AbstractBigInt.bitMask(qoutient.bitLength)
-    var root: AbstractBigInt<*> = BigInt.zero
-    var half: Int = qoutient.bitLength + qoutient.bitLength % 2
+    var shift = value.bitLength - 63
+    if (shift % 2 == 1) shift++
 
-    do {
-        half = half / 2 - half % 2
-        mask = mask.shr(half+1)
-        val remainder = qoutient and mask
-        qoutient = qoutient.shr(half+1)
-        root += qoutient + remainder.shr(remainder.bitLength / 2)
-    } while(half > 1)
+    var xk = bigIntOf(ceil(sqrt(value.shr(shift).toLong().toDouble())).toLong()).shl(shift / 2)
 
-    var diff: AbstractBigInt<*>
-    var corr: AbstractBigInt<*>
-    var pow2: AbstractBigInt<*>
-
-    do {
-        pow2 = root.pow2()
-        diff = value - pow2
-        corr =  diff.shr(max(value.bitLength, pow2.bitLength) / 2 + 2)
-        root += corr
-    } while (corr.bitLength > 0)
-
-    while(root.pow2().compareTo(value).isLesser()) { root += BigInt.one } // Step
-    return root + BigInt.minusOne // Mandatory adjustment
-    TODO("This function is still volatile to some numbers.")
+    while(true) {
+        val tmp = value.divide(xk).add(xk).shr(1)
+        if (tmp.compareTo(xk).isGreaterOrEqual()) break
+        xk = tmp
+    }
+    return xk
 }
