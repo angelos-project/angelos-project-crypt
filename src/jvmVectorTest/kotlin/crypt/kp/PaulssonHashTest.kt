@@ -3,6 +3,7 @@ package crypt.kp
 import org.angproj.aux.util.*
 import org.angproj.crypt.kp.PaulssonSponge
 import java.io.File
+import java.math.BigInteger
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -115,4 +116,20 @@ class PaulssonHashTest {
             //println(BinHex.encodeToHex(nonce.toByteArray()))
         }
     }*/
+
+    @Test
+    fun testPrime() {
+        var a = BigInteger.valueOf(7)
+        var b: BigInteger
+        (2 until 1000).forEach {
+            val n = BigInteger.valueOf(it.toLong())
+            val p = n.gcd(a)
+            val i = n
+            b = a + p
+            //val c = (b-a).toLong()
+            //if(c != 1L) println("${n - BigInteger.ONE}, ${c}");
+            a = b
+            println(a)
+        }
+    }
 }

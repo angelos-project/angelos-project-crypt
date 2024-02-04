@@ -14,16 +14,11 @@
  */
 package org.angproj.crypt.sec
 
-import org.angproj.aux.num.BigInt
+import kotlin.jvm.JvmInline
 
-/**
- * sec1-v2.pdf -- 3.1.1 Elliptic Curve Domain Parameters over Fp.
- * */
-public data class PrimeDomainParameters(
-    public var p: BigInt, /* An integer p specifying the finite field Fp. */
-    override var a: FieldElement,
-    override var b: FieldElement,
-    override var G: EllipticCurvePoint,
-    override var n: BigInt,
-    override var h: BigInt
-) : DomainParameters
+@JvmInline
+public value class BitString(internal val bits: ByteArray) {
+
+    public val value: ByteArray
+        get() = bits.copyOf()
+}

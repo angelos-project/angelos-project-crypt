@@ -20,11 +20,11 @@ import org.angproj.aux.num.BigInt
  * sec1-v2.pdf -- 3.1.2 Elliptic Curve Domain Parameters over F2m.
  * */
 public data class Char2DomainParameters(
-    public val m: ReductionPolynominals, /* An integer m specifying the finite field F2m. */
+    public val m: Int, /* An integer m specifying the finite field F2m. */
     public val x: BigInt, /* An irreducible binary polynomial f(x) of degree m specifying the representation of F2m. */
-    public val a: FieldElement, /* Two elements a, b ∈ F2m specifying the elliptic curve E(F2m). */
-    public val b: FieldElement,
-    public val G: EllipticCurvePoint, /* A base point G = (xG, yG) on E(F2m). */
-    public val n: BigInt, /* A prime n which is the order of G. */
-    public val h: BigInt /* An integer h which is the cofactor h = #E(F2m)/n. */
-): DomainParameters
+    override var a: FieldElement,
+    override var b: FieldElement,
+    override var G: EllipticCurvePoint,
+    override var n: BigInt,
+    override var h: BigInt
+) : DomainParameters

@@ -17,7 +17,6 @@ package org.angproj.crypt.number
 import org.angproj.aux.num.AbstractBigInt
 import org.angproj.aux.num.BigInt
 import org.angproj.aux.num.MutableBigInt
-import org.angproj.aux.util.BinHex
 import org.angproj.aux.util.bigIntOf
 import kotlin.math.*
 
@@ -69,22 +68,22 @@ public fun AbstractBigInt<*>.sqrt(): AbstractBigInt<*> = when {
 }
 
 internal fun MutableBigInt.Companion.squareRoot(value: AbstractBigInt<*>): AbstractBigInt<*> {
-    var qoutient = value
+    var dividend = value
     var root: AbstractBigInt<*> = BigInt.zero
-    var mask = AbstractBigInt.bitMask(qoutient.bitLength)
+    var mask = AbstractBigInt.bitMask(dividend.bitLength)
     val size = when(value.bitLength > 127) {
         true -> 63
         else -> 31
     }
 
-    do {
-        var shift = qoutient.bitLength - size
+    while(dividend.bitLength >= size) {
+        var shift = dividend.bitLength - size
         if (shift % 2 == 1) shift++
         mask = mask.shr(size)
-        val sqrt = ceil(sqrt(qoutient.shr(shift).toLong().toDouble())).toLong()
+        val sqrt = ceil(sqrt(dividend.shr(shift).toLong().toDouble())).toLong()
         root += bigIntOf(sqrt).shl(shift / 2 - 1) * BigInt.two
-        qoutient = qoutient and mask
-    } while(qoutient.bitLength >= size)
+        dividend = dividend and mask
+    }
 
     while(true) {
         val corr = value.divide(root).add(root).shr(1)
