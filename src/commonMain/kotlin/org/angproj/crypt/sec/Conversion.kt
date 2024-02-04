@@ -71,7 +71,31 @@ public object Conversion {
     /**
      * sec1-v2.pdf -- 2.3.4 Octet-String-to-Elliptic-Curve-Point Conversion.
      * */
-    public fun octetString2ellipticCurvePoint(M: OctetString, q: DomainParameters): EllipticCurvePoint = TODO("To be implemented soon!")
+    public fun octetString2ellipticCurvePoint(M: OctetString, q: DomainParameters): EllipticCurvePoint {
+        val mlen = Convention.mlen(q)
+        val type = M.octets.first().toInt()
+        return when(type) {
+            0 -> {
+                check(M.octets.size == 1) { "Wrong size for infinity point." }
+                EllipticCurvePoint(FieldElement(BigInt.zero), FieldElement(BigInt.zero))
+            }
+            2, 3 -> {
+                check(M.octets.size == mlen + 1) { "Wrong size for compressed point." }
+                val X = OctetString(M.octets.copyOfRange(1, 1 + mlen))
+                val y = type - 2
+                TODO("Implement compressed elliptic curve.")
+            }
+            4 -> {
+                check(M.octets.size == 2 * mlen + 1) { "Wrong size for uncompressed point." }
+                val X = OctetString(M.octets.copyOfRange(1, 1 + mlen))
+                val Y = OctetString(M.octets.copyOfRange(1 + mlen, M.octets.size))
+                EllipticCurvePoint(octetString2fieldElement(X, q), octetString2fieldElement(Y, q)).also {
+                    check(Convention.pointSatisfyDefiningEquation(it, q)) {
+                        "Point does not satisfy the curves defining equation." } }
+            }
+            else -> error("Wrong curve or invalid data octets.")
+        }
+    }
 
     /**
      * sec1-v2.pdf -- 2.3.5 Field-Element-to-Octet-String Conversion.
@@ -95,7 +119,7 @@ public object Conversion {
             FieldElement(x.value)
         }
         is Char2DomainParameters -> {
-            check(Convention.char2SatisfyDegree(M.octets, q)) { "Left most bits are not zeros." }
+            check(Convention.char2satisfyDegree(M.octets, q)) { "Left most bits are not zeros." }
             FieldElement(bigIntOf(byteArrayOf(0) + M.octets)) // <- Presumably this is right but can be totally wrong.
         }
         else -> error("Not implemented.")
