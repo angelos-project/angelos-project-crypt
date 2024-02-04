@@ -15,6 +15,7 @@
 package org.angproj.crypt.sec
 
 import org.angproj.aux.num.BigInt
+import org.angproj.aux.util.bigIntOf
 import org.angproj.crypt.number.mod
 
 /**
@@ -79,7 +80,7 @@ public object Conversion {
         is PrimeDomainParameters -> integer2octetSting(Integer(a.value), Convention.mlen(q))
         is Char2DomainParameters -> {
             val mlen = Convention.mlen(q)
-            integer2octetSting(Integer(a.value), mlen) // <- This is maybe correct and maybe totally wrong!
+            integer2octetSting(Integer(a.value), mlen) // <- This is may be correct and may be totally wrong!
         }
         else -> error("Not implemented.")
     }
@@ -87,7 +88,18 @@ public object Conversion {
     /**
      * sec1-v2.pdf -- 2.3.6 Octet-String-to-Field-Element Conversion.
      * */
-    public fun octetString2fieldElement(M: OctetString, q: DomainParameters): FieldElement = TODO("To be implemented soon!")
+    public fun octetString2fieldElement(M: OctetString, q: DomainParameters): FieldElement = when(q) {
+        is PrimeDomainParameters -> {
+            val x = octetString2integer(M).also {
+                check(Convention.primeSatisfyInterval(it.value, q)) { "Value not inside [0, p − 1]" } }
+            FieldElement(x.value)
+        }
+        is Char2DomainParameters -> {
+            check(Convention.char2SatisfyDegree(M.octets, q)) { "Left most bits are not zeros." }
+            FieldElement(bigIntOf(byteArrayOf(0) + M.octets)) // <- Presumably this is right but can be totally wrong.
+        }
+        else -> error("Not implemented.")
+    }
 
     /**
      * sec1-v2.pdf -- 2.3.7 Integer-to-Octet-String Conversion.
@@ -104,10 +116,15 @@ public object Conversion {
     /**
      * sec1-v2.pdf -- 2.3.8 Octet-String-to-Integer Conversion.
      * */
-    public fun octetString2integer(M: OctetString): Integer = TODO("To be implemented soon!")
+    public fun octetString2integer(M: OctetString): Integer = Integer(
+        bigIntOf(byteArrayOf(0) + M.value)) // Assumes BigInt methodology applies directly!
 
     /**
      * sec1-v2.pdf -- 2.3.9 Field-Element-to-Integer Conversion.
      * */
-    public fun fieldElement2integer(a: FieldElement, q: DomainParameters): Integer = TODO("To be implemented soon!")
+    public fun fieldElement2integer(a: FieldElement, q: DomainParameters): Integer =  when(q) {
+        is PrimeDomainParameters -> Integer(a.value)
+        is Char2DomainParameters -> Integer(a.value) // <- Seriously the same or not?
+        else -> error("Not implemented.")
+    }
 }

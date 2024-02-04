@@ -157,6 +157,15 @@ public object Convention {
 
     public fun mlen(q: DomainParameters): Int = ceil(log2q(q) / 8f).toInt()
 
+    public fun primeSatisfyInterval(value: BigInt, q: PrimeDomainParameters): Boolean {
+        return value.compareTo(BigInt.zero).isGreaterOrEqual() && value.compareTo(q.p).isLesser() }
+
+    public fun char2SatisfyDegree(value: ByteArray, q: Char2DomainParameters): Boolean {
+        val mlen = 8 * mlen(q) - q.m
+        val mask: Long = 0xffffffff shl (8 - mlen)
+        return mask and value.first().toLong() == 0L
+    }
+
     internal fun isWithinFinite(f: BigInt, q: DomainParameters): Boolean = when(q) {
         is PrimeDomainParameters -> f.sigNum.isNonNegative() && f.compareTo(q.p).isLesser()
         is Char2DomainParameters -> BigInt.two.pow(q.m - 1).compareTo(f).isGreaterOrEqual()
