@@ -17,7 +17,7 @@ package org.angproj.crypt.sec
 import org.angproj.aux.num.BigInt
 
 public object Sect163Random2 : SecTRandom {
-    public override val name: String = "sect163r2"
+    public val name: String = "sect163r2"
     public override val strength: Int = 80
     public override val size: Int = 163
 

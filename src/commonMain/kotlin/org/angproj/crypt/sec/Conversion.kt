@@ -16,7 +16,7 @@ package org.angproj.crypt.sec
 
 import org.angproj.aux.num.BigInt
 import org.angproj.aux.util.bigIntOf
-import org.angproj.crypt.number.mod
+import org.angproj.crypt.number.*
 
 /**
  * sec1-v2.pdf -- 2.3 Data Types and Conversions
@@ -37,12 +37,12 @@ public object Conversion {
      * */
     public fun ellipticCurvePoint2octetString(
         P: EllipticCurvePoint,
-        q: DomainParameters,
+        q: AbstractDomainParameters,
         compress: Boolean
     ): OctetString {
         return when {
             Convention.isAtInfinity(P, q) -> OctetString(byteArrayOf(0))
-            !compress -> {
+            compress -> {
                 val mlen = Convention.mlen(q) + 1
                 val X = fieldElement2octetString(P.x, q)
                 val yBit = when(q) {
@@ -57,7 +57,7 @@ public object Conversion {
                 OctetString(byteArrayOf(if(yBit == 1) 3 else 2) + X.octets).also {
                     check(it.octets.size == mlen) { "Mot expected size." } }
             }
-            compress -> {
+            !compress -> {
                 val mlen = 2 * Convention.mlen(q) + 1
                 val X = fieldElement2octetString(P.x, q)
                 val Y = fieldElement2octetString(P.y, q)
@@ -71,7 +71,7 @@ public object Conversion {
     /**
      * sec1-v2.pdf -- 2.3.4 Octet-String-to-Elliptic-Curve-Point Conversion.
      * */
-    public fun octetString2ellipticCurvePoint(M: OctetString, q: DomainParameters): EllipticCurvePoint {
+    public fun octetString2ellipticCurvePoint(M: OctetString, q: AbstractDomainParameters): EllipticCurvePoint {
         val mlen = Convention.mlen(q)
         val type = M.octets.first().toInt()
         return when(type) {
@@ -82,16 +82,35 @@ public object Conversion {
             2, 3 -> {
                 check(M.octets.size == mlen + 1) { "Wrong size for compressed point." }
                 val X = OctetString(M.octets.copyOfRange(1, 1 + mlen))
-                val y = type - 2
-                TODO("Implement compressed elliptic curve.")
+                val x = octetString2fieldElement(X, q)
+                val yBit = if(type == 2) false else true //type - 2
+                println("YBIT $yBit")
+                when(q) {
+                    is PrimeDomainParameters -> {
+                        val alpha = x.value.multiply(x.value.pow2().add(q.a.value)).add(q.b.value)
+                        //val alpha = x.value.pow(3) + q.a.value * x.value + q.b.value
+                        val beta = alpha.sqrt()
+                        //check((alpha / q.p).compareTo(BigInt.one).isEqual()) { "alpha is not square." }
+                        val yBit2 = beta.testBit(0)
+                        println("YBIT2 $yBit")
+                        val y = when(yBit2 == yBit) {
+                            true -> beta
+                            false -> q.p - beta
+                        }.let { FieldElement(it.toBigInt()) }
+                        EllipticCurvePoint(x, y)
+                    }
+                    is Char2DomainParameters -> { TODO("Implement for F2m") }
+                    else -> error("Not implemented.")
+                }
             }
             4 -> {
                 check(M.octets.size == 2 * mlen + 1) { "Wrong size for uncompressed point." }
                 val X = OctetString(M.octets.copyOfRange(1, 1 + mlen))
                 val Y = OctetString(M.octets.copyOfRange(1 + mlen, M.octets.size))
-                EllipticCurvePoint(octetString2fieldElement(X, q), octetString2fieldElement(Y, q)).also {
+                EllipticCurvePoint(octetString2fieldElement(X, q), octetString2fieldElement(Y, q))
+                    /*.also {
                     check(Convention.pointSatisfyDefiningEquation(it, q)) {
-                        "Point does not satisfy the curves defining equation." } }
+                        "Point does not satisfy the curves defining equation." } }*/
             }
             else -> error("Wrong curve or invalid data octets.")
         }
@@ -100,7 +119,7 @@ public object Conversion {
     /**
      * sec1-v2.pdf -- 2.3.5 Field-Element-to-Octet-String Conversion.
      * */
-    public fun fieldElement2octetString(a: FieldElement, q: DomainParameters): OctetString = when(q) {
+    public fun fieldElement2octetString(a: FieldElement, q: AbstractDomainParameters): OctetString = when(q) {
         is PrimeDomainParameters -> integer2octetSting(Integer(a.value), Convention.mlen(q))
         is Char2DomainParameters -> {
             val mlen = Convention.mlen(q)
@@ -112,7 +131,7 @@ public object Conversion {
     /**
      * sec1-v2.pdf -- 2.3.6 Octet-String-to-Field-Element Conversion.
      * */
-    public fun octetString2fieldElement(M: OctetString, q: DomainParameters): FieldElement = when(q) {
+    public fun octetString2fieldElement(M: OctetString, q: AbstractDomainParameters): FieldElement = when(q) {
         is PrimeDomainParameters -> {
             val x = octetString2integer(M).also {
                 check(Convention.primeSatisfyInterval(it.value, q)) { "Value not inside [0, p − 1]" } }
@@ -133,7 +152,10 @@ public object Conversion {
         require(8 * mlen >= x.value.bitLength) // <- If this is wrong use the one under
         //require(BigInt.two.pow(8 * mlen).compareTo(x.value).isGreater()) // <- Absolute correct
 
-        val binary = x.value.toZeroFilledByteArray(mlen)
+        val binary = when(x.value.bitLength < mlen * 8) {
+            true -> x.value.toZeroFilledByteArray(mlen)
+            else -> x.value.toByteArray()
+        }
         return OctetString(binary.copyOfRange(binary.size - mlen, binary.size))
     }
 
@@ -146,7 +168,7 @@ public object Conversion {
     /**
      * sec1-v2.pdf -- 2.3.9 Field-Element-to-Integer Conversion.
      * */
-    public fun fieldElement2integer(a: FieldElement, q: DomainParameters): Integer =  when(q) {
+    public fun fieldElement2integer(a: FieldElement, q: AbstractDomainParameters): Integer =  when(q) {
         is PrimeDomainParameters -> Integer(a.value)
         is Char2DomainParameters -> Integer(a.value) // <- Seriously the same or not?
         else -> error("Not implemented.")

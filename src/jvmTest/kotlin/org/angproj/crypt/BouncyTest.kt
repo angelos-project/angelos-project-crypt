@@ -1,25 +1,20 @@
 package org.angproj.crypt
 
 import org.angproj.aux.num.BigInt
-import org.angproj.aux.util.BinHex
 import org.angproj.aux.util.bigIntOf
 import org.angproj.crypt.kp.PaulssonDigest
 import org.angproj.crypt.number.*
 import org.angproj.crypt.sec.*
 import org.angproj.crypt.sec.Integer
-import java.math.BigInteger
-import java.security.KeyPair
-import java.security.Signature
 import kotlin.math.absoluteValue
 import kotlin.test.Test
-import kotlin.test.assertTrue
 
 class BouncyTest {
 
     /**
      * 3.1.3.1 Curve Selection
      * */
-    fun generateB(S: OctetString, q: PrimeDomainParameters, hash: PaulssonDigest, a: FieldElement): FieldElement {
+    /*fun generateB(S: OctetString, q: PrimeDomainParameters, hash: PaulssonDigest, a: FieldElement): FieldElement {
         val g = S.value.size * 8
         val m = Convention.primeLog2(q)
         val t = 128
@@ -45,7 +40,7 @@ class BouncyTest {
         check((bigIntOf(4) * r.value + bigIntOf(27)).compareTo(BigInt.zero).isNotEqual()) { "r doesn't satisfy." }
         check(Convention.primeIsFinite((a.value.pow(3) / r.value).sqrt().toBigInt(), q)) { "No sqrt within q." }
         return FieldElement((a.value.pow(3)/r.value).sqrt().toBigInt())
-    }
+    } */
 
     @Test
     fun testEcdsaSignAndVerify() {

@@ -19,11 +19,6 @@ import org.angproj.aux.num.BigInt
 /**
  * sec1-v2.pdf -- 3.1.1 Elliptic Curve Domain Parameters over Fp.
  * */
-public data class PrimeDomainParameters(
-    public var p: BigInt, /* An integer p specifying the finite field Fp. */
-    override var a: FieldElement,
-    override var b: FieldElement,
-    override var G: EllipticCurvePoint,
-    override var n: BigInt,
-    override var h: BigInt
-) : DomainParameters
+public class PrimeDomainParameters(
+    public val p: BigInt /* An integer p specifying the finite field Fp. */
+) : AbstractDomainParameters()

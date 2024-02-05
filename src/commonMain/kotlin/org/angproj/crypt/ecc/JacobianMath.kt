@@ -20,7 +20,6 @@
  */
 package org.angproj.crypt.ecc
 
-import org.angproj.aux.num.BigCompare
 import org.angproj.aux.num.BigInt
 import org.angproj.aux.util.bigIntOf
 import org.angproj.crypt.number.*

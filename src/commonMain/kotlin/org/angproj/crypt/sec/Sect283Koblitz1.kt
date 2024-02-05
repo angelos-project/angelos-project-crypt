@@ -17,7 +17,7 @@ package org.angproj.crypt.sec
 import org.angproj.aux.num.BigInt
 
 public object Sect283Koblitz1 : SecTKoblitz {
-    public override val name: String = "sect283k1"
+    public val name: String = "sect283k1"
     public override val strength: Int = 128
     public override val size: Int = 283
 

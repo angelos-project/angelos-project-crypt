@@ -21,10 +21,5 @@ import org.angproj.aux.num.BigInt
  * */
 public data class Char2DomainParameters(
     public val m: Int, /* An integer m specifying the finite field F2m. */
-    public val x: BigInt, /* An irreducible binary polynomial f(x) of degree m specifying the representation of F2m. */
-    override var a: FieldElement,
-    override var b: FieldElement,
-    override var G: EllipticCurvePoint,
-    override var n: BigInt,
-    override var h: BigInt
-) : DomainParameters
+    public val x: BigInt /* An irreducible binary polynomial f(x) of degree m specifying the representation of F2m. */
+) : AbstractDomainParameters()

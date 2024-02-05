@@ -18,7 +18,6 @@ import kotlin.jvm.JvmInline
 
 @JvmInline
 public value class BitString(internal val bits: ByteArray) {
-
     public val value: ByteArray
         get() = bits.copyOf()
 }

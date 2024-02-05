@@ -52,16 +52,16 @@ public class EcdsaVerify : SignatureVerificationEngine<EccPublicKey, EccSignatur
 
         val w = JacobianMath.inv(s, curve.n)
         val u1 = JacobianMath.multiply(
-            EccPoint(curve.Gc),
+            EccPoint(curve.G),
             bigIntOf(algo.final()).multiply(w).mod(curve.n).toBigInt(),
-            curve.n, curve.a, curve.p
+            curve.n, curve.a.value, curve.p
         )
         val u2 = JacobianMath.multiply(
             pubKey.point,
             r.multiply(w).mod(curve.n).toBigInt(),
-            curve.n, curve.a, curve.p
+            curve.n, curve.a.value, curve.p
         )
-        val v = JacobianMath.add(u1, u2, curve.a, curve.p)
+        val v = JacobianMath.add(u1, u2, curve.a.value, curve.p)
         return when (v.isAtInfinity()) {
             true -> false
             else -> { v.x.mod(curve.n).equals(r) }

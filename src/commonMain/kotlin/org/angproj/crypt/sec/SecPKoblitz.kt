@@ -14,14 +14,20 @@
  */
 package org.angproj.crypt.sec
 
-import org.angproj.aux.num.BigInt
+public interface SecPKoblitz: Curves<PrimeDomainParameters> {
+    public val p: OctetString
 
-public interface SecPKoblitz: SecCurves {
-    public val p: BigInt
-    public override val a: BigInt
-    public override val b: BigInt
-    public override val G: BigInt
-    public override val Gc: Pair<BigInt, BigInt>
-    public override val n: BigInt
-    public override val h: BigInt
+    public companion object {
+        public fun build(curve: SecPKoblitz): PrimeDomainParameters = PrimeDomainParameters(
+            Conversion.octetString2integer(curve.p).value
+        ).also { q ->
+            q.setup(
+                Conversion.octetString2fieldElement(curve.a, q),
+                Conversion.octetString2fieldElement(curve.b, q),
+                Conversion.octetString2ellipticCurvePoint(curve.G, q),
+                Conversion.octetString2integer(curve.n).value,
+                Conversion.octetString2integer(curve.h).value
+            )
+        }
+    }
 }

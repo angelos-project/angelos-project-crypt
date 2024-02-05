@@ -17,7 +17,7 @@ package org.angproj.crypt.sec
 import org.angproj.aux.num.BigInt
 
 public object Sect409Random1 : SecTRandom {
-    public override val name: String = "sect409r1"
+    public val name: String = "sect409r1"
     public override val strength: Int = 192
     public override val size: Int = 409
 

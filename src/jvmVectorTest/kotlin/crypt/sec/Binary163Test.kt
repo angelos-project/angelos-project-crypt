@@ -13,7 +13,7 @@ class Binary163Test {
     @Test
     fun justTestIt() {
         val message = LongArray(20) { Random.nextLong() }.toByteArray()
-        val privKey = EccPrivateKey(Secp256Koblitz1)
+        val privKey = EccPrivateKey(Secp256Koblitz1.domainParameters)
 
         val signer = EcdsaSign()
         signer.update(message)

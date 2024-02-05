@@ -14,12 +14,26 @@
  */
 package org.angproj.crypt.sec
 
-import org.angproj.aux.num.BigInt
-import org.angproj.aux.util.bigIntOf
 import org.angproj.aux.util.BinHex
 
-public interface Curves {
-    public val name: String
+public interface Curves<E: AbstractDomainParameters> {
+    public fun octets(block: () -> String): Lazy<OctetString> = lazy { OctetString(BinHex.decodeToBin(block())) }
 
-    public fun fromHex(block: () -> String): Lazy<BigInt> = lazy { bigIntOf(BinHex.decodeToBin(block())) }
+    public val name: String
+    public val strength: Int
+    public val size: Int
+
+    public val a: OctetString
+
+    public val b: OctetString
+
+    public val Gc: OctetString
+
+    public val G: OctetString
+
+    public val n: OctetString
+
+    public val h: OctetString
+
+    public val domainParameters: E
 }

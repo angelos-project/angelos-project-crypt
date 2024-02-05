@@ -14,9 +14,9 @@
  */
 package org.angproj.crypt.ecc
 
-import org.angproj.crypt.sec.SecPKoblitz
+import org.angproj.crypt.sec.PrimeDomainParameters
 
 public class EccPublicKey(
     public val point: EccPoint,
-    public val curve: SecPKoblitz
+    public val curve: PrimeDomainParameters
 )

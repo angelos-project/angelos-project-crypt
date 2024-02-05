@@ -18,7 +18,6 @@ import kotlin.jvm.JvmInline
 
 @JvmInline
 public value class OctetString(internal val octets: ByteArray) {
-
     public val value: ByteArray
         get() = octets.copyOf()
 }

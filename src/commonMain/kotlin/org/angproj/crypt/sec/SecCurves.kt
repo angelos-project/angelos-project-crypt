@@ -18,7 +18,7 @@ import org.angproj.aux.num.BigInt
 import org.angproj.aux.util.bigIntOf
 import org.angproj.aux.util.BinHex
 
-public interface SecCurves: Curves {
+public interface SecCurves {
     public val strength: Int
     public val size: Int
 
@@ -28,6 +28,8 @@ public interface SecCurves: Curves {
     public val Gc: Pair<BigInt, BigInt>
     public val n: BigInt
     public val h: BigInt
+
+    public fun fromHex(block: () -> String): Lazy<BigInt> = lazy { bigIntOf(BinHex.decodeToBin(block())) }
 
     public fun xyFromHex(block: () -> String): Lazy<Pair<BigInt, BigInt>> = lazy {
         val data = BinHex.decodeToBin(block())

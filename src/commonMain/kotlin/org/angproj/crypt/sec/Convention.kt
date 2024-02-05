@@ -22,7 +22,13 @@ import kotlin.math.ceil
 
 public object Convention {
 
-    public fun isAtInfinity(P: EllipticCurvePoint, q: DomainParameters): Boolean = when(q) {
+    public val voidBitString: BitString = BitString(byteArrayOf())
+    public val voidOctetString: OctetString = OctetString(byteArrayOf())
+    public val voidInteger: Integer = Integer(BigInt.zero)
+    public val voidFieldElement: FieldElement = FieldElement(BigInt.zero)
+    public val voidEllipticCurvePoint: EllipticCurvePoint = EllipticCurvePoint(voidFieldElement, voidFieldElement)
+
+    public fun isAtInfinity(P: EllipticCurvePoint, q: AbstractDomainParameters): Boolean = when(q) {
         is PrimeDomainParameters -> primeIsAtInfinity(P)
         is Char2DomainParameters -> char2isAtInfinity(P)
         else -> error("Not implemented.")
@@ -45,13 +51,13 @@ public object Convention {
      * sec1-v2.pdf -- 2.1.1 The Finite Field Fp
      * sec1-v2.pdf -- 2.2.2 Elliptic Curves over F2m
      * */
-    public fun log2q(q: DomainParameters): Int = when(q) {
+    public fun log2q(q: AbstractDomainParameters): Int = when(q) {
         is PrimeDomainParameters -> q.p.bitLength
         is Char2DomainParameters -> q.m
         else -> error("Not implemented.")
     }
 
-    public fun mlen(q: DomainParameters): Int = ceil(log2q(q) / 8f).toInt()
+    public fun mlen(q: AbstractDomainParameters): Int = ceil(log2q(q) / 8f).toInt()
 
     /**
      * sec1-v2.pdf -- 2.2.1 Elliptic Curves over Fp.
@@ -59,11 +65,11 @@ public object Convention {
      * sec1-v2.pdf -- 2.2.2 Elliptic Curves over F2m
      *     Defining equation (?): y^2 + x * y = x^3 + a * x^2 + b
      * */
-    public fun pointSatisfyDefiningEquation(P: EllipticCurvePoint, q: DomainParameters): Boolean = when(q) {
-        is PrimeDomainParameters -> (P.y.value.pow(2)).mod(q.p) == (
-                P.x.value.pow(3) + q.a.value * P.x.value + q.b.value).mod(q.p)
-        is Char2DomainParameters -> (P.y.value.pow(2) + P.x.value * P.y.value) == (
-                P.x.value.pow(3) + q.a.value * P.x.value.pow(2) + q.b.value)
+    public fun pointSatisfyDefiningEquation(P: EllipticCurvePoint, q: AbstractDomainParameters): Boolean = when(q) {
+        is PrimeDomainParameters -> ((P.y.value.pow(2)).mod(q.p)).compareTo(
+            (P.x.value.pow(3) + q.a.value * P.x.value + q.b.value).mod(q.p)).isEqual()
+        is Char2DomainParameters -> (P.y.value.pow(2) + P.x.value * P.y.value).compareTo(
+            (P.x.value.pow(3) + q.a.value * P.x.value.pow(2) + q.b.value)).isEqual()
         else -> error("Not implemented.")
     }
 
@@ -76,13 +82,13 @@ public object Convention {
         return mask and value.first().toLong() == 0L
     }
 
-    internal fun isWithinFinite(f: BigInt, q: DomainParameters): Boolean = when(q) {
+    internal fun isWithinFinite(f: BigInt, q: AbstractDomainParameters): Boolean = when(q) {
         is PrimeDomainParameters -> f.sigNum.isNonNegative() && f.compareTo(q.p).isLesser()
         is Char2DomainParameters -> BigInt.two.pow(q.m - 1).compareTo(f).isGreaterOrEqual()
         else -> error("Unsupported curve!")
     }
 
-    private fun messageLengthOf(q: DomainParameters): Int = when(q) {
+    private fun messageLengthOf(q: AbstractDomainParameters): Int = when(q) {
         is PrimeDomainParameters -> q.p.bitLength
         is Char2DomainParameters -> q.m
         else -> error("Unsupported curve!")
@@ -137,8 +143,7 @@ public object Convention {
 
     internal fun primeSatisfy(q: PrimeDomainParameters): Boolean = (
             // Must satisfy 4*a^3 +27*b^2  ̸≡ 0 (mod p)
-            (bigIntOf(4) * q.a.value.pow(3) + bigIntOf(27) * q.b.value.pow(2)) mod q.p
-            ).compareTo(BigInt.zero).isNotEqual()
+            (bigIntOf(4) * q.a.value.pow(3) + bigIntOf(27) * q.b.value.pow(2))).compareTo(BigInt.zero).isNotEqual()
 
     /*internal fun primeDefiningEquation(P: EllipticCurvePoint, q: PrimeDomainParameters): Boolean {
         // Definition y^2 ≡ x^3+a*x+b (mod p)

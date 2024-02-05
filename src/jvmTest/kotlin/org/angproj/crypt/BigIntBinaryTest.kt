@@ -15,7 +15,7 @@ class BigIntBinaryTest {
 
     val vectcorListLong = Combinator.generateLongValueVector()
 
-    val dp: List<SecCurves> = listOf(
+    /*val dp: List<SecCurves> = listOf(
         Secp192Koblitz1,
         Secp192Random1,
         Secp224Koblitz1,
@@ -37,7 +37,7 @@ class BigIntBinaryTest {
         Sect409Random1,
         Sect571Koblitz1,
         Sect571Random1
-    )
+    )*/
 
     fun compareImport(value: ByteArray) {
         val jbi = BigInteger(value)
