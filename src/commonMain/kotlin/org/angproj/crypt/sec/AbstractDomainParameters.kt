@@ -14,8 +14,6 @@
  */
 package org.angproj.crypt.sec
 
-import org.angproj.aux.num.BigInt
-
 public abstract class AbstractDomainParameters {
     private var frozen: Boolean = false
 
@@ -31,15 +29,18 @@ public abstract class AbstractDomainParameters {
     public val G: EllipticCurvePoint
         get() = _G
 
-    private var _n: BigInt = Convention.voidInteger.value
-    public val n: BigInt
+    private var _n: FieldElement = Convention.voidFieldElement
+    public val n: FieldElement
         get() = _n
 
-    private var _h: BigInt = Convention.voidInteger.value
-    public val h: BigInt
+    private var _h: FieldElement = Convention.voidFieldElement
+    public val h: FieldElement
         get() = _h
 
-    public fun setup(a: FieldElement, b: FieldElement, G: EllipticCurvePoint, n: BigInt, h: BigInt): Unit = when(frozen){
+    public fun setup(
+        a: FieldElement, b: FieldElement, G: EllipticCurvePoint,
+        n: FieldElement, h: FieldElement
+    ): Unit = when(frozen){
         false -> {
             _a = a
             _b = b

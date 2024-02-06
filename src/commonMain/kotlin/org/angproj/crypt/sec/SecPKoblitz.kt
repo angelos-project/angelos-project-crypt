@@ -19,14 +19,14 @@ public interface SecPKoblitz: Curves<PrimeDomainParameters> {
 
     public companion object {
         public fun build(curve: SecPKoblitz): PrimeDomainParameters = PrimeDomainParameters(
-            Conversion.octetString2integer(curve.p).value
+            Conversion.octetString2integer(curve.p)
         ).also { q ->
             q.setup(
                 Conversion.octetString2fieldElement(curve.a, q),
                 Conversion.octetString2fieldElement(curve.b, q),
                 Conversion.octetString2ellipticCurvePoint(curve.G, q),
-                Conversion.octetString2integer(curve.n).value,
-                Conversion.octetString2integer(curve.h).value
+                Conversion.octetString2fieldElement(curve.n, q),
+                Conversion.octetString2fieldElement(curve.h, q)
             )
         }
     }

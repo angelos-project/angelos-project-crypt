@@ -14,11 +14,38 @@
  */
 package org.angproj.crypt.sec
 
-import org.angproj.aux.num.BigInt
-
 /**
  * sec1-v2.pdf -- 3.1.1 Elliptic Curve Domain Parameters over Fp.
  * */
 public class PrimeDomainParameters(
-    public val p: BigInt /* An integer p specifying the finite field Fp. */
-) : AbstractDomainParameters()
+    public val p: Integer /* An integer p specifying the finite field Fp. */
+) : AbstractDomainParameters(), Jacobian {
+
+    override fun FieldElement.add(b: FieldElement): FieldElement = Convention.add(this, b, this@PrimeDomainParameters)
+
+    override fun FieldElement.addOne(): FieldElement = Convention.addOne(this, this@PrimeDomainParameters)
+
+    override fun FieldElement.subtract(b: FieldElement): FieldElement = Convention.subtract(this, b, this@PrimeDomainParameters)
+
+    override fun FieldElement.multiply(b: FieldElement): FieldElement = Convention.multiply(this, b, this@PrimeDomainParameters)
+
+    override fun FieldElement.divide(b: FieldElement): FieldElement {
+        TODO("Not yet implemented")
+    }
+
+    override fun FieldElement.negate(): FieldElement {
+        TODO("Not yet implemented")
+    }
+
+    override fun FieldElement.square(): FieldElement {
+        TODO("Not yet implemented")
+    }
+
+    override fun FieldElement.invert(): FieldElement {
+        TODO("Not yet implemented")
+    }
+
+    override fun FieldElement.sqrt(): FieldElement {
+        TODO("Not yet implemented")
+    }
+}

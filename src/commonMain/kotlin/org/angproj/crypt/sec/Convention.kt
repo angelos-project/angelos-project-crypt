@@ -16,7 +16,6 @@ package org.angproj.crypt.sec
 
 import org.angproj.aux.num.AbstractBigInt
 import org.angproj.aux.num.BigInt
-import org.angproj.aux.util.bigIntOf
 import org.angproj.crypt.number.*
 import kotlin.math.ceil
 
@@ -52,7 +51,7 @@ public object Convention {
      * sec1-v2.pdf -- 2.2.2 Elliptic Curves over F2m
      * */
     public fun log2q(q: AbstractDomainParameters): Int = when(q) {
-        is PrimeDomainParameters -> q.p.bitLength
+        is PrimeDomainParameters -> q.p.value.bitLength
         is Char2DomainParameters -> q.m
         else -> error("Not implemented.")
     }
@@ -66,15 +65,15 @@ public object Convention {
      *     Defining equation (?): y^2 + x * y = x^3 + a * x^2 + b
      * */
     public fun pointSatisfyDefiningEquation(P: EllipticCurvePoint, q: AbstractDomainParameters): Boolean = when(q) {
-        is PrimeDomainParameters -> ((P.y.value.pow(2)).mod(q.p)).compareTo(
-            (P.x.value.pow(3) + q.a.value * P.x.value + q.b.value).mod(q.p)).isEqual()
+        is PrimeDomainParameters -> ((P.y.value.pow(2)).mod(q.p.value)).compareTo(
+            (P.x.value.pow(3) + q.a.value * P.x.value + q.b.value).mod(q.p.value)).isEqual()
         is Char2DomainParameters -> (P.y.value.pow(2) + P.x.value * P.y.value).compareTo(
             (P.x.value.pow(3) + q.a.value * P.x.value.pow(2) + q.b.value)).isEqual()
         else -> error("Not implemented.")
     }
 
     public fun primeSatisfyInterval(value: BigInt, q: PrimeDomainParameters): Boolean {
-        return value.compareTo(BigInt.zero).isGreaterOrEqual() && value.compareTo(q.p).isLesser() }
+        return value.compareTo(BigInt.zero).isGreaterOrEqual() && value.compareTo(q.p.value).isLesser() }
 
     public fun char2satisfyDegree(value: ByteArray, q: Char2DomainParameters): Boolean {
         val mlen = 8 * mlen(q) - q.m
@@ -82,49 +81,26 @@ public object Convention {
         return mask and value.first().toLong() == 0L
     }
 
-    internal fun isWithinFinite(f: BigInt, q: AbstractDomainParameters): Boolean = when(q) {
-        is PrimeDomainParameters -> f.sigNum.isNonNegative() && f.compareTo(q.p).isLesser()
-        is Char2DomainParameters -> BigInt.two.pow(q.m - 1).compareTo(f).isGreaterOrEqual()
-        else -> error("Unsupported curve!")
-    }
-
-    private fun messageLengthOf(q: AbstractDomainParameters): Int = when(q) {
-        is PrimeDomainParameters -> q.p.bitLength
-        is Char2DomainParameters -> q.m
-        else -> error("Unsupported curve!")
-    } / Byte.SIZE_BITS
-
-    private fun isC2LeftmostZero(b: ByteArray, q: Char2DomainParameters): Boolean {
-        val mask = 0xffffffffL shl (8 - (b.size * Byte.SIZE_BITS - q.m))
-        return (b[0].toLong() and 0xffffffffL) and mask == 0L
-    }
-
-    private fun setC2LeftmostZero(b: ByteArray, q: Char2DomainParameters) {
-        val mask = 0xffL shl (b.size * Byte.SIZE_BITS - q.m)
-        b[0] = ((b[0].toLong() and 0xffffffffL) and mask).toByte()
-    }
-
-
     /**
      * 2.1.1 The Finite Field Fp.
      * */
 
     internal fun primeIsFinite(value: BigInt, q: PrimeDomainParameters): Boolean {
-        return value.compareTo(BigInt.zero).isGreaterOrEqual() && value.compareTo(q.p).isLesser() }
+        return value.compareTo(BigInt.zero).isGreaterOrEqual() && value.compareTo(q.p.value).isLesser() }
 
     private fun primeAddition(r: BigInt, q: PrimeDomainParameters): Boolean {
         require(primeIsFinite(r, q)) { "Value is not within the finite field." }
-        return ((q.a.value + q.b.value) mod q.p).compareTo(r mod q.p).isEqual()
+        return ((q.a.value + q.b.value) mod q.p.value).compareTo(r mod q.p.value).isEqual()
     }
 
     private fun primeMultiplication(s: BigInt, q: PrimeDomainParameters): Boolean {
         require(primeIsFinite(s, q)) { "Value is not within the finite field." }
-        return ((q.a.value * q.b.value) mod q.p).compareTo(s mod q.p).isEqual()
+        return ((q.a.value * q.b.value) mod q.p.value).compareTo(s mod q.p.value).isEqual()
     }
 
     private fun primeAddativeInverse(x: BigInt, q: PrimeDomainParameters): Boolean {
         require(primeIsFinite(q.a.value, q)) { "Value is not within the finite field." }
-        return ((q.a.value.negate() + x) mod q.p).compareTo(BigInt.zero).isEqual()
+        return ((q.a.value.negate() + x) mod q.p.value).compareTo(BigInt.zero).isEqual()
     }
 
     private fun primeMultiplicativeInverse(x: BigInt, q: PrimeDomainParameters): Boolean {
@@ -132,79 +108,165 @@ public object Convention {
         require(q.a.value.compareTo(BigInt.zero).isNotEqual()) { "Value is zero." }
         // ... multiplicative inverse a^−1 of a ... unique solution...a*x ≡ 1(mod p).
         // Because: a/b mod p is a(b^−1) mod p. Then: a*x -> a^-1*x -> x/a.
-        return ((x / q.a.value) mod q.p).compareTo(BigInt.one mod q.p).isEqual()
+        return ((x / q.a.value) mod q.p.value).compareTo(BigInt.one mod q.p.value).isEqual()
     }
 
-    internal fun primeLog2(q: PrimeDomainParameters): Int = q.p.bitLength
-
-    /**
-     * 2.2.1 Elliptic Curves over Fp
-     * */
-
-    internal fun primeSatisfy(q: PrimeDomainParameters): Boolean = (
-            // Must satisfy 4*a^3 +27*b^2  ̸≡ 0 (mod p)
-            (bigIntOf(4) * q.a.value.pow(3) + bigIntOf(27) * q.b.value.pow(2))).compareTo(BigInt.zero).isNotEqual()
-
-    /*internal fun primeDefiningEquation(P: EllipticCurvePoint, q: PrimeDomainParameters): Boolean {
-        // Definition y^2 ≡ x^3+a*x+b (mod p)
-        return (P.y.pow(2) mod q.p).compareTo(
-            (P.x.pow(3) + q.a.value * P.x + q.b.value) mod q.p).isEqual()
-    }*/
-
-    private fun primeHasseUpper(q: PrimeDomainParameters): AbstractBigInt<*> = q.p + BigInt.one + BigInt.two * q.p.sqrt()
-
-    private fun primeHasseLower(q: PrimeDomainParameters): AbstractBigInt<*> = q.p + BigInt.one - BigInt.two * q.p.sqrt()
-
-    private fun primeHasseTheorem(q: PrimeDomainParameters): AbstractBigInt<*> = primeHasseUpper(q) - primeHasseLower(q)
-
-    /*private fun primeAdditionRule4(P1: EllipticCurvePoint, P2: EllipticCurvePoint, q: PrimeDomainParameters): EllipticCurvePoint {
-        check(P1.x.compareTo(P2.x).isNotEqual()) { "x1 and x2 must not be equal." }
-
-        val lambda = (P2.y - P1.y) / (P2.x - P1.x)
-        val x3 = lambda.pow(2) - P1.x - P2.x
-        val y3 = lambda * (P1.x - x3) - P1.y
-        return EllipticCurvePoint(x3.toBigInt(), y3.toBigInt())
-    }*/
-
-    /*private fun primeAdditionRule5(P1: EllipticCurvePoint, q: PrimeDomainParameters): EllipticCurvePoint {
-        check(P1.y.compareTo(BigInt.zero).isNotEqual()) { "x1 and x2 must not be equal." }
-
-        val lambda = (bigIntOf(3) * P1.x.pow(2) + q.a.value) / (BigInt.two * P1.y)
-        val x3 = lambda.pow(2) - BigInt.two * P1.x
-        val y3 = lambda * (P1.x - x3) - P1.y
-        return EllipticCurvePoint(x3.toBigInt(), y3.toBigInt())
-    }*/
-
-    /*private fun primeScalar(k: Int, P1: EllipticCurvePoint, q: PrimeDomainParameters): EllipticCurvePoint {
-        check(k > 1) { "k must be above 1." }
-        var kP = P1
-        repeat(k) { kP = primeAdditionRule5(kP, q) }
-        return kP
-    }*/
-
-    /**
-     * 3.1.1 Elliptic Curve Domain Parameters over Fp
-     * */
-    /*private fun primeDefineEllipticCurve(x: BigInt, q: PrimeDomainParameters): EllipticCurvePoint {
-        val y = (x.pow(3) + x * q.a.value + q.b.value).sqrt()
-        return EllipticCurvePoint(x, y.toBigInt())
-    }*/
-
-
-    /**
-     * 2.1.2 The Finite Field F2m.
-     * */
-
-    //private fun char2isFinite(value: BigInt, q: Char2DomainParameters): Boolean {}
-
-    /*private fun char2addition(r: BigInt, q: Char2DomainParameters): Boolean {
-        return ((q.a.value + q.b.value) mod BigInt.two).compareTo(r mod BigInt.two).isEqual()
+    public fun add(x: FieldElement, b: FieldElement, q: PrimeDomainParameters): FieldElement {
+        return FieldElement(modAdd(x.value, b.value, q).toBigInt())
     }
 
-    private fun char2multiplication(s: BigInt, q: Char2DomainParameters): Boolean {
-        require(primeIsFinite(s, q)) { "Value is not within the finite field." }
-        return ((q.a.value * q.b.value) mod q.p).compareTo(s mod q.p).isEqual()
-    }*/
+    public fun addOne(x: FieldElement, q: PrimeDomainParameters): FieldElement {
+        var x2 = x.value.add(BigInt.one)
+        if (x2.compareTo(q.p.value).isEqual()) {
+            x2 = BigInt.zero
+        }
+        return FieldElement(x2.toBigInt())
+    }
 
+    public fun subtract(x: FieldElement, b: FieldElement, q: PrimeDomainParameters): FieldElement {
+        return FieldElement(modSubtract(x.value, b.value, q).toBigInt())
+    }
 
+    public fun multiply(x: FieldElement, b: FieldElement, q: PrimeDomainParameters): FieldElement {
+        return FieldElement(modMult(x.value, b.value, q).toBigInt())
+    }
+
+    public fun divide(x: FieldElement, b: FieldElement, q: PrimeDomainParameters): FieldElement {
+        return FieldElement(modMult(x.value, modInverse(b.value, q), q).toBigInt())
+    }
+
+    internal fun modInverse(x: AbstractBigInt<*>, q: PrimeDomainParameters): AbstractBigInt<*> {
+        val bits: Int = q.p.value.bitLength
+        val len = (bits + 31) shr 5
+        val p: IntArray = natFromBigInteger(bits, q.p.value)
+        val n: IntArray = natFromBigInteger(bits, x)
+        val z: IntArray = natCreate(len)
+        Mod.invert(p, n, z)
+        return Nat.toBigInteger(len, z)
+    } // org.bouncycastle.math.raw.
+
+    internal fun modMult(x1: AbstractBigInt<*>, x2: AbstractBigInt<*>, q: PrimeDomainParameters): AbstractBigInt<*> {
+        return modReduce(x1.multiply(x2), q)
+    }
+
+    internal fun modReduce(x: AbstractBigInt<*>, q: PrimeDomainParameters): AbstractBigInt<*> {
+        /*var x = x_
+        if (r_ != null) {
+            val negative: Boolean = x.sigNum.isNegative()
+            if (negative) {
+                x = x.abs().toBigInt()
+            }
+            val qLen: Int = q.p.value.bitLength
+            val rIsOne = r_ == BigInt.zero
+            while (x.bitLength > (qLen + 1)) {
+                var u = x.shiftRight(qLen)
+                val v = x.subtract(u.shiftLeft(qLen))
+                if (!rIsOne) {
+                    u = u.multiply(r_)
+                }
+                x = u.add(v)
+            }
+            while (x.compareTo(q.p.value).isGreaterOrEqual()) {
+                x = x.subtract(q.p.value)
+            }
+            if (negative && x.sigNum.isNonZero()) {
+                x = q.p.value.subtract(x)
+            }
+        } else{
+            x = x.mod(q.p.value)
+        }
+        return x*/
+        return x.mod(q.p.value)
+    }
+
+    internal fun modAdd(x1: AbstractBigInt<*>, x2: AbstractBigInt<*>, q: PrimeDomainParameters): AbstractBigInt<*> {
+        var x3 = x1.add(x2)
+        if (x3.compareTo(q.p.value).isGreaterOrEqual()) {
+            x3 = x3.subtract(q.p.value)
+        }
+        return x3
+    }
+
+    internal fun modSubtract(x1: AbstractBigInt<*>, x2: AbstractBigInt<*>, q: PrimeDomainParameters): AbstractBigInt<*> {
+        var x3 = x1.subtract(x2)
+        if (x3.sigNum.isNegative()) {
+            x3 = x3.add(q.p.value)
+        }
+        return x3
+    }
+
+    public fun natCreate(len: Int): IntArray {
+        return IntArray(len)
+    }
+
+    public fun natFromBigInteger(bits: Int, x_: AbstractBigInt<*>): IntArray {
+        var x = x_
+        if (x.sigNum.isNegative() || x.bitLength > bits) error("")
+
+        val len = (bits + 31) shr 5
+        val z: IntArray = natCreate(len)
+
+        // NOTE: Use a fixed number of loop iterations
+        for (i in 0 until len) {
+            z[i] = x.toLong().toInt()
+            x = x.shiftRight(32)
+        }
+        return z
+    }
+
+    public fun invert(p: IntArray, x: IntArray?, z: IntArray?) {
+        val len = p.size
+        if (Nat.isZero(len, x)) {
+            error("'x' cannot be 0")
+        }
+        if (Nat.isOne(len, x)) {
+            java.lang.System.arraycopy(x, 0, z, 0, len)
+            return
+        }
+
+        val u: IntArray = Nat.copy(len, x)
+        val a: IntArray = Nat.create(len)
+        a[0] = 1
+        var ac = 0
+
+        if ((u[0] and 1) == 0) {
+            ac = Mod.inversionStep(p, u, len, a, ac)
+        }
+        if (Nat.isOne(len, u)) {
+            Mod.inversionResult(p, ac, a, z)
+            return
+        }
+
+        val v: IntArray = Nat.copy(len, p)
+        val b: IntArray = Nat.create(len)
+        var bc = 0
+
+        var uvLen = len
+
+        while (true) {
+            while (u[uvLen - 1] == 0 && v[uvLen - 1] == 0) {
+                --uvLen
+            }
+
+            if (Nat.gte(uvLen, u, v)) {
+                Nat.subFrom(uvLen, v, u)
+                //              assert (u[0] & 1) == 0;
+                ac += Nat.subFrom(len, b, a) - bc
+                ac = Mod.inversionStep(p, u, uvLen, a, ac)
+                if (Nat.isOne(uvLen, u)) {
+                    Mod.inversionResult(p, ac, a, z)
+                    return
+                }
+            } else {
+                Nat.subFrom(uvLen, u, v)
+                //              assert (v[0] & 1) == 0;
+                bc += Nat.subFrom(len, a, b) - ac
+                bc = Mod.inversionStep(p, v, uvLen, b, bc)
+                if (Nat.isOne(uvLen, v)) {
+                    Mod.inversionResult(p, bc, b, z)
+                    return
+                }
+            }
+        }
+    }
 }
