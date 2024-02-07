@@ -6,7 +6,7 @@ import org.angproj.aux.util.BinHex
 import org.angproj.crypt.number.*
 import org.angproj.crypt.number.multiply
 
-public abstract class ECFieldElement : org.bouncycastle.math.ec.ECConstants {
+/*public abstract class ECFieldElement : org.bouncycastle.math.ec.ECConstants {
     public abstract fun toBigInteger(): AbstractBigInt<*>
     public abstract val fieldName: String
     public abstract val fieldSize: Int
@@ -735,4 +735,4 @@ public abstract class ECFieldElement : org.bouncycastle.math.ec.ECConstants {
             public const val PPB: Int = 3
         }
     }
-}
+}*/
