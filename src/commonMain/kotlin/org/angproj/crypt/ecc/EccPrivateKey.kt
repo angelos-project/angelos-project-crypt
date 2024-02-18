@@ -24,12 +24,14 @@ public class EccPrivateKey (
     public val curve: PrimeDomainParameters
 ) {
 
-    public constructor(curve: PrimeDomainParameters) : this (BigInt.randomBetween(BigInt.one, curve.n), curve)
+    public constructor(curve: PrimeDomainParameters) : this (/*BigInt.randomBetween(BigInt.one, curve.n)*/ BigInt.one, curve)
 
     public fun publicKey(): EccPublicKey {
-        return EccPublicKey(
+        /*return EccPublicKey(
             JacobianMath.multiply(curve.getCoord(), this.secret, curve.n, curve.a.value, curve.p),
             curve
-        )
+
+        )*/
+        TODO("FIX")
     }
 }

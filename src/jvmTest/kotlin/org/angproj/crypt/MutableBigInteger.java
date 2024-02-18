@@ -42,8 +42,8 @@ package org.angproj.crypt;
  * @since   1.3
  */
 
-import static java.math.BigDecimal.INFLATED;
-import static java.math.BigInteger.LONG_MASK;
+import static org.angproj.crypt.BigInteger.LONG_MASK;
+
 import java.util.Arrays;
 
 class MutableBigInteger {
@@ -203,7 +203,7 @@ class MutableBigInteger {
      * Convert this MutableBigInteger to BigDecimal object with the specified sign
      * and scale.
      */
-    BigDecimal toBigDecimal(int sign, int scale) {
+    /*BigDecimal toBigDecimal(int sign, int scale) {
         if (intLen == 0 || sign == 0)
             return BigDecimal.zeroValueOf(scale);
         int[] mag = getMagnitudeArray();
@@ -217,14 +217,14 @@ class MutableBigInteger {
                 ((mag[1] & LONG_MASK) | (d & LONG_MASK) << 32) :
                 d & LONG_MASK;
         return BigDecimal.valueOf(sign == -1 ? -v : v, scale);
-    }
+    }*/
 
     /**
      * This is for internal use in converting from a MutableBigInteger
      * object into a long value given a specified sign.
      * returns INFLATED if value is not fit into long
      */
-    long toCompactValue(int sign) {
+    /*long toCompactValue(int sign) {
         if (intLen == 0 || sign == 0)
             return 0L;
         int[] mag = getMagnitudeArray();
@@ -238,7 +238,7 @@ class MutableBigInteger {
                 ((mag[1] & LONG_MASK) | (d & LONG_MASK) << 32) :
                 d & LONG_MASK;
         return sign == -1 ? -v : v;
-    }
+    }*/
 
     /**
      * Clear out a MutableBigInteger for reuse.

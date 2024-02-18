@@ -37,7 +37,7 @@ kotlin {
     sourceSets {
         val commonMain by getting {
             dependencies {
-                implementation("org.angproj.aux:angelos-project-aux:0.6.8")
+                implementation("org.angproj.aux:angelos-project-aux:0.7.0")
             }
         }
         val commonTest by getting {

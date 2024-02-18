@@ -32,13 +32,14 @@ public class EcdsaSign: SignatureGenerationEngine<EccPrivateKey, EccSignature> {
     override fun update(messagePart: ByteArray) { algo.update(messagePart) }
 
     override fun final(privKey: EccPrivateKey): EccSignature {
-        val curve = privKey.curve
+        /*val curve = privKey.curve
         val rand = BigInt.randomBetween(BigInt.one, curve.n)
         val r = JacobianMath.multiply(
             EccPoint(curve.G), rand, curve.n, curve.a.value, curve.p).x.mod(curve.n).toBigInt()
         val s = bigIntOf(algo.final()).add(
             r.multiply(privKey.secret)).multiply(JacobianMath.inv(rand, curve.n)).mod(curve.n).toBigInt()
-        return EccSignature(r, s)
+        return EccSignature(r, s)*/
+        TODO("FIX")
     }
 
     override val type: String

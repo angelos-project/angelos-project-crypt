@@ -33,7 +33,7 @@ public class EcdsaVerify : SignatureVerificationEngine<EccPublicKey, EccSignatur
     override fun update(messagePart: ByteArray) { algo.update(messagePart) }
 
     override fun final(pubKey: EccPublicKey, signature: EccSignature): Boolean {
-        val curve = pubKey.curve
+        /*val curve = pubKey.curve
         val r = signature.r
         val s = signature.s
 
@@ -65,7 +65,8 @@ public class EcdsaVerify : SignatureVerificationEngine<EccPublicKey, EccSignatur
         return when (v.isAtInfinity()) {
             true -> false
             else -> { v.x.mod(curve.n).equals(r) }
-        }
+        }*/
+        TODO("FIX")
     }
 
     override val type: String

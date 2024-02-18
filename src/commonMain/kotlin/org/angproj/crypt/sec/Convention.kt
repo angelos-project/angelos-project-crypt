@@ -136,13 +136,14 @@ public object Convention {
     }
 
     internal fun modInverse(x: AbstractBigInt<*>, q: PrimeDomainParameters): AbstractBigInt<*> {
-        val bits: Int = q.p.value.bitLength
+        /*val bits: Int = q.p.value.bitLength
         val len = (bits + 31) shr 5
         val p: IntArray = natFromBigInteger(bits, q.p.value)
         val n: IntArray = natFromBigInteger(bits, x)
         val z: IntArray = natCreate(len)
         Mod.invert(p, n, z)
-        return Nat.toBigInteger(len, z)
+        return Nat.toBigInteger(len, z)*/
+        TODO()
     } // org.bouncycastle.math.raw.
 
     internal fun modMult(x1: AbstractBigInt<*>, x2: AbstractBigInt<*>, q: PrimeDomainParameters): AbstractBigInt<*> {
@@ -215,7 +216,7 @@ public object Convention {
     }
 
     public fun invert(p: IntArray, x: IntArray?, z: IntArray?) {
-        val len = p.size
+        /*val len = p.size
         if (Nat.isZero(len, x)) {
             error("'x' cannot be 0")
         }
@@ -267,6 +268,7 @@ public object Convention {
                     return
                 }
             }
-        }
+        }*/
+        TODO()
     }
 }

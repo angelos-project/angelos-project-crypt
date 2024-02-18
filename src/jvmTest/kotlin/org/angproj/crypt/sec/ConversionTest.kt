@@ -12,12 +12,12 @@ class ConversionTest {
     fun octetExport() {
         val q = testPrimeCurve.domainParameters
 
-        assertContentEquals(Conversion.integer2octetSting(Integer(q.p), Convention.mlen(q)).value, testPrimeCurve.p.value)
+        assertContentEquals(Conversion.integer2octetSting(Integer(q.p.value), Convention.mlen(q)).value, testPrimeCurve.p.value)
         assertContentEquals(Conversion.integer2octetSting(Integer(q.a.value), Convention.mlen(q)).value, testPrimeCurve.a.value)
         assertContentEquals(Conversion.integer2octetSting(Integer(q.b.value), Convention.mlen(q)).value, testPrimeCurve.b.value)
         assertContentEquals(Conversion.ellipticCurvePoint2octetString(q.G, q, false).value, testPrimeCurve.G.value)
-        assertContentEquals(Conversion.integer2octetSting(Integer(q.n), Convention.mlen(q)).value, testPrimeCurve.n.value)
-        assertContentEquals(Conversion.integer2octetSting(Integer(q.h), 1).value, testPrimeCurve.h.value)
+        assertContentEquals(Conversion.integer2octetSting(Integer(q.n.value), Convention.mlen(q)).value, testPrimeCurve.n.value)
+        assertContentEquals(Conversion.integer2octetSting(Integer(q.h.value), 1).value, testPrimeCurve.h.value)
     }
 
     @Test

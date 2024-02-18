@@ -95,7 +95,7 @@ public object Conversion {
                         println("YBIT2 $yBit")
                         val y = when(yBit2 == yBit) {
                             true -> beta
-                            false -> q.p - beta
+                            false -> q.p.value - beta
                         }.let { FieldElement(it.toBigInt()) }
                         EllipticCurvePoint(x, y)
                     }

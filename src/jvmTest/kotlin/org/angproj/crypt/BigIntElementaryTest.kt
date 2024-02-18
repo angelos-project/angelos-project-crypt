@@ -29,5 +29,12 @@ class BigIntElementaryTest {
             Pair(xbi.sqrt(), x.sqrt())
         }
     }
+
+    @Test
+    fun modPowTest() {
+        Combinator.doVectorTests(positiveVector) { xbi, x ->
+            Pair(xbi.modPow(), x.modPow())
+        }
+    }
 }
 
