@@ -14,7 +14,9 @@
  */
 package org.angproj.crypt.number
 
+import org.angproj.aux.num.AbstractBigInt
 import org.angproj.aux.num.AbstractBigInt.Companion.getL
+import org.angproj.aux.num.BigInt
 import org.angproj.aux.num.MutableBigInt
 
 internal fun MutableBigInt.Companion.divWord(n: Long, d: Int): Long {
@@ -114,4 +116,26 @@ internal fun MutableBigInt.Companion.divAdd(a: IntArray, result: IntArray, offse
         carry = sum ushr Int.SIZE_BITS
     }
     return carry.toInt()
+}
+
+// https://developer.classpath.org/doc/java/math/BigInteger-source.html
+internal fun MutableBigInt.Companion.euclidInv(
+    a: AbstractBigInt<*>,
+    b: AbstractBigInt<*>,
+    prevDiv: AbstractBigInt<*>,
+    xy_: Pair<AbstractBigInt<*>, AbstractBigInt<*>>
+): Pair<AbstractBigInt<*>, AbstractBigInt<*>> = when {
+    b.compareTo(BigInt.zero).isEqual() -> error("Not invertible")
+    b.compareTo(BigInt.one).isEqual() -> Pair(
+        prevDiv.negate(),
+        BigInt.one
+    )
+    else -> {
+        val qr = a.divideAndRemainder(b)
+        val xy = euclidInv(b, qr.second, qr.first, xy_)
+        Pair(
+            xy.second.subtract(xy.first.times(prevDiv)),
+            xy.first
+        )
+    }
 }
