@@ -19,7 +19,7 @@ import org.angproj.aux.util.readIntAt
 import org.angproj.aux.util.writeIntAt
 import org.angproj.crypt.Hash
 
-internal class Sha1Hash : AbstractShaHashEngine(), EndianAware {
+public class Sha1Hash : AbstractShaHashEngine(), EndianAware {
 
     override val h: IntArray = intArrayOf(
         0x67452301, -0x10325477, -0x67452302, 0x10325476, -0x3c2d1e10
@@ -116,7 +116,7 @@ internal class Sha1Hash : AbstractShaHashEngine(), EndianAware {
     override val type: String
         get() = "SHA1"
 
-    companion object : Hash {
+    public companion object : Hash {
         override val name: String = "${Hash.TYPE}-1"
         override val blockSize: Int = 512.inByteSize
         override val wordSize: Int = 32.inByteSize

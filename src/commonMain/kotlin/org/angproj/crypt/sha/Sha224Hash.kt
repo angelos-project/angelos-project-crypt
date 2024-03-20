@@ -16,7 +16,7 @@ package org.angproj.crypt.sha
 
 import org.angproj.crypt.Hash
 
-internal class Sha224Hash : AbstractSha256HashEngine() {
+public class Sha224Hash : AbstractSha256HashEngine() {
 
     override val h: IntArray = intArrayOf(
         -0x3efa6128, 0x367cd507, 0x3070dd17, -0x8f1a6c7,
@@ -28,7 +28,7 @@ internal class Sha224Hash : AbstractSha256HashEngine() {
     override val type: String
         get() = "SHA224"
 
-    companion object : Hash {
+    public companion object : Hash {
         override val name: String = "${Hash.TYPE}-224"
         override val blockSize: Int = 512.inByteSize
         override val wordSize: Int = 32.inByteSize

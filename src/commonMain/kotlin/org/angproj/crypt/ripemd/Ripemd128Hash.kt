@@ -16,7 +16,7 @@ package org.angproj.crypt.ripemd
 
 import org.angproj.crypt.Hash
 
-internal class Ripemd128Hash : AbstractRipemdHashEngine() {
+public class Ripemd128Hash : AbstractRipemdHashEngine() {
 
     override val h: IntArray = intArrayOf(
         0x67452301, -0x10325477, -0x67452302, 0x10325476
@@ -41,7 +41,7 @@ internal class Ripemd128Hash : AbstractRipemdHashEngine() {
     override val type: String
         get() = "RIPEMD"
 
-    companion object : Hash {
+    public companion object : Hash {
         override val name: String = "${Hash.TYPE}-128"
         override val blockSize: Int = 512.inByteSize
         override val wordSize: Int = 32.inByteSize

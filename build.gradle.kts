@@ -1,5 +1,5 @@
 plugins {
-    kotlin("multiplatform") version "1.8.22"
+    kotlin("multiplatform") version "1.9.22"
     `maven-publish`
 }
 
@@ -37,7 +37,7 @@ kotlin {
     sourceSets {
         val commonMain by getting {
             dependencies {
-                implementation("org.angproj.aux:angelos-project-aux:0.7.0")
+                implementation("org.angproj.aux:angelos-project-aux:0.8.1")
             }
         }
         val commonTest by getting {
