@@ -15,12 +15,10 @@
 package org.angproj.crypt.number
 
 import org.angproj.aux.num.BigInt
-import org.angproj.aux.util.Random
+import org.angproj.aux.sec.SecureRandom
 import org.angproj.aux.util.bigIntOf
-import org.angproj.crypt.drbg.HmacDrbgEngine
-import org.angproj.crypt.drbg.HmacDrbgManager
+
 import org.angproj.crypt.drbg.HmacDrbgProxy
-import org.angproj.crypt.sha.Sha512Hash
 import kotlin.math.absoluteValue
 import kotlin.math.max
 import kotlin.math.min
@@ -36,7 +34,7 @@ public fun BigInt.Companion.randomBetween(lower: BigInt, upper: BigInt): BigInt 
             HmacDrbgManager.receive(handle)
         }
     }*/
-    val new = IntArray(upper.mag.size) { Random.default.getInt() }
+    val new = IntArray(upper.mag.size) { SecureRandom.readInt() }
     new[0] = min(new[0].absoluteValue, max(upper.mag[0].absoluteValue-1, 1))
     return bigIntOf(new)
 

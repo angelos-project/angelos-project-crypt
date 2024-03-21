@@ -14,7 +14,7 @@
  */
 package org.angproj.crypt.c
 
-import org.angproj.crypt.SecureRandom
+import org.angproj.aux.sec.SecureRandom
 
 public interface KeyGenerationParameters : Parameters {
 

@@ -15,8 +15,9 @@
 package org.angproj.crypt.drbg
 
 import org.angproj.aux.util.BinHex
-import org.angproj.aux.util.Random
 import org.angproj.aux.reg.RegistryItem
+import org.angproj.aux.sec.SecureEntropy
+import org.angproj.aux.sec.SecureRandom
 import org.angproj.crypt.Hash
 import org.angproj.crypt.hmac.KeyHashedMac
 
@@ -26,10 +27,6 @@ public class HmacDrbgEngine(
     predictionResistanceFlag: Boolean,
     private var personalizationString: ByteArray
 ): HmacDrbg, RegistryItem {
-
-    private val entropyGenerator = Random.receive(Random.lookup("EntropyRandom-SystemClock"))
-    private val nonceGenerator = Random.receive(Random.lookup("NonceRandom-Standard"))
-    private val randomGenerator = Random.receive(Random.lookup("SimpleRandom-Stupid"))
 
     private lateinit var state: HmacDrbgState
 
@@ -112,8 +109,8 @@ public class HmacDrbgEngine(
         check(minEntropy in minLength..maxLength) {
             "Minimum entropy out of bounds between $minLength and $maxLength." }
         return when(predictionResistanceRequest) {
-            true -> entropyGenerator.getByteArray(minEntropy)
-            else -> randomGenerator.getByteArray(minEntropy)
+            true -> SecureEntropy.read(minEntropy)
+            else -> SecureRandom.read(minEntropy)
         }
     }
 
@@ -136,7 +133,7 @@ public class HmacDrbgEngine(
             securityStrength, securityStrength,
             highestSupportedSecurityStrength, predictionResistanceFlag
         )
-        val nonce = nonceGenerator.getByteArray(512)
+        val nonce = SecureRandom.read(512)
         state = initializeAlgorithm(entropyInput, nonce, personalizationString, securityStrength)
         personalizationString = byteArrayOf()
         _instantiated = true

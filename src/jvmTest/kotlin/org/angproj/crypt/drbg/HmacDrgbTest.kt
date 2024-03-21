@@ -13,7 +13,7 @@ import kotlin.test.Test
 
 class HmacDrgbTest {
     @Test
-    fun testHmagDrbgSha1() {
+    fun testHmacDrbgSha1() {
         val handle = HmacDrbgManager.register(HmacDrbgEngine(
             Sha1Hash, 128, true, byteArrayOf()))
         val instance = HmacDrbgManager.receive(handle)
@@ -22,7 +22,7 @@ class HmacDrgbTest {
     }
 
     @Test
-    fun testHmagDrbgSha224() {
+    fun testHmacDrbgSha224() {
         val handle = HmacDrbgManager.register(HmacDrbgEngine(
             Sha224Hash, 128, true, byteArrayOf()))
         val instance = HmacDrbgManager.receive(handle)
@@ -31,7 +31,7 @@ class HmacDrgbTest {
     }
 
     @Test
-    fun testHmagDrbgSha256() {
+    fun testHmacDrbgSha256() {
         val handle = HmacDrbgManager.register(HmacDrbgEngine(
             Sha256Hash, 128, true, byteArrayOf()))
         val instance = HmacDrbgManager.receive(handle)
@@ -40,7 +40,7 @@ class HmacDrgbTest {
     }
 
     @Test
-    fun testHmagDrbgSha384() {
+    fun testHmacDrbgSha384() {
         val handle = HmacDrbgManager.register(HmacDrbgEngine(
             Sha384Hash, 128, true, byteArrayOf()))
         val instance = HmacDrbgManager.receive(handle)
@@ -49,7 +49,7 @@ class HmacDrgbTest {
     }
 
     @Test
-    fun testHmagDrbgSha512() {
+    fun testHmacDrbgSha512() {
         val handle = HmacDrbgManager.register(HmacDrbgEngine(
             Sha512Hash, 128, true, byteArrayOf()))
         val instance = HmacDrbgManager.receive(handle)
@@ -58,7 +58,7 @@ class HmacDrgbTest {
     }
 
     @Test
-    fun testHmagDrbgRipemd128() {
+    fun testHmacDrbgRipemd128() {
         val handle = HmacDrbgManager.register(HmacDrbgEngine(
             Ripemd128Hash, 128, true, byteArrayOf()))
         val instance = HmacDrbgManager.receive(handle)
@@ -67,7 +67,7 @@ class HmacDrgbTest {
     }
 
     @Test
-    fun testHmagDrbgRipemd160() {
+    fun testHmacDrbgRipemd160() {
         val handle = HmacDrbgManager.register(HmacDrbgEngine(
             Ripemd160Hash, 128, true, byteArrayOf()))
         val instance = HmacDrbgManager.receive(handle)
@@ -76,7 +76,7 @@ class HmacDrgbTest {
     }
 
     @Test
-    fun testHmagDrbgRipemd256() {
+    fun testHmacDrbgRipemd256() {
         val handle = HmacDrbgManager.register(HmacDrbgEngine(
             Ripemd256Hash, 128, true, byteArrayOf()))
         val instance = HmacDrbgManager.receive(handle)
@@ -85,7 +85,7 @@ class HmacDrgbTest {
     }
 
     @Test
-    fun testHmagDrbgRipemd320() {
+    fun testHmacDrbgRipemd320() {
         val handle = HmacDrbgManager.register(HmacDrbgEngine(
             Ripemd320Hash, 128, true, byteArrayOf()))
         val instance = HmacDrbgManager.receive(handle)
@@ -94,7 +94,7 @@ class HmacDrgbTest {
     }
 
     @Test
-    fun testHmagDrbgSha3224() {
+    fun testHmacDrbgSha3224() {
         val handle = HmacDrbgManager.register(HmacDrbgEngine(
             Sha3224Hash, 128, true, byteArrayOf()))
         val instance = HmacDrbgManager.receive(handle)
@@ -103,7 +103,7 @@ class HmacDrgbTest {
     }
 
     @Test
-    fun testHmagDrbgSha3256() {
+    fun testHmacDrbgSha3256() {
         val handle = HmacDrbgManager.register(HmacDrbgEngine(
             Sha3256Hash, 128, true, byteArrayOf()))
         val instance = HmacDrbgManager.receive(handle)

@@ -9,7 +9,6 @@ import kotlin.test.assertEquals
 
 class PaulssonHashTest {
 
-    val nonceGenerator = Random.receive(Random.lookup("NonceRandom-Standard"))
 
     val testVectorsDigest = listOf(
         "d382ee733f5225c5d4acdf24bd68bc44a0c72c7500a0abc468d4f1f6324b508fc0178df218cd2306b2002fe4b37d448d54db5695408c34d77321e6519cc509a4a219497e4b0852a391153d70930d276a433bc955d65b6d00bd5856c156ae6eddc8d4778eed3fa3408521a0f8c8d0810e33edf2f51d1ae94513e4f73ba3b0c32f",

@@ -152,10 +152,10 @@ public abstract class AbstractKeccakHashEngine: KeccakHashEngine, EndianAware {
     }
 
     override val type: String
-        get() = "SHA3 Under developlment"
+        get() = "SHA3"
 
     public companion object : Hash {
-        override val name: String = "${KeccakHashEngine.TYPE}3-224"
+        override val name: String = "${KeccakHashEngine.TYPE}3"
         override val blockSize: Int = 1344.inByteSize //1152.inByteSize // ? Why doesn't 1152 work or why can this not be set to -1 and continue work. FIND OUT
         override val wordSize: Int = 64.inByteSize
         override val messageDigestSize: Int = -1

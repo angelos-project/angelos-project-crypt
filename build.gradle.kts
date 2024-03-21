@@ -1,10 +1,10 @@
 plugins {
-    kotlin("multiplatform") version "1.9.22"
+    kotlin("multiplatform") version "1.9.23"
     `maven-publish`
 }
 
 group = "org.angproj.crypt"
-version = "0.2.4"
+version = "0.2.5"
 
 repositories {
     mavenCentral()
@@ -37,7 +37,7 @@ kotlin {
     sourceSets {
         val commonMain by getting {
             dependencies {
-                implementation("org.angproj.aux:angelos-project-aux:0.8.1")
+                implementation("org.angproj.aux:angelos-project-aux:0.9.1")
             }
         }
         val commonTest by getting {

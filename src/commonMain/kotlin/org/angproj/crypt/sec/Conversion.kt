@@ -24,11 +24,15 @@ import org.angproj.crypt.number.*
 public object Conversion {
     /**
      * sec1-v2.pdf -- 2.3.1 Bit-String-to-Octet-String Conversion.
+     *
+     * TR-03111 -- 3.1.1 Requires the leftmost part of the bit string to be padded with zeros until a multiple of 8.
+     * Pre-padded bit-array is assumed, due to relying on an underlying ByteArray i.e. virtually an octets string.
      * */
     public fun bitString2octetString(B: BitString): OctetString = OctetString(B.value)
 
     /**
      * sec1-v2.pdf -- 2.3.2 Octet-String-to-Bit-String Conversion.
+     * Literally an octets string is just a bit string.
      * */
     public fun octetString2bitString(M: OctetString): BitString = BitString(M.value)
 
@@ -55,14 +59,14 @@ public object Conversion {
                     else -> error("Not implemented.")
                 }
                 OctetString(byteArrayOf(if(yBit == 1) 3 else 2) + X.octets).also {
-                    check(it.octets.size == mlen) { "Mot expected size." } }
+                    check(it.octets.size == mlen) { "Not expected size." } }
             }
             !compress -> {
                 val mlen = 2 * Convention.mlen(q) + 1
                 val X = fieldElement2octetString(P.x, q)
                 val Y = fieldElement2octetString(P.y, q)
                 OctetString(byteArrayOf(4) + X.octets + Y.octets).also {
-                    check(it.octets.size == mlen) { "Mot expected size." } }
+                    check(it.octets.size == mlen) { "Not expected size." } }
             }
             else -> error("Uncalled for.")
         }
