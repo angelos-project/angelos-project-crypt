@@ -24,6 +24,8 @@ package org.angproj.crypt.dsa
 
 // https://github.com/starkbank/ecdsa-java
 
+// https://github.com/carterharrison/ecdsa-kotlin.git
+
 public class ECDSA {
 
 }
