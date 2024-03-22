@@ -24,7 +24,7 @@ public object Secp521Random1 : SecPRandom {
                 "FFFFFFFF" + "FFFFFFFF" + "FFFFFFFF" + "FFFFFFFF" +
                 "FFFFFFFF" + "FFFFFFFF" + "FFFFFFFF" + "FFFFFFFF" +
                 "FFFFFFFF" + "FFFFFFFF" + "FFFFFFFF" + "FFFFFFFF" +
-                "FFFFFFFF" + "FFFFFFFF" + "FFFFFFFF" + "FFFFFFF"
+                "FFFFFFFF" + "FFFFFFFF" + "FFFFFFFF" + "FFFFFFFF"
     }
 
     override val a: OctetString by octets {
@@ -57,10 +57,11 @@ public object Secp521Random1 : SecPRandom {
 
     override val G: OctetString by octets {
         "04" +
-                "00C6858E" + "06B70404" + "E9CD9E3E" + "CB662395" + "B4429C64" +
-                "8139053F" + "B521F828" + "AF606B4D" + "3DBAA14B" +
-                "5E77EFE7" + "5928FE1D" + "C127A2FF" + "A8DE3348" +
-                "B3C1856A" + "429BF97E" + "7E31C2E5" + "BD660118" +
+                "00C6858E" + "06B70404" + "E9CD9E3E" + "CB662395" +
+                "B4429C64" + "8139053F" + "B521F828" + "AF606B4D" +
+                "3DBAA14B" + "5E77EFE7" + "5928FE1D" + "C127A2FF" +
+                "A8DE3348" + "B3C1856A" + "429BF97E" + "7E31C2E5" +
+                "BD660118" +
                 "39296A78" + "9A3BC004" + "5C8A5FB4" + "2C7D1BD9" +
                 "98F54449" + "579B4468" + "17AFBD17" + "273E662C" +
                 "97EE7299" + "5EF42640" + "C550B901" + "3FAD0761" +

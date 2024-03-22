@@ -47,7 +47,8 @@ public object Secp192Random1 : SecPRandom {
     override val G: OctetString by octets {
         "04" +
                 "188DA80E" + "B03090F6" + "7CBF20EB" + "43A18800" +
-                "F4FF0AFD" + "82FF1012" + "07192B95" + "FFC8DA78" +
+                "F4FF0AFD" + "82FF1012" +
+                "07192B95" + "FFC8DA78" +
                 "631011ED" + "6B24CDD5" + "73F977A1" + "1E794811"
     }
 
