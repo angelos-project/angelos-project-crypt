@@ -1,6 +1,44 @@
 package crypt.sec
 
+import junit.framework.TestCase
+import org.angproj.crypt.sec.Secp224Random1
+import org.junit.Test
+import java.math.BigInteger
+
 class Prime224Test {
+
+    /**
+     * From NIST SP.800-186, 3.2.1.2, P-224, p.10
+     * */
+    @Test
+    fun testOutputOfBigInteger () {
+        val dp = Secp224Random1.domainParameters
+        TestCase.assertEquals(
+            BigInteger(dp.a.value.toByteArray()).toString(),
+            "26959946667150639794667015087019630673557916260026308143510066298878"
+        )
+        TestCase.assertEquals(
+            BigInteger(dp.b.value.toByteArray()).toString(),
+            "18958286285566608000408668544493926415504680968679321075787234672564"
+        )
+        TestCase.assertEquals(
+            BigInteger(dp.n.value.toByteArray()).toString(),
+            "26959946667150639794667015087019625940457807714424391721682722368061"
+        )
+        TestCase.assertEquals(
+            BigInteger(dp.p.value.toByteArray()).toString(),
+            "26959946667150639794667015087019630673557916260026308143510066298881"
+        )
+        TestCase.assertEquals(
+            BigInteger(dp.G.x.value.toByteArray()).toString(),
+            "19277929113566293071110308034699488026831934219452440156649784352033"
+        )
+        TestCase.assertEquals(
+            BigInteger(dp.G.y.value.toByteArray()).toString(),
+            "19926808758034470970197974370888749184205991990603949537637343198772"
+        )
+    }
+
     object P_224_KeyPair {
         val testVectors: String = """#  CAVS 11.1
 #  "Key Pair" information 
