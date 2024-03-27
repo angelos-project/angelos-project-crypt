@@ -14,6 +14,9 @@
  */
 package org.angproj.crypt.sec
 
+/**
+ * Check https://github.com/pyca/cryptography for extra testvectors
+ * */
 public object Secp256Koblitz1 : SecPKoblitz {
     override val name: String = "secp256k1"
     override val strength: Int = 128

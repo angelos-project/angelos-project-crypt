@@ -1,4 +1,5 @@
 plugins {
+    `java-library`
     kotlin("multiplatform") version "1.9.23"
     `maven-publish`
 }
@@ -48,7 +49,8 @@ kotlin {
         val jvmMain by getting
         val jvmTest by getting {
             dependencies {
-                implementation("org.bouncycastle:bcpkix-jdk15on:1.65")
+                implementation("org.bouncycastle:bcprov-jdk15on:1.70")
+                implementation("org.web3j:crypto:5.0.0")
             }
         }
         val jsMain by getting
