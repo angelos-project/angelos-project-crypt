@@ -47,7 +47,11 @@ kotlin {
                 implementation(kotlin("test"))
             }
         }
-        val jvmMain by getting
+        val jvmMain by getting{
+            dependencies {
+                implementation("org.angproj.aux:angelos-project-aux:0.9.1")
+            }
+        }
         val jvmTest by getting {
             dependencies {
                 implementation("org.bouncycastle:bcprov-jdk15on:1.70")

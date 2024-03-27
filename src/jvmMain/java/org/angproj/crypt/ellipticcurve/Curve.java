@@ -16,8 +16,11 @@
  *      Kristoffer Paulsson - adaption to Angelos Project
  */
 package org.angproj.crypt.ellipticcurve;
+
 import java.math.BigInteger;
 import java.util.*;
+
+import static org.angproj.crypt.ellipticcurve.CurveKt.*;
 
 /**
  * Elliptic Curve Equation.
@@ -100,6 +103,12 @@ public class Curve {
         new long[]{1, 3, 132, 0, 10}
     );
 
+    public static final Curve nistP192 = nistP192From();
+    public static final Curve nistP224 = nistP224From();
+    public static final Curve nistP256 = nistP256From();
+    public static final Curve nistP384 = nistP384From();
+    public static final Curve nistP521 = nistP521From();
+
     /**
      *
      */
@@ -112,6 +121,11 @@ public class Curve {
 
     static {
         supportedCurves.add(secp256k1);
+        supportedCurves.add(nistP192);
+        supportedCurves.add(nistP224);
+        supportedCurves.add(nistP256);
+        supportedCurves.add(nistP384);
+        supportedCurves.add(nistP521);
 
         for (Object c : supportedCurves) {
             Curve curve = (Curve) c;

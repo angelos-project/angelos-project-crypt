@@ -1,7 +1,7 @@
 package org.angproj.crypt.sec
 
 import junit.framework.TestCase
-import org.angproj.crypt.sec.Secp256Random1
+import org.angproj.crypt.ellipticcurve.Curve
 import org.junit.Test
 import java.math.BigInteger
 
@@ -43,6 +43,8 @@ class Prime256Test {
             "36134250956749795798585127919587881956" +
                     "611106672985015071877198253568414405109"
         )
+
+        Curve.nistP256
     }
 
     object P_256_KeyPair {
