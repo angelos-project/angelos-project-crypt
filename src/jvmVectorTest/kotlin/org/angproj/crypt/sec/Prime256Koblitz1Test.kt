@@ -1,7 +1,11 @@
 package org.angproj.crypt.sec
 
 import org.angproj.aux.util.BinHex
-import org.angproj.crypt.ellipticcurve.*
+import org.angproj.crypt.ellipticcurve.Point
+import org.angproj.crypt.ellipticcurve.PublicKey
+import org.angproj.crypt.ellipticcurve.Curve
+import org.angproj.crypt.ellipticcurve.Signature
+import org.angproj.crypt.ellipticcurve.Ecdsa
 import java.math.BigInteger
 import kotlin.test.Test
 import kotlin.test.assertTrue
@@ -63,29 +67,10 @@ class Prime256Koblitz1Test {
             val msg = BinHex.decodeToBin(rows[0].substring(6).trim())
             val d = rows[1].substring(4).trim()
             val qX = rows[2].substring(5).trim()
-            val qY = rows[2].substring(5).trim()
-            val r = rows[1].substring(4).trim()
-            val s = rows[1].substring(4).trim()
+            val qY = rows[3].substring(5).trim()
+            val r = rows[4].substring(4).trim()
+            val s = rows[5].substring(4).trim()
             process(msg, d, qX, qY, r, s)
-        }
-    }
-
-    @Test
-    fun testCryptoCurve() {
-        msgIter(SECP_K256_SHA256.testVectors) { msg, d, qX, qY, r, s ->
-            val pubKey = PublicKey(
-                Point(
-                    BigInteger(qX, 16),
-                    BigInteger(qY, 16)
-                ),
-                Curve.secp256k1
-            )
-            val signature = Signature(
-                BigInteger(r, 16),
-                BigInteger(s, 16)
-            )
-
-            assertTrue { Ecdsa.verify(msg, signature, pubKey) }
         }
     }
 
@@ -6410,6 +6395,26 @@ R = d28943df4755864f733b715c70b80a16d61602f588ddc95a919fb65a5f7ee182
 S = 6d3d647168eaa7fa16d91541eca845cfd0e1ffdebc2991e2b86e4d8eec6574a7
 """
     }
+
+    @Test
+    fun testCryptoCurvewithSha256() {
+        msgIter(SECP_K256_SHA256.testVectors) { msg, d, qX, qY, r, s ->
+            val pubKey = PublicKey(
+                Point(
+                    BigInteger(qX, 16),
+                    BigInteger(qY, 16)
+                ),
+                Curve.secp256k1
+            )
+            val signature = Signature(
+                BigInteger(r, 16),
+                BigInteger(s, 16)
+            )
+
+            assertTrue { Ecdsa.verify(msg, signature, pubKey) }
+        }
+    }
+
     object SECP_K256_SHA256 {
         val testVectors: String = """
 [K-256,SHA-256]
