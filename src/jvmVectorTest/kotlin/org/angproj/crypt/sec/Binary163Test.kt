@@ -1,10 +1,9 @@
 package org.angproj.crypt.sec
 
 import org.angproj.aux.util.toByteArray
-import org.angproj.crypt.dsa.EcdsaSign
-import org.angproj.crypt.dsa.EcdsaVerify
+import org.angproj.crypt.dsa._EcdsaSign
+import org.angproj.crypt.dsa._EcdsaVerify
 import org.angproj.crypt.ecc.EccPrivateKey
-import org.angproj.crypt.sec.*
 import kotlin.random.Random
 import kotlin.test.Test
 
@@ -15,11 +14,11 @@ class Binary163Test {
         val message = LongArray(20) { Random.nextLong() }.toByteArray()
         val privKey = EccPrivateKey(Secp256Koblitz1.domainParameters)
 
-        val signer = EcdsaSign()
+        val signer = _EcdsaSign()
         signer.update(message)
         val signature = signer.final(privKey)
 
-        val verifier = EcdsaVerify()
+        val verifier = _EcdsaVerify()
         verifier.update(message)
         println(verifier.final(privKey.publicKey(), signature))
     }

@@ -14,18 +14,13 @@
  */
 package org.angproj.crypt.dsa
 
-import org.angproj.aux.num.BigInt
-import org.angproj.aux.util.bigIntOf
 import org.angproj.crypt.SignatureGenerationEngine
-import org.angproj.crypt.ecc.EccPoint
 import org.angproj.crypt.ecc.EccPrivateKey
 import org.angproj.crypt.ecc.EccSignature
-import org.angproj.crypt.ecc.JacobianMath
-import org.angproj.crypt.number.*
 import org.angproj.crypt.sha.Sha256Hash
 
 
-public class EcdsaSign: SignatureGenerationEngine<EccPrivateKey, EccSignature> {
+public class _EcdsaSign: SignatureGenerationEngine<EccPrivateKey, EccSignature> {
 
     private val algo = Sha256Hash.create()
 
