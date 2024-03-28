@@ -1,9 +1,14 @@
 package org.angproj.crypt.sec
 
 import junit.framework.TestCase
-import org.angproj.crypt.sec.Secp521Random1
+import org.angproj.crypt.ellipticcurve.Curve
+import org.angproj.crypt.ellipticcurve.Point
+import org.angproj.crypt.ellipticcurve.PrivateKey
 import org.junit.Test
 import java.math.BigInteger
+import kotlin.test.assertContains
+import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 class Prime521Test {
 
@@ -49,6 +54,40 @@ class Prime521Test {
                     "67779615544477440556316691234405012945539562144444537289428" +
                     "522585666729196580810124344277578376784"
         )
+    }
+
+    @Test
+    fun testKeyPair () {
+        val curve = Curve.nistP521
+        keyPairIter(P_521_KeyPair.testVectors) { d, qX, qY ->
+            val point = Point(
+                BigInteger(qX, 16),
+                BigInteger(qY, 16)
+            )
+            assertTrue(curve.contains(point))
+            assertContains(
+                qX,
+                PrivateKey(curve, BigInteger(d, 16)).publicKey().point.x.toString(16)
+            )
+        }
+    }
+
+    fun keyPairIter(
+        file: String,
+        process: (
+            d: String,
+            qX: String,
+            qY: String,
+        ) -> Unit
+    ) {
+        val data = file.split("]\n\n")[1]
+        data.split("\n\n").forEach { entry ->
+            val rows = entry.split("\n")
+            val d = rows[0].substring(4).trim()
+            val qX = rows[1].substring(5).trim()
+            val qY = rows[2].substring(5).trim()
+            process(d, qX, qY)
+        }
     }
 
     object P_521_KeyPair {
@@ -99,6 +138,41 @@ Qy = 019131c0094d8bc60f843109a67374631e8cf9097d3f7e49b7c1f06c7d6fcbdae4fb0e3cfe9
 d = 01c14060704f0c676c5e8f348096fef44194e4febf43870411657b454dd4aa7882a989224df4e66864a78653de8c2969838739bfb88d8a86bbba1710dc7b523c885c
 Qx = 005136ff6e47fa833732531396e1f9dea6227f4e3ed5587cc4f6a7d3bcd64a27ce2c18304f26e6415a3cbdf77460bc13bf4058ceb8788195f532055acfdfb9a0333a
 Qy = 00aebc65776bbb3064b4e740dd8b48d8c21a155d2eaa09172eb3ebe57b323c1ff18c3fdd4cdbd04d52fefaf393a4438f8524f9a1c12d932dae04396632e09c63de04"""
+    }
+
+    @Test
+    fun testPkv () {
+        val curve = Curve.nistP521
+        pkvIter(P_521_PKV.testVectors) { qX, qY, result ->
+            val point = Point(
+                BigInteger(qX, 16),
+                BigInteger(qY, 16)
+            )
+            val valid = when(result[0]) {
+                'P' -> true
+                'F' -> false
+                else -> error("")
+            }
+            assertEquals(curve.contains(point), valid)
+        }
+    }
+
+    fun pkvIter(
+        file: String,
+        process: (
+            qX: String,
+            qY: String,
+            result: String
+        ) -> Unit
+    ) {
+        val data = file.split("]\n\n")[1]
+        data.split("\n\n").forEach { entry ->
+            val rows = entry.split("\n")
+            val qX = rows[0].substring(5).trim()
+            val qY = rows[1].substring(5).trim()
+            val result = rows[2].substring(9).trim()
+            process(qX, qY, result)
+        }
     }
 
     object P_521_PKV {

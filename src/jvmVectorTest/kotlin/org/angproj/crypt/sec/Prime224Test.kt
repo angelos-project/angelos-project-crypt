@@ -1,9 +1,14 @@
 package org.angproj.crypt.sec
 
 import junit.framework.TestCase
-import org.angproj.crypt.sec.Secp224Random1
+import org.angproj.crypt.ellipticcurve.Curve
+import org.angproj.crypt.ellipticcurve.Point
+import org.angproj.crypt.ellipticcurve.PrivateKey
 import org.junit.Test
 import java.math.BigInteger
+import kotlin.test.assertContains
+import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 class Prime224Test {
 
@@ -37,6 +42,40 @@ class Prime224Test {
             BigInteger(dp.G.y.value.toByteArray()).toString(),
             "19926808758034470970197974370888749184205991990603949537637343198772"
         )
+    }
+
+    @Test
+    fun testKeyPair () {
+        val curve = Curve.nistP224
+        keyPairIter(P_224_KeyPair.testVectors) { d, qX, qY ->
+            val point = Point(
+                BigInteger(qX, 16),
+                BigInteger(qY, 16)
+            )
+            assertTrue(curve.contains(point))
+            assertContains(
+                qX,
+                PrivateKey(curve, BigInteger(d, 16)).publicKey().point.x.toString(16)
+            )
+        }
+    }
+
+    fun keyPairIter(
+        file: String,
+        process: (
+            d: String,
+            qX: String,
+            qY: String,
+        ) -> Unit
+    ) {
+        val data = file.split("]\n\n")[1]
+        data.split("\n\n").forEach { entry ->
+            val rows = entry.split("\n")
+            val d = rows[0].substring(4).trim()
+            val qX = rows[1].substring(5).trim()
+            val qY = rows[2].substring(5).trim()
+            process(d, qX, qY)
+        }
     }
 
     object P_224_KeyPair {
@@ -87,6 +126,41 @@ Qy = 17fb3098d1e13d2b42d0581e6b7718dda58510ca1996225b2626071c
 d = 6bdb055db1268843c5447bb50a3dcc65a715fd1f851f38921dfbfc71
 Qx = a4c3902f5d2d545c5f1ef5380f9019c9d5561e0976e4ddaac5b2eb59
 Qy = 9904eaa7656c6aadc88fc795e5a9a394bfc27a08b21b54761a92d12c"""
+    }
+
+    @Test
+    fun testPkv () {
+        val curve = Curve.nistP224
+        pkvIter(P_224_PKV.testVectors) { qX, qY, result ->
+            val point = Point(
+                BigInteger(qX, 16),
+                BigInteger(qY, 16)
+            )
+            val valid = when(result[0]) {
+                'P' -> true
+                'F' -> false
+                else -> error("")
+            }
+            assertEquals(curve.contains(point), valid)
+        }
+    }
+
+    fun pkvIter(
+        file: String,
+        process: (
+            qX: String,
+            qY: String,
+            result: String
+        ) -> Unit
+    ) {
+        val data = file.split("]\n\n")[1]
+        data.split("\n\n").forEach { entry ->
+            val rows = entry.split("\n")
+            val qX = rows[0].substring(5).trim()
+            val qY = rows[1].substring(5).trim()
+            val result = rows[2].substring(9).trim()
+            process(qX, qY, result)
+        }
     }
 
     object P_224_PKV {
