@@ -92,7 +92,7 @@ public class Curve {
     /**
      *
      */
-    public static final Curve secp256k1 = new Curve(
+    /*public static final Curve secp256k1 = new Curve(
         BigInteger.ZERO,
         BigInteger.valueOf(7),
         new BigInteger("fffffffffffffffffffffffffffffffffffffffffffffffffffffffefffffc2f", 16),
@@ -101,8 +101,9 @@ public class Curve {
         new BigInteger("483ada7726a3c4655da4fbfc0e1108a8fd17b448a68554199c47d08ffb10d4b8", 16),
         "secp256k1",
         new long[]{1, 3, 132, 0, 10}
-    );
+    );*/
 
+    public static final Curve secp256k1 = secp256k1From();
     public static final Curve nistP192 = nistP192From();
     public static final Curve nistP224 = nistP224From();
     public static final Curve nistP256 = nistP256From();
