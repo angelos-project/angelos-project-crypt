@@ -1,5 +1,6 @@
 /**
  * Copyright (c) 2024 by Kristoffer Paulsson <kristoffer.paulsson@talenten.se>.
+ * Copyright (c) 2019 Stark Bank S.A.
  *
  * This software is available under the terms of the MIT license. Parts are licensed
  * under different terms if stated. The legal terms are attached to the LICENSE file
@@ -10,7 +11,7 @@
  * SPDX-License-Identifier: MIT
  *
  * Contributors:
- *      Kristoffer Paulsson - initial implementation
+ *      Kristoffer Paulsson - initial implementation and merging from starbank-ecdsa
  */
 package org.angproj.crypt.dsa
 

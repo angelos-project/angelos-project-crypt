@@ -1,5 +1,6 @@
 /**
  * Copyright (c) 2024 by Kristoffer Paulsson <kristoffer.paulsson@talenten.se>.
+ * Copyright (c) 2019 Stark Bank S.A.
  *
  * This software is available under the terms of the MIT license. Parts are licensed
  * under different terms if stated. The legal terms are attached to the LICENSE file
@@ -10,7 +11,7 @@
  * SPDX-License-Identifier: MIT
  *
  * Contributors:
- *      Kristoffer Paulsson - initial implementation
+ *      Kristoffer Paulsson - initial implementation and merging from starbank-ecdsa
  */
 package org.angproj.crypt.dsa
 
@@ -35,13 +36,12 @@ public class EcdsaSign(private val curve: Curve, hash: Hash): SignatureGeneratio
         require(privKey.curve.name == curve.name) { "Private key not valid for curve ${curve.name}" }
 
         val hashMessage: ByteArray = algo.final()
-        val numberMessage = BinaryAscii.numberFromString(hashMessage)
+        val numberMessage = BinaryAscii.numberFromString(hashMessage.copyOf(min(hash.messageDigestSize, 32)))
         val curve: Curve = privKey.curve
         val randNum = RandomInteger.between(BigInteger.ONE, curve.N)
         val randomSignPoint = Math.multiply(curve.G, randNum, curve.N, curve.A, curve.P)
         val r = randomSignPoint.x.mod(curve.N)
-        val s = numberMessage.add(r.multiply(privKey.secret))
-            .multiply(Math.inv(randNum, curve.N)).mod(curve.N)
+        val s = numberMessage.add(r.multiply(privKey.secret)).multiply(Math.inv(randNum, curve.N)).mod(curve.N)
 
         return Signature(r, s)
     }

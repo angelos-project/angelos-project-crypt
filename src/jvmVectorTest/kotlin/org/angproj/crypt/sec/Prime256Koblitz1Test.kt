@@ -15,42 +15,167 @@ import kotlin.test.assertTrue
 
 class Prime256Koblitz1Test {
 
+    val vectors = listOf(
+        Pair(SECP_K256_SHA1.testVectors, Sha1Hash),
+        Pair(SECP_K256_SHA224.testVectors, Sha224Hash),
+        Pair(SECP_K256_SHA256.testVectors, Sha256Hash),
+        Pair(SECP_K256_SHA384.testVectors, Sha384Hash),
+        Pair(SECP_K256_SHA512.testVectors, Sha512Hash),
+    )
+
     /**
-     * Doesn't exist or isn't validated yet.
+     * Aren't available from authoritative open sources, presumably deleted for convenience.
+     * Exists only based on already generated secp256k1 values which is tested through recycled
+     * test-vectors, which presumably are deprecated NIST test-vectors for unofficial testing.
      * */
     @Test
     fun testOutputOfBigInteger () {
         val dp = Secp256Koblitz1.domainParameters
-        /*TestCase.assertEquals(
+        println(BigInteger(dp.G.y.value.toByteArray()).toString())
+        assertEquals(
             BigInteger(dp.a.value.toByteArray()).toString(),
-            "115792089210356248762697446949407573530" +
-                    "086143415290314195533631308867097853948"
+            "0"
         )
-        TestCase.assertEquals(
+        assertEquals(
             BigInteger(dp.b.value.toByteArray()).toString(),
-            "41058363725152142129326129780047268409" +
-                    "114441015993725554835256314039467401291"
+            "7"
         )
-        TestCase.assertEquals(
+        assertEquals(
             BigInteger(dp.n.value.toByteArray()).toString(),
-            "115792089210356248762697446949407573529" +
-                    "996955224135760342422259061068512044369"
+            "1157920892373161954235709850086879078528" +
+                    "37564279074904382605163141518161494337"
         )
-        TestCase.assertEquals(
+        assertEquals(
             BigInteger(dp.p.value.toByteArray()).toString(),
-            "115792089210356248762697446949407573530" +
-                    "086143415290314195533631308867097853951"
+            "115792089237316195423570985008687907853" +
+                    "269984665640564039457584007908834671663"
         )
-        TestCase.assertEquals(
+        assertEquals(
             BigInteger(dp.G.x.value.toByteArray()).toString(),
-            "48439561293906451759052585252797914202" +
-                    "762949526041747995844080717082404635286"
+            "55066263022277343669578718895168534326" +
+                    "250603453777594175500187360389116729240"
         )
-        TestCase.assertEquals(
+        assertEquals(
             BigInteger(dp.G.y.value.toByteArray()).toString(),
-            "36134250956749795798585127919587881956" +
-                    "611106672985015071877198253568414405109"
-        )*/
+            "32670510020758816978083085130507043184" +
+                    "471273380659243275938904335757337482424"
+        )
+    }
+
+    @Test
+    fun testQonCurve() {
+        val curve = Curve.secp256k1
+        vectors.forEach {
+            val (v, _) = it
+            msgIter(v) { _, _, qX, qY, _, _ ->
+                val q = Point(
+                    BigInteger(qX, 16),
+                    BigInteger(qY, 16)
+                )
+                assertTrue(curve.contains(q))
+            }
+        }
+    }
+
+    @Test
+    fun testPubKeyFromPrivKey() {
+        val curve = Curve.secp256k1
+        vectors.forEach {
+            val (v, _) = it
+            msgIter(v) { _, d, qX, _, _, _ ->
+                val privKey = PrivateKey(curve, BigInteger(d, 16))
+                val pubKey = privKey.publicKey()
+                // When generating new Q(x,y) from a d with internal random k, Q(y) will be altered every time.
+                assertEquals(pubKey.point.x.toString(16), qX)
+                assertTrue(curve.contains(pubKey.point))
+            }
+        }
+    }
+
+    @Test
+    fun testEcdsaVerifyFromPubKey() {
+        val curve = Curve.secp256k1
+        vectors.forEach {
+            val (v, h) = it
+            msgIter(v) { msg, _, qX, qY, r, s ->
+                val pubKey = PublicKey(
+                    Point(
+                        BigInteger(qX, 16),
+                        BigInteger(qY, 16)
+                    ),
+                    curve
+                )
+                val signature = Signature(
+                    BigInteger(r, 16),
+                    BigInteger(s, 16)
+                )
+
+                // Verifying message using given public key Q(x,y).
+                val ecdsa = EcdsaVerify(curve, h)
+                ecdsa.update(msg)
+                assertTrue { ecdsa.final(pubKey, signature) }
+            }
+        }
+    }
+
+    @Test
+    fun testEcdsaVerifyFromPrivKey() {
+        val curve = Curve.secp256k1
+        vectors.forEach {
+            val (v, h) = it
+            msgIter(v) { msg, d, _, _, r, s ->
+                val privKey = PrivateKey(curve, BigInteger(d, 16))
+                val signature = Signature(
+                    BigInteger(r, 16),
+                    BigInteger(s, 16)
+                )
+
+                // Verifying message with new Q(x,y) generated with internal random k from given d.
+                val ecdsa = EcdsaVerify(curve, h)
+                ecdsa.update(msg)
+                assertTrue { ecdsa.final(privKey.publicKey(), signature) }
+            }
+        }
+    }
+
+    @Test
+    fun testEcdsaSignFromScratch() {
+        /*val curve = Curve.secp256k1
+        vectors.forEach {
+            val (v, h) = it
+            msgIter(v) { msg, d, _, _, r, s ->
+                val privKey = PrivateKey(curve, BigInteger(d, 16))
+                val signature = Signature(
+                    BigInteger(r, 16),
+                    BigInteger(s, 16)
+                )
+
+                // Verifying message with new Q(x,y) generated with internal random k from given d.
+                val ecdsa = EcdsaVerify(curve, h)
+                ecdsa.update(msg)
+                assertTrue { ecdsa.final(privKey.publicKey(), signature) }
+            }
+        }*/
+    }
+
+    @Test
+    fun testEcdsaVerifyFromSignature() {
+        /*val curve = Curve.secp256k1
+        vectors.forEach {
+            val (v, h) = it
+            msgIter(v) { msg, d, _, _, r, s ->
+                val privKey = PrivateKey(curve, BigInteger(d, 16))
+                val signature = Signature(
+                    BigInteger(r, 16),
+                    BigInteger(s, 16)
+                )
+
+                // Verifying message with new Q(x,y) generated with internal random k from given d.
+                val ecdsa = EcdsaVerify(curve, h)
+                ecdsa.update(msg)
+                assertTrue { ecdsa.final(privKey.publicKey(), signature) }
+            }
+        }*/
     }
 
     fun msgIter(
@@ -77,31 +202,11 @@ class Prime256Koblitz1Test {
         }
     }
 
-    @Test
-    fun testCryptoCurveWithSha384() {
-        val curve = Curve.secp256k1
-        msgIter(SECP_K256_SHA384.testVectors) { msg, d, qX, qY, r, s ->
-            val pubKey = PublicKey(
-                Point(
-                    BigInteger(qX, 16),
-                    BigInteger(qY, 16)
-                ),
-                curve
-            )
-            val signature = Signature(
-                BigInteger(r, 16),
-                BigInteger(s, 16)
-            )
-            assertEquals(PrivateKey(curve, BigInteger(d, 16)).publicKey().point.x.toString(16), qX)
-            assertTrue(Curve.secp256k1.contains(pubKey.point))
-
-            val ecdsa = EcdsaVerify(curve, Sha384Hash)
-            ecdsa.update(msg)
-            assertTrue { ecdsa.final(pubKey, signature) }
-        }
-    }
-
     object SECP_K256_SHA384 {
+
+        /**
+         * Assumed test-vectors from NIST for unofficial testing, doesn't seem to be complete.
+         * */
         val testVectors: String = """
 [K-256,SHA-384]
 
@@ -1682,31 +1787,11 @@ S = cf9c4eb08a89915fd8b2e23e9fd4627133c6cf947892e8d19c3908edbee034e1
 """
     }
 
-    @Test
-    fun testCryptoCurveWithSha224() {
-        val curve = Curve.secp256k1
-        msgIter(SECP_K256_SHA224.testVectors) { msg, d, qX, qY, r, s ->
-            val pubKey = PublicKey(
-                Point(
-                    BigInteger(qX, 16),
-                    BigInteger(qY, 16)
-                ),
-                curve
-            )
-            val signature = Signature(
-                BigInteger(r, 16),
-                BigInteger(s, 16)
-            )
-            assertEquals(PrivateKey(curve, BigInteger(d, 16)).publicKey().point.x.toString(16), qX)
-            assertTrue(Curve.secp256k1.contains(pubKey.point))
-
-            val ecdsa = EcdsaVerify(curve, Sha224Hash)
-            ecdsa.update(msg)
-            assertTrue { ecdsa.final(pubKey, signature) }
-        }
-    }
-
     object SECP_K256_SHA224 {
+
+        /**
+         * Assumed test-vectors from NIST for unofficial testing, doesn't seem to be complete.
+         * */
         val testVectors: String = """
 [K-256,SHA-224]
 
@@ -3287,31 +3372,11 @@ S = c1563e12f9d5584ac3a551e81e076e5ccba98a75a91d1f071cfe5f34fa7fbc42
 """
     }
 
-    @Test
-    fun testCryptoCurveWithSha512() {
-        val curve = Curve.secp256k1
-        msgIter(SECP_K256_SHA512.testVectors) { msg, d, qX, qY, r, s ->
-            val pubKey = PublicKey(
-                Point(
-                    BigInteger(qX, 16),
-                    BigInteger(qY, 16)
-                ),
-                curve
-            )
-            val signature = Signature(
-                BigInteger(r, 16),
-                BigInteger(s, 16)
-            )
-            assertEquals(PrivateKey(curve, BigInteger(d, 16)).publicKey().point.x.toString(16), qX)
-            assertTrue(Curve.secp256k1.contains(pubKey.point))
-
-            val ecdsa = EcdsaVerify(curve, Sha512Hash)
-            ecdsa.update(msg)
-            assertTrue { ecdsa.final(pubKey, signature) }
-        }
-    }
-
     object SECP_K256_SHA512 {
+
+        /**
+         * Assumed test-vectors from NIST for unofficial testing, doesn't seem to be complete.
+         * */
         val testVectors: String = """
 [K-256,SHA-512]
 
@@ -4892,31 +4957,12 @@ S = 7c28f5f924e1f26850bb6406d36bb268bc3606a9c340d7d99605d4d2da068110
 """
     }
 
-    @Test
-    fun testCryptoCurveWithSha1() {
-        val curve = Curve.secp256k1
-        msgIter(SECP_K256_SHA1.testVectors) { msg, d, qX, qY, r, s ->
-            val pubKey = PublicKey(
-                Point(
-                    BigInteger(qX, 16),
-                    BigInteger(qY, 16)
-                ),
-                curve
-            )
-            val signature = Signature(
-                BigInteger(r, 16),
-                BigInteger(s, 16)
-            )
-            assertEquals(PrivateKey(curve, BigInteger(d, 16)).publicKey().point.x.toString(16), qX)
-            assertTrue(Curve.secp256k1.contains(pubKey.point))
-
-            val ecdsa = EcdsaVerify(curve, Sha1Hash)
-            ecdsa.update(msg)
-            assertTrue { ecdsa.final(pubKey, signature) }
-        }
-    }
-
     object SECP_K256_SHA1 {
+
+        /**
+         * Assumed test-vectors from NIST for unofficial testing, doesn't seem to be complete.
+         * */
+
         val testVectors: String = """
 [K-256,SHA-1]
 
@@ -6497,31 +6543,11 @@ S = 6d3d647168eaa7fa16d91541eca845cfd0e1ffdebc2991e2b86e4d8eec6574a7
 """
     }
 
-    @Test
-    fun testCryptoCurveWithSha256() {
-        val curve = Curve.secp256k1
-        msgIter(SECP_K256_SHA256.testVectors) { msg, d, qX, qY, r, s ->
-            val pubKey = PublicKey(
-                Point(
-                    BigInteger(qX, 16),
-                    BigInteger(qY, 16)
-                ),
-                curve
-            )
-            val signature = Signature(
-                BigInteger(r, 16),
-                BigInteger(s, 16)
-            )
-            assertEquals(PrivateKey(curve, BigInteger(d, 16)).publicKey().point.x.toString(16), qX)
-            assertTrue(Curve.secp256k1.contains(pubKey.point))
-
-            val ecdsa = EcdsaVerify(curve, Sha256Hash)
-            ecdsa.update(msg)
-            assertTrue { ecdsa.final(pubKey, signature) }
-        }
-    }
-
     object SECP_K256_SHA256 {
+
+        /**
+         * Assumed test-vectors from NIST for unofficial testing, doesn't seem to be complete.
+         * */
         val testVectors: String = """
 [K-256,SHA-256]
 
