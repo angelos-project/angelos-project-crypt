@@ -1,6 +1,7 @@
 package org.angproj.crypt.sec
 
 import org.angproj.aux.util.BinHex
+import org.angproj.crypt.dsa.EcdsaSign
 import org.angproj.crypt.dsa.EcdsaVerify
 import org.angproj.crypt.ellipticcurve.Point
 import org.angproj.crypt.ellipticcurve.PublicKey
@@ -139,43 +140,25 @@ class Prime256Koblitz1Test {
     }
 
     @Test
-    fun testEcdsaSignFromScratch() {
-        /*val curve = Curve.secp256k1
+    fun testEcdsaSignAndVerify() {
+        val curve = Curve.secp256k1
         vectors.forEach {
             val (v, h) = it
-            msgIter(v) { msg, d, _, _, r, s ->
+            msgIter(v) { msg, d, _, _, _, _ ->
+                // Signing given message msg with given private key d.
                 val privKey = PrivateKey(curve, BigInteger(d, 16))
-                val signature = Signature(
-                    BigInteger(r, 16),
-                    BigInteger(s, 16)
-                )
+                val ecdsaSign = EcdsaSign(curve, h)
+                ecdsaSign.update(msg)
+                val signature = ecdsaSign.final(privKey)
 
-                // Verifying message with new Q(x,y) generated with internal random k from given d.
+
+                // Verifying message msg with new Q(x,y) generated with internal
+                // random k from given d using new signature (r,s).
                 val ecdsa = EcdsaVerify(curve, h)
                 ecdsa.update(msg)
                 assertTrue { ecdsa.final(privKey.publicKey(), signature) }
             }
-        }*/
-    }
-
-    @Test
-    fun testEcdsaVerifyFromSignature() {
-        /*val curve = Curve.secp256k1
-        vectors.forEach {
-            val (v, h) = it
-            msgIter(v) { msg, d, _, _, r, s ->
-                val privKey = PrivateKey(curve, BigInteger(d, 16))
-                val signature = Signature(
-                    BigInteger(r, 16),
-                    BigInteger(s, 16)
-                )
-
-                // Verifying message with new Q(x,y) generated with internal random k from given d.
-                val ecdsa = EcdsaVerify(curve, h)
-                ecdsa.update(msg)
-                assertTrue { ecdsa.final(privKey.publicKey(), signature) }
-            }
-        }*/
+        }
     }
 
     fun msgIter(

@@ -1,16 +1,16 @@
 package org.angproj.crypt.sec
 
 import junit.framework.TestCase
+import org.angproj.crypt.Hash
 import org.angproj.crypt.ellipticcurve.Curve
-import org.angproj.crypt.ellipticcurve.Point
-import org.angproj.crypt.ellipticcurve.PrivateKey
+import org.angproj.crypt.sha.Sha1Hash
 import org.junit.Test
 import java.math.BigInteger
-import kotlin.test.assertContains
-import kotlin.test.assertEquals
-import kotlin.test.assertTrue
 
-class Prime256Test {
+class Prime256Test : AbstractNistPTest() {
+
+    override val hash: Hash = Sha1Hash
+    override val curve: Curve = Curve.nistP256
 
     /**
      * From NIST SP.800-186, 3.2.1.3, P-256, p.10-11
@@ -53,37 +53,23 @@ class Prime256Test {
     }
 
     @Test
-    fun testKeyPair () {
-        val curve = Curve.nistP256
-        keyPairIter(P_256_KeyPair.testVectors) { d, qX, qY ->
-            val point = Point(
-                BigInteger(qX, 16),
-                BigInteger(qY, 16)
-            )
-            assertTrue(curve.contains(point))
-            assertContains(
-                qX,
-                PrivateKey(curve, BigInteger(d, 16)).publicKey().point.x.toString(16)
-            )
-        }
+    fun testKeyPair() {
+        testKeyPair(P_256_KeyPair.testVectors)
     }
 
-    fun keyPairIter(
-        file: String,
-        process: (
-            d: String,
-            qX: String,
-            qY: String,
-        ) -> Unit
-    ) {
-        val data = file.split("]\n\n")[1]
-        data.split("\n\n").forEach { entry ->
-            val rows = entry.split("\n")
-            val d = rows[0].substring(4).trim()
-            val qX = rows[1].substring(5).trim()
-            val qY = rows[2].substring(5).trim()
-            process(d, qX, qY)
-        }
+    @Test
+    fun testPkv() {
+        testPkv(P_256_PKV.testVectors)
+    }
+
+    @Test
+    fun testSigGen() {
+        testSigGen(P_256_SigGen.testVectors)
+    }
+
+    @Test
+    fun testSigVer() {
+        testSigVer(P_256_SigVer.testVectors)
     }
 
     object P_256_KeyPair {
@@ -134,41 +120,6 @@ Qy = e49f950477377d93779827a3fc2fb6dcd042cf6e668f01dc99086f5158f08094
 d = 533378bf46ea191064bd8ba9f0957744f141c7f4bcf87824c76484419f93fc4e
 Qx = 5de4a3da884748e7f2f5786d75bce0844c24bb68a36aef7ba7e25a8564c5cf30
 Qy = 33fa9dfe44de6d42e71de539e0abe752833841cd3fd7ac72c26ed5df23ac3d20"""
-    }
-
-    @Test
-    fun testPkv () {
-        val curve = Curve.nistP256
-        pkvIter(P_256_PKV.testVectors) { qX, qY, result ->
-            val point = Point(
-                BigInteger(qX, 16),
-                BigInteger(qY, 16)
-            )
-            val valid = when(result[0]) {
-                'P' -> true
-                'F' -> false
-                else -> error("")
-            }
-            assertEquals(curve.contains(point), valid)
-        }
-    }
-
-    fun pkvIter(
-        file: String,
-        process: (
-            qX: String,
-            qY: String,
-            result: String
-        ) -> Unit
-    ) {
-        val data = file.split("]\n\n")[1]
-        data.split("\n\n").forEach { entry ->
-            val rows = entry.split("\n")
-            val qX = rows[0].substring(5).trim()
-            val qY = rows[1].substring(5).trim()
-            val result = rows[2].substring(9).trim()
-            process(qX, qY, result)
-        }
     }
 
     object P_256_PKV {

@@ -33,10 +33,11 @@ public class EcdsaVerify(private val curve: Curve, private val hash: Hash) : Sig
     override fun update(messagePart: ByteArray) { algo.update(messagePart) }
 
     override fun final(pubKey: PublicKey, signature: Signature): Boolean {
-        require(pubKey.curve.name == curve.name) { "Private key not valid for curve ${curve.name}" }
+        require(pubKey.curve.name == curve.name) { "Public key not valid for curve ${curve.name}" }
+        check(curve.contains(pubKey.point)) { "Public key point not found on the curve ${curve.name}." }
 
         val hashMessage: ByteArray = algo.final()
-        val numberMessage = BinaryAscii.numberFromString(hashMessage.copyOf(min(hash.messageDigestSize, 32)))
+        val numberMessage = BinaryAscii.numberFromString(hashMessage.copyOf(min(hash.messageDigestSize, curve.digestSize)))
         val curve: Curve = pubKey.curve
         val r = signature.r
         val s = signature.s

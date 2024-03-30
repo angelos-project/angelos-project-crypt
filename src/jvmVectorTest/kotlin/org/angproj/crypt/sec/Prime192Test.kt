@@ -1,19 +1,16 @@
 package org.angproj.crypt.sec
 
-import org.angproj.aux.util.BinHex
+import org.angproj.crypt.Hash
 import org.angproj.crypt.ellipticcurve.Curve
-import org.angproj.crypt.ellipticcurve.Ecdsa
-import org.angproj.crypt.ellipticcurve.Point
-import org.angproj.crypt.ellipticcurve.PrivateKey
-import org.angproj.crypt.ellipticcurve.PublicKey
-import org.angproj.crypt.ellipticcurve.Signature
+import org.angproj.crypt.sha.Sha1Hash
 import java.math.BigInteger
 import kotlin.test.Test
-import kotlin.test.assertContains
 import kotlin.test.assertEquals
-import kotlin.test.assertTrue
 
-class Prime192Test {
+class Prime192Test : AbstractNistPTest() {
+
+    override val hash: Hash = Sha1Hash
+    override val curve: Curve = Curve.nistP192
 
     /**
      * From NIST SP.800-186, 3.2.1.2, P-192, p.10
@@ -26,7 +23,7 @@ class Prime192Test {
      * field a is not given!
      * */
     @Test
-    fun testOutputOfBigInteger () {
+    fun testOutputOfBigInteger() {
         val dp = Secp192Random1.domainParameters
         /*assertEquals(
             Secp192r1.a.toString(),
@@ -55,37 +52,23 @@ class Prime192Test {
     }
 
     @Test
-    fun testKeyPair () {
-        val curve = Curve.nistP192
-        keyPairIter(P_192_KeyPair.testVectors) { d, qX, qY ->
-            val point = Point(
-                BigInteger(qX, 16),
-                BigInteger(qY, 16)
-            )
-            assertTrue(curve.contains(point))
-            assertContains(
-                qX,
-                PrivateKey(curve, BigInteger(d, 16)).publicKey().point.x.toString(16)
-            )
-        }
+    fun testKeyPair() {
+        testKeyPair(P_192_KeyPair.testVectors)
     }
 
-    fun keyPairIter(
-        file: String,
-        process: (
-            d: String,
-            qX: String,
-            qY: String,
-        ) -> Unit
-    ) {
-        val data = file.split("]\n\n")[1]
-        data.split("\n\n").forEach { entry ->
-            val rows = entry.split("\n")
-            val d = rows[0].substring(4).trim()
-            val qX = rows[1].substring(5).trim()
-            val qY = rows[2].substring(5).trim()
-            process(d, qX, qY)
-        }
+    @Test
+    fun testPkv() {
+        testPkv(P_192_PKV.testVectors)
+    }
+
+    @Test
+    fun testSigGen() {
+        testSigGen(P_192_SigGen.testVectors)
+    }
+
+    @Test
+    fun testSigVer() {
+        testSigVer(P_192_SigVer.testVectors)
     }
 
     object P_192_KeyPair {
@@ -136,41 +119,6 @@ Qy = dc713df0fd53def63dc93921aecd866fca8cce31a5e2f914
 d = f96154b47b40c675d7749fad59ffbbd45604f17c2491cd79
 Qx = d23429f841f283d07a20f7fea6f0588476a20e934be92014
 Qy = 0cd968ba262e03276f09765da0a358a045988fd9e5e7a13f"""
-    }
-
-    @Test
-    fun testPkv () {
-        val curve = Curve.nistP192
-        pkvIter(P_192_PKV.testVectors) {qX, qY, result ->
-            val point = Point(
-                BigInteger(qX, 16),
-                BigInteger(qY, 16)
-            )
-            val valid = when(result[0]) {
-                'P' -> true
-                'F' -> false
-                else -> error("")
-            }
-            assertEquals(curve.contains(point), valid)
-        }
-    }
-
-    fun pkvIter(
-        file: String,
-        process: (
-            qX: String,
-            qY: String,
-            result: String
-        ) -> Unit
-    ) {
-        val data = file.split("]\n\n")[1]
-        data.split("\n\n").forEach { entry ->
-            val rows = entry.split("\n")
-            val qX = rows[0].substring(5).trim()
-            val qY = rows[1].substring(5).trim()
-            val result = rows[2].substring(9).trim()
-            process(qX, qY, result)
-        }
     }
 
     object P_192_PKV {
@@ -229,50 +177,6 @@ Result = F (1 - Q_x or Q_y out of range)
 Qx = ace95b650c08f73dbb4fa7b4bbdebd6b809a25b28ed135ef
 Qy = e9b8679404166d1329dd539ad52aad9a1b6681f5f26bb9aa
 Result = F (2 - Point not on curve)"""
-    }
-
-    @Test
-    fun testSigGen () {
-        val curve = Curve.nistP192
-        sigGenIter(P_192_SigGen.testVectors) { msg, qX, qY, r, s ->
-            val publicKey = PublicKey(
-                Point(
-                    BigInteger("00" + qX, 16),
-                    BigInteger("00" + qY, 16)
-                ),
-                curve,
-            )
-            val signature = Signature(
-                BigInteger("00" + r, 16),
-                BigInteger("00" + s, 16)
-            )
-            println(signature.r.toString(16))
-            println(signature.s.toString(16))
-            println(curve.contains(publicKey.point))
-            assertTrue(Ecdsa.verify(msg, signature, publicKey))
-        }
-    }
-
-    fun sigGenIter(
-        file: String,
-        process: (
-            msg: ByteArray,
-            qX: String,
-            qY: String,
-            r: String,
-            s: String
-        ) -> Unit
-    ) {
-        val data = file.split("]\n\n")[1]
-        data.split("\n\n").forEach { entry ->
-            val rows = entry.split("\n")
-            val msg = BinHex.decodeToBin(rows[0].substring(6).trim())
-            val qX = rows[1].substring(5).trim()
-            val qY = rows[2].substring(5).trim()
-            val r = rows[3].substring(4).trim()
-            val s = rows[4].substring(4).trim()
-            process(msg, qX, qY, r, s)
-        }
     }
 
     object P_192_SigGen {

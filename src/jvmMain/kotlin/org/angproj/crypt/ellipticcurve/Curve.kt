@@ -28,7 +28,8 @@ public fun secp256k1From(): Curve {
         BigInteger(1, dp.G.x.value.toByteArray()),
         BigInteger(1, dp.G.y.value.toByteArray()),
         Secp256Koblitz1.name,
-        longArrayOf(0, 1, 2, 3, 4)
+        longArrayOf(0, 1, 2, 3, 4),
+        32
     )
 }
 
@@ -46,7 +47,8 @@ public fun nistP192From(): Curve {
         BigInteger(1, dp.G.x.value.toByteArray()),
         BigInteger(1, dp.G.y.value.toByteArray()),
         Secp192Random1.name,
-        longArrayOf(0, 1, 2, 3, 4)
+        longArrayOf(0, 1, 2, 3, 4),
+        20
     )
 }
 
@@ -60,7 +62,8 @@ public fun nistP224From(): Curve {
         BigInteger(1, dp.G.x.value.toByteArray()),
         BigInteger(1, dp.G.y.value.toByteArray()),
         Secp224Random1.name,
-        longArrayOf(1, 1, 2, 3, 4)
+        longArrayOf(1, 1, 2, 3, 4),
+        28
     )
 }
 
@@ -74,7 +77,8 @@ public fun nistP256From(): Curve {
         BigInteger(1, dp.G.x.value.toByteArray()),
         BigInteger(1, dp.G.y.value.toByteArray()),
         Secp256Random1.name,
-        longArrayOf(2, 1, 2, 3, 4)
+        longArrayOf(2, 1, 2, 3, 4),
+        32
     )
 }
 
@@ -88,7 +92,8 @@ public fun nistP384From(): Curve {
         BigInteger(1, dp.G.x.value.toByteArray()),
         BigInteger(1, dp.G.y.value.toByteArray()),
         Secp384Random1.name,
-        longArrayOf(3, 1, 2, 3, 4)
+        longArrayOf(3, 1, 2, 3, 4),
+        48
     )
 }
 
@@ -102,6 +107,7 @@ public fun nistP521From(): Curve {
         BigInteger(1, dp.G.x.value.toByteArray()),
         BigInteger(1, dp.G.y.value.toByteArray()),
         Secp521Random1.name,
-        longArrayOf(4, 1, 2, 3, 4)
+        longArrayOf(4, 1, 2, 3, 4),
+        64
     )
 }

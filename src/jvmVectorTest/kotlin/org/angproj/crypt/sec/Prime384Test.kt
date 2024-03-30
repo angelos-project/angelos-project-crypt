@@ -1,16 +1,16 @@
 package org.angproj.crypt.sec
 
 import junit.framework.TestCase
+import org.angproj.crypt.Hash
 import org.angproj.crypt.ellipticcurve.Curve
-import org.angproj.crypt.ellipticcurve.Point
-import org.angproj.crypt.ellipticcurve.PrivateKey
+import org.angproj.crypt.sha.Sha1Hash
 import org.junit.Test
 import java.math.BigInteger
-import kotlin.test.assertContains
-import kotlin.test.assertEquals
-import kotlin.test.assertTrue
 
-class Prime384Test {
+class Prime384Test : AbstractNistPTest() {
+
+    override val hash: Hash = Sha1Hash
+    override val curve: Curve = Curve.nistP384
 
     /**
      * From NIST SP.800-186, 3.2.1.4, P-384, p.11-12
@@ -51,37 +51,23 @@ class Prime384Test {
     }
 
     @Test
-    fun testKeyPair () {
-        val curve = Curve.nistP384
-        keyPairIter(P_384_KeyPair.testVectors) { d, qX, qY ->
-            val point = Point(
-                BigInteger(qX, 16),
-                BigInteger(qY, 16)
-            )
-            assertTrue(curve.contains(point))
-            assertContains(
-                qX,
-                PrivateKey(curve, BigInteger(d, 16)).publicKey().point.x.toString(16)
-            )
-        }
+    fun testKeyPair() {
+        testKeyPair(P_384_KeyPair.testVectors)
     }
 
-    fun keyPairIter(
-        file: String,
-        process: (
-            d: String,
-            qX: String,
-            qY: String,
-        ) -> Unit
-    ) {
-        val data = file.split("]\n\n")[1]
-        data.split("\n\n").forEach { entry ->
-            val rows = entry.split("\n")
-            val d = rows[0].substring(4).trim()
-            val qX = rows[1].substring(5).trim()
-            val qY = rows[2].substring(5).trim()
-            process(d, qX, qY)
-        }
+    @Test
+    fun testPkv() {
+        testPkv(P_384_PKV.testVectors)
+    }
+
+    @Test
+    fun testSigGen() {
+        testSigGen(P_384_SigGen.testVectors)
+    }
+
+    @Test
+    fun testSigVer() {
+        testSigVer(P_384_SigVer.testVectors)
     }
 
     object P_384_KeyPair {
@@ -132,41 +118,6 @@ Qy = bb1453550a2a3bae3b35d2c4a48606e34a44fcd9cfedcc94fcf875eaef8c170f143597a33b6
 d = 6ac08ab60fc14e6282e1a366a021372bca8bc635cca7aed2fa952adf726e706259d1cabb7f663d7f077d9d4806fa7258
 Qx = 464e238180391fbeb68a8b05491de1f6ca61daaf138a466b381823a2fd3786b4a3b3c34940d54399e13de0c3612c5de7
 Qy = 9000ee91d9b9e746e5dfa6ba684f4d4f385a6a19bbcb52fbeb9ae1426a1464c9aebb226f78ce81be2ecf8e7e7b81bde6"""
-    }
-
-    @Test
-    fun testPkv () {
-        val curve = Curve.nistP384
-        pkvIter(P_384_PKV.testVectors) { qX, qY, result ->
-            val point = Point(
-                BigInteger(qX, 16),
-                BigInteger(qY, 16)
-            )
-            val valid = when(result[0]) {
-                'P' -> true
-                'F' -> false
-                else -> error("")
-            }
-            assertEquals(curve.contains(point), valid)
-        }
-    }
-
-    fun pkvIter(
-        file: String,
-        process: (
-            qX: String,
-            qY: String,
-            result: String
-        ) -> Unit
-    ) {
-        val data = file.split("]\n\n")[1]
-        data.split("\n\n").forEach { entry ->
-            val rows = entry.split("\n")
-            val qX = rows[0].substring(5).trim()
-            val qY = rows[1].substring(5).trim()
-            val result = rows[2].substring(9).trim()
-            process(qX, qY, result)
-        }
     }
 
     object P_384_PKV {

@@ -24,9 +24,10 @@ import org.angproj.crypt.ellipticcurve.Signature
 import org.angproj.crypt.ellipticcurve.utils.BinaryAscii
 import org.angproj.crypt.ellipticcurve.utils.RandomInteger
 import org.angproj.crypt.number.*
+import kotlin.math.min
 import java.math.BigInteger
 
-public class EcdsaSign(private val curve: Curve, hash: Hash): SignatureGenerationEngine<PrivateKey, Signature> {
+public class EcdsaSign(private val curve: Curve, private val hash: Hash): SignatureGenerationEngine<PrivateKey, Signature> {
 
     private val algo = hash.create()
 
@@ -36,7 +37,7 @@ public class EcdsaSign(private val curve: Curve, hash: Hash): SignatureGeneratio
         require(privKey.curve.name == curve.name) { "Private key not valid for curve ${curve.name}" }
 
         val hashMessage: ByteArray = algo.final()
-        val numberMessage = BinaryAscii.numberFromString(hashMessage.copyOf(min(hash.messageDigestSize, 32)))
+        val numberMessage = BinaryAscii.numberFromString(hashMessage.copyOf(min(hash.messageDigestSize, curve.digestSize)))
         val curve: Curve = privKey.curve
         val randNum = RandomInteger.between(BigInteger.ONE, curve.N)
         val randomSignPoint = Math.multiply(curve.G, randNum, curve.N, curve.A, curve.P)

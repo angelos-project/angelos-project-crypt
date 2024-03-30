@@ -37,6 +37,7 @@ public class Curve {
     public Point G;
     public String name;
     public long[] oid;
+    public int digestSize;
 
     /**
      *
@@ -49,7 +50,7 @@ public class Curve {
      * @param name name
      * @param oid oid
      */
-    public Curve(BigInteger A, BigInteger B, BigInteger P, BigInteger N, BigInteger Gx, BigInteger Gy, String name, long[] oid) {
+    public Curve(BigInteger A, BigInteger B, BigInteger P, BigInteger N, BigInteger Gx, BigInteger Gy, String name, long[] oid, int digestSize) {
         this.A = A;
         this.B = B;
         this.P = P;
@@ -57,6 +58,7 @@ public class Curve {
         this.G = new Point(Gx, Gy);
         this.name = name;
         this.oid = oid;
+        this.digestSize = digestSize;
     }
 
     /**
