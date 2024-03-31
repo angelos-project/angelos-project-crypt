@@ -12,12 +12,14 @@
  * Contributors:
  *      Kristoffer Paulsson - initial implementation
  */
-package org.angproj.crypt.sec
+package org.angproj.crypt.ec
 
-public enum class NistBinary(public val curve: SecTRandom) {
-    //B_163(),
-    B_233(Sect233Random1),
-    B_283(Sect283Random1),
-    B_409(Sect409Random1),
-    B_571(Sect571Random1),
+import org.angproj.crypt.sec.*
+
+public enum class NistPrime(public val curve: SecPRandom) {
+    P_192 (Secp192Random1),
+    P_224 (Secp224Random1),
+    P_256 (Secp256Random1),
+    P_384 (Secp384Random1),
+    P_521 (Secp521Random1),
 }

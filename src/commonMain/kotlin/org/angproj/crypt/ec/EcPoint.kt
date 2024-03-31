@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2024 by Kristoffer Paulsson <kristoffer.paulsson@talenten.se>.
+ * Copyright (c) 2023 by Kristoffer Paulsson <kristoffer.paulsson@talenten.se>.
  *
  * This software is available under the terms of the MIT license. Parts are licensed
  * under different terms if stated. The legal terms are attached to the LICENSE file
@@ -12,12 +12,14 @@
  * Contributors:
  *      Kristoffer Paulsson - initial implementation
  */
-package org.angproj.crypt.sec
+package org.angproj.crypt.ec
 
-public enum class NistKoblitz(public val curve: SecTKoblitz) {
-    K_163(Sect163Koblitz1),
-    K_233(Sect233Koblitz1),
-    K_283(Sect283Koblitz1),
-    K_409(Sect409Koblitz1),
-    K_571(Sect571Koblitz1)
+import org.angproj.aux.num.BigInt
+
+public data class EcPoint(
+    public val x: BigInt,
+    public val y: BigInt,
+    private val z: BigInt = BigInt.zero
+) {
+    public fun isAtInfinity(): Boolean = this.y.compareTo(BigInt.zero).isEqual()
 }
