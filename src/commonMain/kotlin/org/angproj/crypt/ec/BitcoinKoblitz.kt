@@ -12,7 +12,10 @@
  * Contributors:
  *      Kristoffer Paulsson - initial implementation
  */
-package org.angproj.crypt.sec
+package org.angproj.crypt.ec
+
+import org.angproj.crypt.sec.SecPKoblitz
+import org.angproj.crypt.sec.Secp256Koblitz1
 
 public enum class BitcoinKoblitz(public val curve: SecPKoblitz) {
     BTC(Secp256Koblitz1),

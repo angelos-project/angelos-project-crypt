@@ -1,6 +1,7 @@
 package org.angproj.crypt.sec
 
 import org.angproj.crypt.Hash
+import org.angproj.crypt.ec.NistPrime
 import org.angproj.crypt.ellipticcurve.Curve
 import org.angproj.crypt.sha.Sha1Hash
 import java.math.BigInteger
@@ -24,29 +25,29 @@ class Prime192Test : AbstractNistPTest() {
      * */
     @Test
     fun testOutputOfBigInteger() {
-        val dp = Secp192Random1.domainParameters
+        val dp = NistPrime.P_192.curve.domainParameters
         /*assertEquals(
             Secp192r1.a.toString(),
             ""
         )*/
         assertEquals(
-            BigInteger(dp.b.value.toByteArray()).toString(16),
+            BigInteger(dp.b.toByteArray()).toString(16),
             "64210519" + "e59c80e7" + "0fa7e9ab" + "72243049" + "feb8deec" + "c146b9b1"
         )
         assertEquals(
-            BigInteger(dp.n.value.toByteArray()).toString(),
+            BigInteger(dp.n.toByteArray()).toString(),
             "6277101735386680763835789423176059013767194773182842284081"
         )
         assertEquals(
-            BigInteger(dp.p.value.toByteArray()).toString(),
+            BigInteger(dp.p.toByteArray()).toString(),
             "6277101735386680763835789423207666416083908700390324961279"
         )
         assertEquals(
-            BigInteger(dp.G.x.value.toByteArray()).toString(16),
+            BigInteger(dp.G.x.toByteArray()).toString(16),
             "188da80e" + "b03090f6" + "7cbf20eb" + "43a18800" + "f4ff0afd" + "82ff1012"
         )
         assertEquals(
-            BigInteger(dp.G.y.value.toByteArray()).toString(16),
+            BigInteger(dp.G.y.toByteArray()).toString(16),
             "7192b95" + "ffc8da78" + "631011ed" + "6b24cdd5" + "73f977a1" + "1e794811"
         )
     }

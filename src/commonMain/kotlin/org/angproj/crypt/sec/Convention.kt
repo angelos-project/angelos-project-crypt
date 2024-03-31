@@ -21,15 +21,10 @@ import kotlin.math.ceil
 
 public object Convention {
 
-    public val voidBitString: BitString = BitString(byteArrayOf())
-    public val voidOctetString: OctetString = OctetString(byteArrayOf())
-    public val voidInteger: Integer = Integer(BigInt.zero)
-    public val voidFieldElement: FieldElement = FieldElement(BigInt.zero)
-    public val voidEllipticCurvePoint: EllipticCurvePoint = EllipticCurvePoint(voidFieldElement, voidFieldElement)
+    public val voidEllipticCurvePoint: EllipticCurvePoint = EllipticCurvePoint(BigInt.zero, BigInt.zero)
 
     public fun isAtInfinity(P: EllipticCurvePoint, q: AbstractDomainParameters): Boolean = when(q) {
         is PrimeDomainParameters -> primeIsAtInfinity(P)
-        is Char2DomainParameters -> char2isAtInfinity(P)
         else -> error("Not implemented.")
     }
 
@@ -37,13 +32,7 @@ public object Convention {
      * sec1-v2.pdf -- 2.2.1 Elliptic Curves over Fp
      * 3) Rule to add ... same x-coordinates when ... have y-coordinate 0.
      * */
-    private fun primeIsAtInfinity(P: EllipticCurvePoint): Boolean = P.y.value.compareTo(BigInt.zero).isEqual()
-
-    /**
-     * sec1-v2.pdf -- 2.2.2 Elliptic Curves over F2m
-     * 3) Rule to add ... same x-coordinates when ... have x-coordinate 0.
-     * */
-    private fun char2isAtInfinity(P: EllipticCurvePoint): Boolean = P.x.value.compareTo(BigInt.zero).isEqual()
+    private fun primeIsAtInfinity(P: EllipticCurvePoint): Boolean = P.y.compareTo(BigInt.zero).isEqual()
 
 
     /**
@@ -51,8 +40,7 @@ public object Convention {
      * sec1-v2.pdf -- 2.2.2 Elliptic Curves over F2m
      * */
     public fun log2q(q: AbstractDomainParameters): Int = when(q) {
-        is PrimeDomainParameters -> q.p.value.bitLength
-        is Char2DomainParameters -> q.m
+        is PrimeDomainParameters -> q.p.bitLength
         else -> error("Not implemented.")
     }
 
@@ -65,50 +53,42 @@ public object Convention {
      *     Defining equation (?): y^2 + x * y = x^3 + a * x^2 + b
      * */
     public fun pointSatisfyDefiningEquation(P: EllipticCurvePoint, q: AbstractDomainParameters): Boolean = when(q) {
-        is PrimeDomainParameters -> ((P.y.value.pow(2)).mod(q.p.value)).compareTo(
-            (P.x.value.pow(3) + q.a.value * P.x.value + q.b.value).mod(q.p.value)).isEqual()
-        is Char2DomainParameters -> (P.y.value.pow(2) + P.x.value * P.y.value).compareTo(
-            (P.x.value.pow(3) + q.a.value * P.x.value.pow(2) + q.b.value)).isEqual()
+        is PrimeDomainParameters -> ((P.y.pow(2)).mod(q.p)).compareTo(
+            (P.x.pow(3) + q.a * P.x + q.b).mod(q.p)).isEqual()
         else -> error("Not implemented.")
     }
 
     public fun primeSatisfyInterval(value: BigInt, q: PrimeDomainParameters): Boolean {
-        return value.compareTo(BigInt.zero).isGreaterOrEqual() && value.compareTo(q.p.value).isLesser() }
-
-    public fun char2satisfyDegree(value: ByteArray, q: Char2DomainParameters): Boolean {
-        val mlen = 8 * mlen(q) - q.m
-        val mask: Long = 0xffffffff shl (8 - mlen)
-        return mask and value.first().toLong() == 0L
-    }
+        return value.compareTo(BigInt.zero).isGreaterOrEqual() && value.compareTo(q.p).isLesser() }
 
     /**
      * 2.1.1 The Finite Field Fp.
      * */
 
     internal fun primeIsFinite(value: BigInt, q: PrimeDomainParameters): Boolean {
-        return value.compareTo(BigInt.zero).isGreaterOrEqual() && value.compareTo(q.p.value).isLesser() }
+        return value.compareTo(BigInt.zero).isGreaterOrEqual() && value.compareTo(q.p).isLesser() }
 
     private fun primeAddition(r: BigInt, q: PrimeDomainParameters): Boolean {
         require(primeIsFinite(r, q)) { "Value is not within the finite field." }
-        return ((q.a.value + q.b.value) mod q.p.value).compareTo(r mod q.p.value).isEqual()
+        return ((q.a + q.b) mod q.p).compareTo(r mod q.p).isEqual()
     }
 
     private fun primeMultiplication(s: BigInt, q: PrimeDomainParameters): Boolean {
         require(primeIsFinite(s, q)) { "Value is not within the finite field." }
-        return ((q.a.value * q.b.value) mod q.p.value).compareTo(s mod q.p.value).isEqual()
+        return ((q.a * q.b) mod q.p).compareTo(s mod q.p).isEqual()
     }
 
     private fun primeAddativeInverse(x: BigInt, q: PrimeDomainParameters): Boolean {
-        require(primeIsFinite(q.a.value, q)) { "Value is not within the finite field." }
-        return ((q.a.value.negate() + x) mod q.p.value).compareTo(BigInt.zero).isEqual()
+        require(primeIsFinite(q.a, q)) { "Value is not within the finite field." }
+        return ((q.a.negate() + x) mod q.p).compareTo(BigInt.zero).isEqual()
     }
 
     private fun primeMultiplicativeInverse(x: BigInt, q: PrimeDomainParameters): Boolean {
-        require(primeIsFinite(q.a.value, q)) { "Value is not within the finite field." }
-        require(q.a.value.compareTo(BigInt.zero).isNotEqual()) { "Value is zero." }
+        require(primeIsFinite(q.a, q)) { "Value is not within the finite field." }
+        require(q.a.compareTo(BigInt.zero).isNotEqual()) { "Value is zero." }
         // ... multiplicative inverse a^−1 of a ... unique solution...a*x ≡ 1(mod p).
         // Because: a/b mod p is a(b^−1) mod p. Then: a*x -> a^-1*x -> x/a.
-        return ((x / q.a.value) mod q.p.value).compareTo(BigInt.one mod q.p.value).isEqual()
+        return ((x / q.a) mod q.p).compareTo(BigInt.one mod q.p).isEqual()
     }
 
     public fun add(x: FieldElement, b: FieldElement, q: PrimeDomainParameters): FieldElement {
@@ -117,7 +97,7 @@ public object Convention {
 
     public fun addOne(x: FieldElement, q: PrimeDomainParameters): FieldElement {
         var x2 = x.value.add(BigInt.one)
-        if (x2.compareTo(q.p.value).isEqual()) {
+        if (x2.compareTo(q.p).isEqual()) {
             x2 = BigInt.zero
         }
         return FieldElement(x2.toBigInt())
@@ -177,13 +157,13 @@ public object Convention {
             x = x.mod(q.p.value)
         }
         return x*/
-        return x.mod(q.p.value)
+        return x.mod(q.p)
     }
 
     internal fun modAdd(x1: AbstractBigInt<*>, x2: AbstractBigInt<*>, q: PrimeDomainParameters): AbstractBigInt<*> {
         var x3 = x1.add(x2)
-        if (x3.compareTo(q.p.value).isGreaterOrEqual()) {
-            x3 = x3.subtract(q.p.value)
+        if (x3.compareTo(q.p).isGreaterOrEqual()) {
+            x3 = x3.subtract(q.p)
         }
         return x3
     }
@@ -191,7 +171,7 @@ public object Convention {
     internal fun modSubtract(x1: AbstractBigInt<*>, x2: AbstractBigInt<*>, q: PrimeDomainParameters): AbstractBigInt<*> {
         var x3 = x1.subtract(x2)
         if (x3.sigNum.isNegative()) {
-            x3 = x3.add(q.p.value)
+            x3 = x3.add(q.p)
         }
         return x3
     }

@@ -19,32 +19,32 @@ public object Secp192Random1 : SecPRandom {
     override val strength: Int = 96
     override val size: Int = 192
 
-    override val p: OctetString by octets {
+    override val p: ByteArray by octets {
         "FFFFFFFF" + "FFFFFFFF" + "FFFFFFFF" +
                 "FFFFFFFE" + "FFFFFFFF" + "FFFFFFFF"
     }
 
-    override val a: OctetString by octets {
+    override val a: ByteArray by octets {
         "FFFFFFFF" + "FFFFFFFF" + "FFFFFFFF" +
                 "FFFFFFFE" + "FFFFFFFF" + "FFFFFFFC"
     }
 
-    override val b: OctetString by octets {
+    override val b: ByteArray by octets {
         "64210519" + "E59C80E7" + "0FA7E9AB" +
                 "72243049" + "FEB8DEEC" + "C146B9B1"
     }
 
-    override val S: OctetString by octets {
+    override val S: ByteArray by octets {
         "3045AE6F" + "C8422F64" + "ED579528" + "D38120EA" + "E12196D5"
     }
 
-    override val Gc: OctetString by octets {
+    override val Gc: ByteArray by octets {
         "03" +
                 "188DA80E" + "B03090F6" + "7CBF20EB" +
                 "43A18800" + "F4FF0AFD" + "82FF1012"
     }
 
-    override val G: OctetString by octets {
+    override val G: ByteArray by octets {
         "04" +
                 "188DA80E" + "B03090F6" + "7CBF20EB" + "43A18800" +
                 "F4FF0AFD" + "82FF1012" +
@@ -52,12 +52,12 @@ public object Secp192Random1 : SecPRandom {
                 "631011ED" + "6B24CDD5" + "73F977A1" + "1E794811"
     }
 
-    override val n: OctetString by octets {
+    override val n: ByteArray by octets {
         "FFFFFFFF" + "FFFFFFFF" + "FFFFFFFF" +
                 "99DEF836" + "146BC9B1" + "B4D22831"
     }
 
-    override val h: OctetString by octets { "01" }
+    override val h: ByteArray by octets { "01" }
 
     override val domainParameters: PrimeDomainParameters by lazy { SecPRandom.build(this) }
 }

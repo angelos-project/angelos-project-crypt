@@ -14,21 +14,35 @@
  */
 package org.angproj.crypt.sec
 
-public interface SecPRandom: Curves<PrimeDomainParameters> {
-    public val p: OctetString
+import org.angproj.aux.util.floorMod
+import org.angproj.aux.util.unsignedBigIntOf
 
-    public val S: OctetString
+public interface SecPRandom: Curves<PrimeDomainParameters> {
+    public val p: ByteArray
+
+    public val S: ByteArray
 
     public companion object {
         public fun build(curve: SecPRandom): PrimeDomainParameters = PrimeDomainParameters(
-            Conversion.octetString2integer(curve.p)
+            unsignedBigIntOf(curve.p)
         ).also { q ->
             q.setup(
-                Conversion.octetString2fieldElement(curve.a, q),
-                Conversion.octetString2fieldElement(curve.b, q),
-                Conversion.octetString2ellipticCurvePoint(curve.G, q),
-                Conversion.octetString2fieldElement(curve.n, q),
-                Conversion.octetString2fieldElement(curve.h, q)
+                unsignedBigIntOf(curve.a),
+                unsignedBigIntOf(curve.b),
+                splitXY(curve.G),
+                unsignedBigIntOf(curve.n),
+                unsignedBigIntOf(curve.h)
+            )
+        }
+
+        public fun splitXY(data: ByteArray): EllipticCurvePoint {
+            check((data.size - 1).floorMod(2) == 0)
+            check(data[0].toInt() == 4)
+
+            val size = (data.size - 1) / 2
+            return EllipticCurvePoint(
+                unsignedBigIntOf(data.copyOfRange(1, 1 + size)),
+                unsignedBigIntOf(data.copyOfRange(1 + size, data.size))
             )
         }
     }

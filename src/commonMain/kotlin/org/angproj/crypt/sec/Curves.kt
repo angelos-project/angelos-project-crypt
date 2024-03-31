@@ -17,23 +17,23 @@ package org.angproj.crypt.sec
 import org.angproj.aux.util.BinHex
 
 public interface Curves<E: AbstractDomainParameters> {
-    public fun octets(block: () -> String): Lazy<OctetString> = lazy { OctetString(BinHex.decodeToBin(block())) }
+    public fun octets(block: () -> String): Lazy<ByteArray> = lazy { BinHex.decodeToBin(block()) }
 
     public val name: String
     public val strength: Int
     public val size: Int
 
-    public val a: OctetString
+    public val a: ByteArray
 
-    public val b: OctetString
+    public val b: ByteArray
 
-    public val Gc: OctetString
+    public val Gc: ByteArray
 
-    public val G: OctetString
+    public val G: ByteArray
 
-    public val n: OctetString
+    public val n: ByteArray
 
-    public val h: OctetString
+    public val h: ByteArray
 
     public val domainParameters: E
 }

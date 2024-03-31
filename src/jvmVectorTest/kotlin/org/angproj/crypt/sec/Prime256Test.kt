@@ -19,32 +19,32 @@ class Prime256Test : AbstractNistPTest() {
     fun testOutputOfBigInteger () {
         val dp = Secp256Random1.domainParameters
         TestCase.assertEquals(
-            BigInteger(dp.a.value.toByteArray()).toString(),
+            BigInteger(dp.a.toByteArray()).toString(),
             "115792089210356248762697446949407573530" +
                     "086143415290314195533631308867097853948"
         )
         TestCase.assertEquals(
-            BigInteger(dp.b.value.toByteArray()).toString(),
+            BigInteger(dp.b.toByteArray()).toString(),
             "41058363725152142129326129780047268409" +
                     "114441015993725554835256314039467401291"
         )
         TestCase.assertEquals(
-            BigInteger(dp.n.value.toByteArray()).toString(),
+            BigInteger(dp.n.toByteArray()).toString(),
             "115792089210356248762697446949407573529" +
                     "996955224135760342422259061068512044369"
         )
         TestCase.assertEquals(
-            BigInteger(dp.p.value.toByteArray()).toString(),
+            BigInteger(dp.p.toByteArray()).toString(),
             "115792089210356248762697446949407573530" +
                     "086143415290314195533631308867097853951"
         )
         TestCase.assertEquals(
-            BigInteger(dp.G.x.value.toByteArray()).toString(),
+            BigInteger(dp.G.x.toByteArray()).toString(),
             "48439561293906451759052585252797914202" +
                     "762949526041747995844080717082404635286"
         )
         TestCase.assertEquals(
-            BigInteger(dp.G.y.value.toByteArray()).toString(),
+            BigInteger(dp.G.y.toByteArray()).toString(),
             "36134250956749795798585127919587881956" +
                     "611106672985015071877198253568414405109"
         )

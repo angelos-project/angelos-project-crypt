@@ -14,7 +14,9 @@
  */
 package org.angproj.crypt.sec
 
+import org.angproj.aux.num.BigInt
+
 public data class EllipticCurvePoint (
-    public val x: FieldElement,
-    public val y: FieldElement
+    public val x: BigInt,
+    public val y: BigInt
 )

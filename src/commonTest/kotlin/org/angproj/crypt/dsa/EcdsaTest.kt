@@ -1,30 +1,22 @@
 package org.angproj.crypt.dsa
 
-
 import org.angproj.aux.util.BinHex
 import org.angproj.aux.util.bigIntOf
 import org.angproj.crypt.ec.EcPoint
 import org.angproj.crypt.ec.NistPrime
-import org.angproj.crypt.sec.Conversion
-import org.angproj.crypt.sec.OctetString
 import kotlin.test.Test
-import kotlin.test.assertEquals
 
 class EcdsaTest {
     @Test
     fun testPointOnCurve() {
         keyPairIter(P_192_KeyPair.testVectors) { d, qX, qY ->
-            //println(qX)
-            //println(qY)
+
             val point = EcPoint(
                 bigIntOf(BinHex.decodeToBin(qX)),
                 bigIntOf(BinHex.decodeToBin(qY)),
             )
-            //println(BinHex.encodeToHex(point.x.toByteArray()))
-            //println(BinHex.encodeToHex(point.y.toByteArray()))
 
             println(Ecdsa.pointOnCurve(NistPrime.P_192.curve, point))
-            //assertEquals(Ecdsa.pointOnCurve(NistPrime.P_192.curve, point), true)
         }
     }
 

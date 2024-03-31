@@ -23,7 +23,7 @@ public class EccPoint (
     public val y: BigInt,
     public val z: BigInt = BigInt.zero
 ) {
-    public constructor(coordinates: EllipticCurvePoint): this(coordinates.x.value, coordinates.y.value)
+    public constructor(coordinates: EllipticCurvePoint): this(coordinates.x, coordinates.y)
 
     public fun isAtInfinity(): Boolean = this.y.equals(BigInt.zero)
 }

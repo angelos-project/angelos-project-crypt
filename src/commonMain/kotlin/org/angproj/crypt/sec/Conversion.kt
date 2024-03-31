@@ -14,9 +14,7 @@
  */
 package org.angproj.crypt.sec
 
-import org.angproj.aux.num.BigInt
-import org.angproj.aux.util.bigIntOf
-import org.angproj.crypt.number.*
+import org.angproj.aux.util.unsignedBigIntOf
 
 /**
  * sec1-v2.pdf -- 2.3 Data Types and Conversions
@@ -39,7 +37,7 @@ public object Conversion {
     /**
      * sec1-v2.pdf -- 2.3.3 Elliptic-Curve-Point-to-Octet-String Conversion.
      * */
-    public fun ellipticCurvePoint2octetString(
+    /*public fun ellipticCurvePoint2octetString(
         P: EllipticCurvePoint,
         q: AbstractDomainParameters,
         compress: Boolean
@@ -50,12 +48,7 @@ public object Conversion {
                 val mlen = Convention.mlen(q) + 1
                 val X = fieldElement2octetString(P.x, q)
                 val yBit = when(q) {
-                    is PrimeDomainParameters -> P.y.value.mod(BigInt.two).toLong().toInt()
-                    is Char2DomainParameters -> when {
-                        P.x.value.sigNum.isZero() -> 0
-                        //else -> ((P.y.value / P.x.value) and BigInt.one).toLong().toInt() // <- Is this correct?
-                        else -> 1 // <- or is this correct?
-                    }
+                    is PrimeDomainParameters -> P.y.mod(BigInt.two).toLong().toInt()
                     else -> error("Not implemented.")
                 }
                 OctetString(byteArrayOf(if(yBit == 1) 3 else 2) + X.octets).also {
@@ -70,12 +63,12 @@ public object Conversion {
             }
             else -> error("Uncalled for.")
         }
-    }
+    }*/
 
     /**
      * sec1-v2.pdf -- 2.3.4 Octet-String-to-Elliptic-Curve-Point Conversion.
      * */
-    public fun octetString2ellipticCurvePoint(M: OctetString, q: AbstractDomainParameters): EllipticCurvePoint {
+    /*public fun octetString2ellipticCurvePoint(M: OctetString, q: AbstractDomainParameters): EllipticCurvePoint {
         val mlen = Convention.mlen(q)
         val type = M.octets.first().toInt()
         return when(type) {
@@ -91,7 +84,7 @@ public object Conversion {
                 println("YBIT $yBit")
                 when(q) {
                     is PrimeDomainParameters -> {
-                        val alpha = x.value.multiply(x.value.pow2().add(q.a.value)).add(q.b.value)
+                        val alpha = x.value.multiply(x.value.pow2().add(q.a)).add(q.b)
                         //val alpha = x.value.pow(3) + q.a.value * x.value + q.b.value
                         val beta = alpha.sqrt()
                         //check((alpha / q.p).compareTo(BigInt.one).isEqual()) { "alpha is not square." }
@@ -99,11 +92,10 @@ public object Conversion {
                         println("YBIT2 $yBit")
                         val y = when(yBit2 == yBit) {
                             true -> beta
-                            false -> q.p.value - beta
+                            false -> q.p - beta
                         }.let { FieldElement(it.toBigInt()) }
                         EllipticCurvePoint(x, y)
                     }
-                    is Char2DomainParameters -> { TODO("Implement for F2m") }
                     else -> error("Not implemented.")
                 }
             }
@@ -112,23 +104,16 @@ public object Conversion {
                 val X = OctetString(M.octets.copyOfRange(1, 1 + mlen))
                 val Y = OctetString(M.octets.copyOfRange(1 + mlen, M.octets.size))
                 EllipticCurvePoint(octetString2fieldElement(X, q), octetString2fieldElement(Y, q))
-                    /*.also {
-                    check(Convention.pointSatisfyDefiningEquation(it, q)) {
-                        "Point does not satisfy the curves defining equation." } }*/
             }
             else -> error("Wrong curve or invalid data octets.")
         }
-    }
+    }*/
 
     /**
      * sec1-v2.pdf -- 2.3.5 Field-Element-to-Octet-String Conversion.
      * */
     public fun fieldElement2octetString(a: FieldElement, q: AbstractDomainParameters): OctetString = when(q) {
         is PrimeDomainParameters -> integer2octetSting(Integer(a.value), Convention.mlen(q))
-        is Char2DomainParameters -> {
-            val mlen = Convention.mlen(q)
-            integer2octetSting(Integer(a.value), mlen) // <- This is may be correct and may be totally wrong!
-        }
         else -> error("Not implemented.")
     }
 
@@ -140,10 +125,6 @@ public object Conversion {
             val x = octetString2integer(M).also {
                 check(Convention.primeSatisfyInterval(it.value, q)) { "Value not inside [0, p − 1]" } }
             FieldElement(x.value)
-        }
-        is Char2DomainParameters -> {
-            check(Convention.char2satisfyDegree(M.octets, q)) { "Left most bits are not zeros." }
-            FieldElement(bigIntOf(byteArrayOf(0) + M.octets)) // <- Presumably this is right but can be totally wrong.
         }
         else -> error("Not implemented.")
     }
@@ -167,14 +148,13 @@ public object Conversion {
      * sec1-v2.pdf -- 2.3.8 Octet-String-to-Integer Conversion.
      * */
     public fun octetString2integer(M: OctetString): Integer = Integer(
-        bigIntOf(byteArrayOf(0) + M.value)) // Assumes BigInt methodology applies directly!
+        unsignedBigIntOf(byteArrayOf(0) + M.value)) // Assumes BigInt methodology applies directly!
 
     /**
      * sec1-v2.pdf -- 2.3.9 Field-Element-to-Integer Conversion.
      * */
     public fun fieldElement2integer(a: FieldElement, q: AbstractDomainParameters): Integer =  when(q) {
         is PrimeDomainParameters -> Integer(a.value)
-        is Char2DomainParameters -> Integer(a.value) // <- Seriously the same or not?
         else -> error("Not implemented.")
     }
 }

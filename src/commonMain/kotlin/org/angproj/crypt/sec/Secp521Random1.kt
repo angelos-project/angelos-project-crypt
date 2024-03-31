@@ -19,7 +19,7 @@ public object Secp521Random1 : SecPRandom {
     override val strength: Int = 256
     override val size: Int = 521
 
-    override val p: OctetString by octets {
+    override val p: ByteArray by octets {
         "01FF" +
                 "FFFFFFFF" + "FFFFFFFF" + "FFFFFFFF" + "FFFFFFFF" +
                 "FFFFFFFF" + "FFFFFFFF" + "FFFFFFFF" + "FFFFFFFF" +
@@ -27,7 +27,7 @@ public object Secp521Random1 : SecPRandom {
                 "FFFFFFFF" + "FFFFFFFF" + "FFFFFFFF" + "FFFFFFFF"
     }
 
-    override val a: OctetString by octets {
+    override val a: ByteArray by octets {
         "01FF" +
                 "FFFFFFFF" + "FFFFFFFF" + "FFFFFFFF" + "FFFFFFFF" +
                 "FFFFFFFF" + "FFFFFFFF" + "FFFFFFFF" + "FFFFFFFF" +
@@ -35,7 +35,7 @@ public object Secp521Random1 : SecPRandom {
                 "FFFFFFFF" + "FFFFFFFF" + "FFFFFFFF" + "FFFFFFFC"
     }
 
-    override val b: OctetString by octets {
+    override val b: ByteArray by octets {
         "0051" +
                 "953EB961" + "8E1C9A1F" + "929A21A0" + "B68540EE" +
                 "A2DA725B" + "99B315F3" + "B8B48991" + "8EF109E1" +
@@ -43,11 +43,11 @@ public object Secp521Random1 : SecPRandom {
                 "3573DF88" + "3D2C34F1" + "EF451FD4" + "6B503F00"
     }
 
-    override val S: OctetString by octets {
+    override val S: ByteArray by octets {
         "D09E8800" + "291CB853" + "96CC6717" + "393284AA" + "A0DA64BA"
     }
 
-    override val Gc: OctetString by octets {
+    override val Gc: ByteArray by octets {
         "0200C6" +
                 "858E06B7" + "0404E9CD" + "9E3ECB66" + "2395B442" +
                 "9C648139" + "053FB521" + "F828AF60" + "6B4D3DBA" +
@@ -55,7 +55,7 @@ public object Secp521Random1 : SecPRandom {
                 "3348B3C1" + "856A429B" + "F97E7E31" + "C2E5BD66"
     }
 
-    override val G: OctetString by octets {
+    override val G: ByteArray by octets {
         "04" +
                 "00C6858E" + "06B70404" + "E9CD9E3E" + "CB662395" +
                 "B4429C64" + "8139053F" + "B521F828" + "AF606B4D" +
@@ -68,7 +68,7 @@ public object Secp521Random1 : SecPRandom {
                 "353C7086" + "A272C240" + "88BE9476" + "9FD16650"
     }
 
-    override val n: OctetString by octets {
+    override val n: ByteArray by octets {
         "01FF" +
                 "FFFFFFFF" + "FFFFFFFF" + "FFFFFFFF" + "FFFFFFFF" +
                 "FFFFFFFF" + "FFFFFFFF" + "FFFFFFFF" + "FFFFFFFA" +
@@ -76,7 +76,7 @@ public object Secp521Random1 : SecPRandom {
                 "3BB5C9B8" + "899C47AE" + "BB6FB71E" + "91386409"
     }
 
-    override val h: OctetString by octets { "01" }
+    override val h: ByteArray by octets { "01" }
 
     override val domainParameters: PrimeDomainParameters by lazy { SecPRandom.build(this) }
 }

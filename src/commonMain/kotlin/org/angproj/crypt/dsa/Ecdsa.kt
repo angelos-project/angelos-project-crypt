@@ -15,7 +15,6 @@
 package org.angproj.crypt.dsa
 
 import org.angproj.aux.num.BigInt
-import org.angproj.aux.util.BinHex
 import org.angproj.crypt.ec.EcPoint
 import org.angproj.crypt.number.*
 import org.angproj.crypt.number.multiply
@@ -38,19 +37,23 @@ public object Ecdsa {
     public fun pointOnCurve(curve: Curves<PrimeDomainParameters>, point: EcPoint): Boolean {
         val dp = curve.domainParameters
         if (point.x.compareTo(BigInt.zero).state < 0) {
+            println("X Lesser than 0")
             return false
         }
-        if (point.x.compareTo(dp.p.value).state >= 0) {
+        if (point.x.compareTo(dp.p).state >= 0) {
+
             return false
         }
         if (point.y.compareTo(BigInt.zero).state < 0) {
+            println("Y Lesser than 0")
             return false
         }
-        if (point.y.compareTo(dp.p.value).state >= 0) {
+        if (point.y.compareTo(dp.p).state >= 0) {
+            println("Y Larger than prime")
             return false
         }
-        println(point.y.pow(2).subtract(point.x.pow(3).add(dp.a.value.multiply(point.x)).add(dp.b.value)).mod(dp.p.value).toLong())
-        return point.y.pow(2).subtract(point.x.pow(3).add(dp.a.value.multiply(point.x)).add(dp.b.value)).mod(dp.p.value).toLong() == 0L
+        println(point.y.pow(2).subtract(point.x.pow(3).add(dp.a.multiply(point.x)).add(dp.b)).mod(dp.p).toLong())
+        return point.y.pow(2).subtract(point.x.pow(3).add(dp.a.multiply(point.x)).add(dp.b)).mod(dp.p).toLong() == 0L
         // p.y.pow(2).subtract(p.x.pow(3).add(A.multiply(p.x)).add(B)).mod(P).intValue() == 0;
     }
 }

@@ -19,37 +19,37 @@ class Prime521Test : AbstractNistPTest() {
     fun testOutputOfBigInteger () {
         val dp = Secp521Random1.domainParameters
         TestCase.assertEquals(
-            BigInteger(dp.a.value.toByteArray()).toString(),
+            BigInteger(dp.a.toByteArray()).toString(),
             "686479766013060971498190079908139321726943530014330540939" +
                     "446345918554318339765605212255964066145455497729631139148" +
                     "0858037121987999716643812574028291115057148"
         )
         TestCase.assertEquals(
-            BigInteger(dp.b.value.toByteArray()).toString(),
+            BigInteger(dp.b.toByteArray()).toString(),
             "1093849038073734274511112390766805569936207598951683748994" +
                     "5863944959531161507350160137087375737596232485921322967063" +
                     "13309438452531591012912142327488478985984"
         )
         TestCase.assertEquals(
-            BigInteger(dp.n.value.toByteArray()).toString(),
+            BigInteger(dp.n.toByteArray()).toString(),
             "686479766013060971498190079908139321726943530014330540939" +
                     "446345918554318339765539424505774633321719753296399637136" +
                     "3321113864768612440380340372808892707005449"
         )
         TestCase.assertEquals(
-            BigInteger(dp.p.value.toByteArray()).toString(),
+            BigInteger(dp.p.toByteArray()).toString(),
             "686479766013060971498190079908139321726943530014330540939" +
                     "446345918554318339765605212255964066145455497729631139148" +
                     "0858037121987999716643812574028291115057151"
         )
         TestCase.assertEquals(
-            BigInteger(dp.G.x.value.toByteArray()).toString(),
+            BigInteger(dp.G.x.toByteArray()).toString(),
             "2661740802050217063228768716723360960729859168756973147706" +
                     "6713684188029449964278084915450806277719023520942412250655" +
                     "58662157113545570916814161637315895999846"
         )
         TestCase.assertEquals(
-            BigInteger(dp.G.y.value.toByteArray()).toString(),
+            BigInteger(dp.G.y.toByteArray()).toString(),
             "37571800257700204635455072244911836035944551347697624866945" +
                     "67779615544477440556316691234405012945539562144444537289428" +
                     "522585666729196580810124344277578376784"

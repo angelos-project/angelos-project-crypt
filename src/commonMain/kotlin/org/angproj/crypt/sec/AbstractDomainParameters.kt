@@ -14,32 +14,34 @@
  */
 package org.angproj.crypt.sec
 
+import org.angproj.aux.num.BigInt
+
 public abstract class AbstractDomainParameters {
     private var frozen: Boolean = false
 
-    private var _a: FieldElement = Convention.voidFieldElement
-    public val a: FieldElement
+    private var _a: BigInt = BigInt.zero
+    public val a: BigInt
         get() = _a
 
-    private var _b: FieldElement = Convention.voidFieldElement
-    public val b: FieldElement
+    private var _b: BigInt = BigInt.zero
+    public val b: BigInt
         get() = _b
 
     private var _G: EllipticCurvePoint = Convention.voidEllipticCurvePoint
     public val G: EllipticCurvePoint
         get() = _G
 
-    private var _n: FieldElement = Convention.voidFieldElement
-    public val n: FieldElement
+    private var _n: BigInt = BigInt.zero
+    public val n: BigInt
         get() = _n
 
-    private var _h: FieldElement = Convention.voidFieldElement
-    public val h: FieldElement
+    private var _h: BigInt = BigInt.zero
+    public val h: BigInt
         get() = _h
 
     public fun setup(
-        a: FieldElement, b: FieldElement, G: EllipticCurvePoint,
-        n: FieldElement, h: FieldElement
+        a: BigInt, b: BigInt, G: EllipticCurvePoint,
+        n: BigInt, h: BigInt
     ): Unit = when(frozen){
         false -> {
             _a = a
