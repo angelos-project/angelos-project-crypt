@@ -2,6 +2,7 @@ package org.angproj.crypt.sec
 
 import org.angproj.aux.num.BigInt
 import org.angproj.aux.util.BinHex
+import org.angproj.aux.util.bigIntOf
 import org.angproj.aux.util.unsignedBigIntOf
 import org.angproj.crypt.Hash
 import org.angproj.crypt.ec.EcPoint
@@ -13,12 +14,52 @@ import org.angproj.crypt.number.multiply
 import org.angproj.crypt.sha.Sha1Hash
 import java.math.BigInteger
 import kotlin.test.Test
-import kotlin.test.assertTrue
 
 class Prime192DebugTest {
 
     val hash: Hash = Sha1Hash
     val curve: Curve = Curve.nistP192
+
+    @Test
+    fun testDebug() {
+        val c = curve
+        val dp = NistPrime.P_192.curve.domainParameters
+
+        keyPairIter(P_192_KeyPair.testVectors) { d, qX, qY ->
+            println("Q(x):    $qX")
+            println("Q(y):    $qY")
+
+            println()
+
+            val biP = Point(
+                BigInteger(qX, 16),
+                BigInteger(qY, 16)
+            )
+            println("J. x: " + biP.x.signum() + ", " + BinHex.encodeToHex(biP.x.toByteArray()))
+            println("J. y: " + biP.y.signum() + ", " + BinHex.encodeToHex(biP.y.toByteArray()))
+
+            val ecP = EcPoint(
+                unsignedBigIntOf(BinHex.decodeToBin(qX)),
+                unsignedBigIntOf(BinHex.decodeToBin(qY)),
+            )
+            println("K. x: " + ecP.x.sigNum.state + ", " + BinHex.encodeToHex(ecP.x.toByteArray()))
+            println("K. y: " + ecP.y.sigNum.state + ", " + BinHex.encodeToHex(ecP.y.toByteArray()))
+
+            println()
+
+            //println(biP.y.pow(2).subtract(biP.x.pow(3).add(c.A.multiply(biP.x)).add(c.B)).mod(c.P).toInt())
+            val biRes = biP.y.pow(2).subtract(biP.x.pow(3)).mod(c.P)
+            println("J. r: " + biRes.signum() + ", " + BinHex.encodeToHex(biRes.toByteArray()))
+
+            //println(ecP.y.pow(2).subtract(ecP.x.pow(3).add(dp.a.multiply(ecP.x)).add(dp.b)).mod(dp.p).toLong())
+            val ecRes = ecP.y.pow(2).subtract(ecP.x.pow(3)).mod(dp.p)
+            println("K. r: " + ecRes.sigNum.state + ", " + BinHex.encodeToHex(ecRes.toByteArray()))
+
+            println()
+            println("----------------------------------------------------------------------------------------")
+            println()
+        }
+    }
 
     @Test
     fun testKeyPair() {
@@ -53,7 +94,8 @@ class Prime192DebugTest {
             return false
         }
         println(p.y.pow(2).subtract(p.x.pow(3).add(c.A.multiply(p.x)).add(c.B)).mod(c.P).toInt())
-        return p.y.pow(2).subtract(p.x.pow(3).add(c.A.multiply(p.x)).add(c.B)).mod(c.P).toInt() == 0
+        return p.y.pow(2).subtract(p.x.pow(3).add(c.A.multiply(p.x)).add(c.B)).mod(c.P).equals(BigInteger.ZERO)//.toInt() == 0
+        //return p.y.pow(2).subtract(p.x.pow(3).add(c.A.multiply(p.x)).add(c.B)).mod(c.P).toInt() == 0
     }
 
     @Test
@@ -120,8 +162,8 @@ class Prime192DebugTest {
             println("Y Larger than prime")
             return false
         }
-        println(point.y.pow(2).subtract(point.x.pow(3).add(dp.a.multiply(point.x)).add(dp.b)).mod(dp.p).toLong())
-        return point.y.pow(2).subtract(point.x.pow(3).add(dp.a.multiply(point.x)).add(dp.b)).mod(dp.p).toLong() == 0L
+        println(point.y.pow(2).subtract(point.x.pow(3).add(dp.a.multiply(point.x)).add(dp.b)).mod(dp.p).toLong().toInt())
+        return point.y.pow(2).subtract(point.x.pow(3).add(dp.a.multiply(point.x)).add(dp.b)).mod(dp.p).compareTo(BigInt.zero).isEqual()//.toLong().toInt() == 0
         // p.y.pow(2).subtract(p.x.pow(3).add(A.multiply(p.x)).add(B)).mod(P).intValue() == 0;
     }
 

@@ -144,7 +144,10 @@ public fun AbstractBigInt<*>.divideAndRemainder(value: AbstractBigInt<*>): Pair<
                             result.first.toComplementedIntArray(),
                             if (this.sigNum == value.sigNum) BigSigned.POSITIVE else BigSigned.NEGATIVE
                         ),
-                        of(result.second.toComplementedIntArray(), this.sigNum)
+                        of(
+                            result.second.toComplementedIntArray(),
+                            this.sigNum
+                        )
                     )
                 }
             }

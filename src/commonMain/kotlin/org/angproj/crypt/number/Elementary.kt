@@ -33,9 +33,10 @@ public infix fun AbstractBigInt<*>.pow(exponent: Int): AbstractBigInt<*> = when 
     else -> {
         val size = (bitCount * exponent shr 5) + 2 * mag.size
         check(size < Int.MAX_VALUE) { "Resulting memory to large. Size $size 32-bit integer array is required." }
-        val negative = sigNum.isNegative() && exponent and 1 != 0
+        /*val negative = sigNum.isNegative() && exponent and 1 != 0
         val result = of(MutableBigInt.power(abs(), exponent).toRawIntArray())
-        if (negative) result.negate() else result
+        if (negative) result.negate() else result*/
+        MutableBigInt.Companion.power(this, exponent)
     }
 }
 
