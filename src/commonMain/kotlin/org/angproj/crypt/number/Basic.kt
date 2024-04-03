@@ -118,14 +118,7 @@ public operator fun AbstractBigInt<*>.div(other: AbstractBigInt<*>): AbstractBig
 public fun AbstractBigInt<*>.divide(value: AbstractBigInt<*>): AbstractBigInt<*> = divideAndRemainder(value).first
 
 public operator fun AbstractBigInt<*>.rem(other: AbstractBigInt<*>): AbstractBigInt<*> = remainder(other)
-
-public infix fun AbstractBigInt<*>.mod(other: AbstractBigInt<*>): AbstractBigInt<*> = when {
-    other.sigNum.isNegative() -> error("Modulus not positive")
-    else -> {
-        val result = this.remainder(other)
-        if(result.sigNum.isPositive()) result else result.add(other)
-    }
-}
+public infix fun AbstractBigInt<*>.mod(other: AbstractBigInt<*>): AbstractBigInt<*> = remainder(other)
 
 public fun AbstractBigInt<*>.remainder(value: AbstractBigInt<*>): AbstractBigInt<*> = divideAndRemainder(value).second
 
@@ -344,7 +337,7 @@ public fun AbstractBigInt<*>.divideMagnitude(
     }
 
     return Pair(
-        emptyMutableBigIntOf(quotArr),
-        emptyMutableBigIntOf(if (shift > 0) MutableBigInt.rightShift(remArr, shift) else remArr)
+        mutableBigIntOf(quotArr),
+        mutableBigIntOf(if (shift > 0) MutableBigInt.rightShift(remArr, shift) else remArr)
     )
 }

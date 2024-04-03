@@ -16,7 +16,7 @@ class EcdsaTest {
                 bigIntOf(BinHex.decodeToBin(qY)),
             )
 
-            println(Ecdsa.pointOnCurve(NistPrime.P_192.curve, point))
+            println(Ecdsa.isPointOnCurve(NistPrime.P_192.curve, point))
         }
     }
 

@@ -34,26 +34,16 @@ import org.angproj.crypt.sec.PrimeDomainParameters
 // https://github.com/carterharrison/ecdsa-kotlin.git
 
 public object Ecdsa {
-    public fun pointOnCurve(curve: Curves<PrimeDomainParameters>, point: EcPoint): Boolean {
+    public fun isPointOnCurve(curve: Curves<PrimeDomainParameters>, point: EcPoint): Boolean {
         val dp = curve.domainParameters
-        if (point.x.compareTo(BigInt.zero).state < 0) {
-            println("X Lesser than 0")
-            return false
+        return when {
+            point.x.compareTo(BigInt.zero).isLesser() -> false
+            point.x.compareTo(dp.p).isGreater() -> false
+            point.y.compareTo(BigInt.zero).isLesser() -> false
+            point.y.compareTo(dp.p).isGreater() -> false
+            else -> point.y.pow(2).subtract(
+                point.x.pow(3).add(dp.a.multiply(point.x)).add(dp.b)
+            ).mod(dp.p).compareTo(BigInt.zero).isEqual()
         }
-        if (point.x.compareTo(dp.p).state >= 0) {
-
-            return false
-        }
-        if (point.y.compareTo(BigInt.zero).state < 0) {
-            println("Y Lesser than 0")
-            return false
-        }
-        if (point.y.compareTo(dp.p).state >= 0) {
-            println("Y Larger than prime")
-            return false
-        }
-        println(point.y.pow(2).subtract(point.x.pow(3).add(dp.a.multiply(point.x)).add(dp.b)).mod(dp.p).toLong())
-        return point.y.pow(2).subtract(point.x.pow(3).add(dp.a.multiply(point.x)).add(dp.b)).mod(dp.p).toLong() == 0L
-        // p.y.pow(2).subtract(p.x.pow(3).add(A.multiply(p.x)).add(B)).mod(P).intValue() == 0;
     }
 }
