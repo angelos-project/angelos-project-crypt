@@ -14,10 +14,10 @@
  */
 package org.angproj.crypt.number
 
-import org.angproj.aux.num.AbstractBigInt
-import org.angproj.aux.num.AbstractBigInt.Companion.getL
-import org.angproj.aux.num.BigInt
-import org.angproj.aux.num.MutableBigInt
+import org.angproj.crypt.num.AbstractBigInt
+import org.angproj.crypt.num.AbstractBigInt.Companion.getL
+import org.angproj.crypt.num.BigInt
+import org.angproj.crypt.num.MutableBigInt
 
 internal fun MutableBigInt.Companion.divWord(n: Long, d: Int): Long {
     val dLong = d.getL()

@@ -14,9 +14,8 @@
  */
 package org.angproj.crypt.number
 
-import org.angproj.aux.util.mutableBigIntOf
-import org.angproj.aux.num.*
-import org.angproj.aux.num.AbstractBigInt.Companion.getL
+import org.angproj.crypt.num.*
+import org.angproj.crypt.num.AbstractBigInt.Companion.getL
 
 public fun AbstractBigInt<*>.isOdd(): Boolean = when {
     sigNum.isZero() -> false
@@ -77,7 +76,7 @@ internal fun MutableBigInt.Companion.subtract(x: AbstractBigInt<*>, y: AbstractB
 
 public operator fun AbstractBigInt<*>.times(other: AbstractBigInt<*>): AbstractBigInt<*> = multiply(other)
 
-internal fun AbstractBigInt<*>.multiply(value: AbstractBigInt<*>): AbstractBigInt<*> = when {
+public fun AbstractBigInt<*>.multiply(value: AbstractBigInt<*>): AbstractBigInt<*> = when {
     sigNum.isZero() || value.sigNum.isZero() -> BigInt.zero
     else -> biggerFirst(this, value) { big, little ->
         val negative = big.sigNum.isNegative().let { if (little.sigNum.isNegative()) !it else it }
@@ -138,10 +137,15 @@ public fun AbstractBigInt<*>.divideAndRemainder(value: AbstractBigInt<*>): Pair<
                         value.mag.size == 1 -> divideOneWord(this.abs(), value.abs())
                         else -> divideMagnitude(this.abs(), value.abs())
                     }
+                    val sigNum = if (this.sigNum == value.sigNum) BigSigned.POSITIVE else BigSigned.NEGATIVE
+                    val mag = when(sigNum.isPositive()) {
+                        else -> AbstractBigInt.Companion.stripLeadingZeros(result.first.toComplementedIntArray())
+                        //else -> result.first.toComplementedIntArray()
+                    }
                     Pair(
                         of(
-                            result.first.toComplementedIntArray(),
-                            if (this.sigNum == value.sigNum) BigSigned.POSITIVE else BigSigned.NEGATIVE
+                            mag,
+                            sigNum
                         ),
                         of(
                             result.second.toComplementedIntArray(),

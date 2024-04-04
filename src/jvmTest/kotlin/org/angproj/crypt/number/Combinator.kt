@@ -239,6 +239,8 @@ object Combinator {
                             stripLeadingZeroBytesCorrection(result.first.toByteArray()),
                             stripLeadingZeroBytesCorrection(result.second.toByteArray())
                         )*/
+                println("Kq: ${result.first.first.bitLength / 32 + 1} - ${result.first.first.mag.size}")
+                println("Kr: ${result.first.second.bitLength / 32 + 1} - ${result.first.second.mag.size}")
                 assertContentEquals(result.first.first.toByteArray(), result.second[0].toByteArray())
                 assertContentEquals(result.first.second.toByteArray(), result.second[1].toByteArray())
                 /* if(result.first.first.toByteArray().contentEquals(result.second[0].toByteArray()))

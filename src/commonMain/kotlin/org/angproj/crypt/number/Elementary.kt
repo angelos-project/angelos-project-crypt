@@ -14,10 +14,10 @@
  */
 package org.angproj.crypt.number
 
-import org.angproj.aux.num.AbstractBigInt
-import org.angproj.aux.num.BigInt
-import org.angproj.aux.num.MutableBigInt
-import org.angproj.aux.util.bigIntOf
+import org.angproj.crypt.num.AbstractBigInt
+import org.angproj.crypt.num.BigInt
+import org.angproj.crypt.num.MutableBigInt
+import org.angproj.crypt.num.bigIntOf
 import kotlin.math.*
 
 public fun AbstractBigInt<*>.pow2(): AbstractBigInt<*> = when {

@@ -27,7 +27,7 @@ import org.angproj.crypt.number.*
 import kotlin.math.min
 import java.math.BigInteger
 
-public class EcdsaSign(private val curve: Curve, private val hash: Hash): SignatureGenerationEngine<PrivateKey, Signature> {
+public class Ecdsa_Sign(private val curve: Curve, private val hash: Hash): SignatureGenerationEngine<PrivateKey, Signature> {
 
     private val algo = hash.create()
 

@@ -26,7 +26,7 @@ import org.angproj.crypt.ellipticcurve.utils.BinaryAscii
 import java.math.BigInteger
 
 
-public class EcdsaVerify(private val curve: Curve, private val hash: Hash) : SignatureVerificationEngine<PublicKey, Signature> {
+public class Ecdsa_Verify(private val curve: Curve, private val hash: Hash) : SignatureVerificationEngine<PublicKey, Signature> {
 
     private val algo = hash.create()
 

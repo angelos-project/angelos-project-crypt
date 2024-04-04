@@ -14,8 +14,8 @@
  */
 package org.angproj.crypt.number
 
-import org.angproj.aux.num.AbstractBigInt
-import org.angproj.aux.num.BigInt
+import org.angproj.crypt.num.AbstractBigInt
+import org.angproj.crypt.num.BigInt
 
 public fun AbstractBigInt.Companion.bitMask(bitCount: Int): AbstractBigInt<*> {
     check(bitCount >= 0) { "Bit count for mask must not be negative." }

@@ -21,6 +21,7 @@ public object Secp256Koblitz1 : SecPKoblitz {
     override val name: String = "secp256k1"
     override val strength: Int = 128
     override val size: Int = 256
+    override val digestSize: Int = 32
 
     override val p: ByteArray by octets {
         "FFFFFFFF" + "FFFFFFFF" + "FFFFFFFF" + "FFFFFFFF" +

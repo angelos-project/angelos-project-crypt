@@ -171,20 +171,30 @@ public final class Math {
      */
     public static Point jacobianMultiply(Point p, BigInteger n, BigInteger N, BigInteger A, BigInteger P) {
         if (BigInteger.ZERO.compareTo(p.y) == 0 || BigInteger.ZERO.compareTo(n) == 0) {
+            System.out.println("Mul 1");
             return new Point(BigInteger.ZERO, BigInteger.ZERO, BigInteger.ONE);
         }
         if (BigInteger.ONE.compareTo(n) == 0) {
+            System.out.println("Mul 2");
             return p;
         }
         if (n.compareTo(BigInteger.ZERO) < 0 || n.compareTo(N) >= 0) {
+            System.out.println("Mul 3");
             return jacobianMultiply(p, n.mod(N), N, A, P);
         }
         if (n.mod(BigInteger.valueOf(2)).compareTo(BigInteger.ZERO) == 0) {
-            return jacobianDouble(jacobianMultiply(p, n.divide(BigInteger.valueOf(2)), N, A, P), A, P);
+            System.out.println("Mul 4");
+            BigInteger NUM = n.divide(BigInteger.valueOf(2));
+            System.out.println(NUM.toString(16));
+            return jacobianDouble(jacobianMultiply(p, NUM, N, A, P), A, P);
         }
         if (n.mod(BigInteger.valueOf(2)).compareTo(BigInteger.ONE) == 0) {
-            return jacobianAdd(jacobianDouble(jacobianMultiply(p, n.divide(BigInteger.valueOf(2)), N, A, P), A, P), p, A, P);
+            System.out.println("Mul 5");
+            BigInteger NUM = n.divide(BigInteger.valueOf(2));
+            System.out.println(NUM.toString(16));
+            return jacobianAdd(jacobianDouble(jacobianMultiply(p, NUM, N, A, P), A, P), p, A, P);
         }
+        System.out.println("Mul 6");
         return null;
     }
 }

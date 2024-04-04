@@ -18,6 +18,7 @@ public object Secp192Random1 : SecPRandom {
     override val name: String = "secp192r1"
     override val strength: Int = 96
     override val size: Int = 192
+    override val digestSize: Int = 20
 
     override val p: ByteArray by octets {
         "FFFFFFFF" + "FFFFFFFF" + "FFFFFFFF" +

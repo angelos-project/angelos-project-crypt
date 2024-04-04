@@ -1,8 +1,8 @@
 package org.angproj.crypt.sec
 
 import org.angproj.aux.util.BinHex
-import org.angproj.crypt.dsa.EcdsaSign
-import org.angproj.crypt.dsa.EcdsaVerify
+import org.angproj.crypt.dsa.Ecdsa_Sign
+import org.angproj.crypt.dsa.Ecdsa_Verify
 import org.angproj.crypt.ellipticcurve.Point
 import org.angproj.crypt.ellipticcurve.PublicKey
 import org.angproj.crypt.ellipticcurve.Curve
@@ -112,7 +112,7 @@ class Prime256Koblitz1Test {
                 )
 
                 // Verifying message using given public key Q(x,y).
-                val ecdsa = EcdsaVerify(curve, h)
+                val ecdsa = Ecdsa_Verify(curve, h)
                 ecdsa.update(msg)
                 assertTrue { ecdsa.final(pubKey, signature) }
             }
@@ -132,7 +132,7 @@ class Prime256Koblitz1Test {
                 )
 
                 // Verifying message with new Q(x,y) generated with internal random k from given d.
-                val ecdsa = EcdsaVerify(curve, h)
+                val ecdsa = Ecdsa_Verify(curve, h)
                 ecdsa.update(msg)
                 assertTrue { ecdsa.final(privKey.publicKey(), signature) }
             }
@@ -147,14 +147,14 @@ class Prime256Koblitz1Test {
             msgIter(v) { msg, d, _, _, _, _ ->
                 // Signing given message msg with given private key d.
                 val privKey = PrivateKey(curve, BigInteger(d, 16))
-                val ecdsaSign = EcdsaSign(curve, h)
+                val ecdsaSign = Ecdsa_Sign(curve, h)
                 ecdsaSign.update(msg)
                 val signature = ecdsaSign.final(privKey)
 
 
                 // Verifying message msg with new Q(x,y) generated with internal
                 // random k from given d using new signature (r,s).
-                val ecdsa = EcdsaVerify(curve, h)
+                val ecdsa = Ecdsa_Verify(curve, h)
                 ecdsa.update(msg)
                 assertTrue { ecdsa.final(privKey.publicKey(), signature) }
             }

@@ -22,6 +22,7 @@ public interface Curves<E: AbstractDomainParameters> {
     public val name: String
     public val strength: Int
     public val size: Int
+    public val digestSize: Int
 
     public val a: ByteArray
 

@@ -14,8 +14,8 @@
  */
 package org.angproj.crypt.number
 
-import org.angproj.aux.num.AbstractBigInt
-import org.angproj.aux.num.BigInt
+import org.angproj.crypt.num.AbstractBigInt
+import org.angproj.crypt.num.BigInt
 
 public infix fun AbstractBigInt<*>.shl(count: Int): AbstractBigInt<*> = shiftLeft(count)
 

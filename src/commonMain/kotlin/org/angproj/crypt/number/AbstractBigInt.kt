@@ -14,7 +14,7 @@
  */
 package org.angproj.crypt.number
 
-import org.angproj.aux.num.AbstractBigInt
+import org.angproj.crypt.num.AbstractBigInt
 import kotlin.math.max
 
 internal fun biggerFirst(x: IntArray, y: IntArray, block: (x: IntArray, y: IntArray) -> IntArray): IntArray =

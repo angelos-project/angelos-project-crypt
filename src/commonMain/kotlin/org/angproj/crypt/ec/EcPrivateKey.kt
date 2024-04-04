@@ -12,14 +12,14 @@
  * Contributors:
  *      Kristoffer Paulsson - initial implementation
  */
-package org.angproj.crypt.sec
+package org.angproj.crypt.ec
 
 import org.angproj.aux.num.BigInt
-import org.angproj.crypt.ec.EcPoint
+import org.angproj.crypt.sec.Curves
+import org.angproj.crypt.sec.PrimeDomainParameters
 
-public data class EllipticCurvePoint (
-    public val x: BigInt,
-    public val y: BigInt
+public data class EcPrivateKey(
+    public val secret: BigInt,
+    public val curve: Curves<PrimeDomainParameters>
 ) {
-    public fun toEcPoint(): EcPoint = EcPoint(x, y)
 }

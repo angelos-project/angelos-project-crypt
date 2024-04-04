@@ -2,7 +2,7 @@ package org.angproj.crypt.sec
 
 import org.angproj.aux.util.BinHex
 import org.angproj.crypt.Hash
-import org.angproj.crypt.dsa.EcdsaVerify
+import org.angproj.crypt.dsa.Ecdsa_Verify
 import org.angproj.crypt.ellipticcurve.*
 import java.math.BigInteger
 import kotlin.test.assertContains
@@ -20,6 +20,7 @@ abstract class AbstractNistPTest {
                 BigInteger(qY, 16)
             )
             assertTrue(curve.contains(point))
+            println("----------------------------------------------------------------")
             assertContains(
                 qX,
                 PrivateKey(curve, BigInteger(d, 16)).publicKey().point.x.toString(16)
@@ -92,7 +93,7 @@ abstract class AbstractNistPTest {
                 BigInteger(s, 16)
             )
 
-            val ecdsa = EcdsaVerify(curve, hash)
+            val ecdsa = Ecdsa_Verify(curve, hash)
             ecdsa.update(msg)
             assertTrue(ecdsa.final(publicKey, signature))
         }
@@ -139,7 +140,7 @@ abstract class AbstractNistPTest {
                 else -> error("")
             }
 
-            val ecdsa = EcdsaVerify(curve, hash)
+            val ecdsa = Ecdsa_Verify(curve, hash)
             ecdsa.update(msg)
             assertEquals(ecdsa.final(publicKey, signature), valid)
         }

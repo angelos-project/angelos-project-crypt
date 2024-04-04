@@ -12,14 +12,11 @@
  * Contributors:
  *      Kristoffer Paulsson - initial implementation
  */
-package org.angproj.crypt.sec
+package org.angproj.crypt.ec
 
 import org.angproj.aux.num.BigInt
-import org.angproj.crypt.ec.EcPoint
 
-public data class EllipticCurvePoint (
-    public val x: BigInt,
-    public val y: BigInt
-) {
-    public fun toEcPoint(): EcPoint = EcPoint(x, y)
-}
+public data class EcSignature(
+    public val r: BigInt,
+    public val s: BigInt,
+)
