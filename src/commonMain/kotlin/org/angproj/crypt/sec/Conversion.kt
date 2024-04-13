@@ -14,7 +14,7 @@
  */
 package org.angproj.crypt.sec
 
-import org.angproj.aux.util.unsignedBigIntOf
+import org.angproj.aux.num.unsignedBigIntOf
 
 /**
  * sec1-v2.pdf -- 2.3 Data Types and Conversions
@@ -112,27 +112,27 @@ public object Conversion {
     /**
      * sec1-v2.pdf -- 2.3.5 Field-Element-to-Octet-String Conversion.
      * */
-    public fun fieldElement2octetString(a: FieldElement, q: AbstractDomainParameters): OctetString = when(q) {
+    /*public fun fieldElement2octetString(a: FieldElement, q: AbstractDomainParameters): OctetString = when(q) {
         is PrimeDomainParameters -> integer2octetSting(Integer(a.value), Convention.mlen(q))
         else -> error("Not implemented.")
-    }
+    }*/
 
     /**
      * sec1-v2.pdf -- 2.3.6 Octet-String-to-Field-Element Conversion.
      * */
-    public fun octetString2fieldElement(M: OctetString, q: AbstractDomainParameters): FieldElement = when(q) {
+    /*public fun octetString2fieldElement(M: OctetString, q: AbstractDomainParameters): FieldElement = when(q) {
         is PrimeDomainParameters -> {
             val x = octetString2integer(M).also {
                 check(Convention.primeSatisfyInterval(it.value, q)) { "Value not inside [0, p − 1]" } }
             FieldElement(x.value)
         }
         else -> error("Not implemented.")
-    }
+    }*/
 
     /**
      * sec1-v2.pdf -- 2.3.7 Integer-to-Octet-String Conversion.
      * */
-    public fun integer2octetSting(x: Integer, mlen: Int): OctetString {
+    /*public fun integer2octetSting(x: Integer, mlen: Int): OctetString {
         require(x.value.sigNum.isNonNegative())
         require(8 * mlen >= x.value.bitLength) // <- If this is wrong use the one under
         //require(BigInt.two.pow(8 * mlen).compareTo(x.value).isGreater()) // <- Absolute correct
@@ -142,7 +142,7 @@ public object Conversion {
             else -> x.value.toByteArray()
         }
         return OctetString(binary.copyOfRange(binary.size - mlen, binary.size))
-    }
+    }*/
 
     /**
      * sec1-v2.pdf -- 2.3.8 Octet-String-to-Integer Conversion.

@@ -14,8 +14,8 @@
  */
 package org.angproj.crypt.ec
 
-import org.angproj.aux.num.BigInt
-import org.angproj.aux.num.bigInt
+import org.angproj.aux.num.*
+import org.angproj.crypt.num.*
 import org.angproj.aux.util.NullObject
 
 public data class EcPoint(
@@ -23,7 +23,7 @@ public data class EcPoint(
     public val y: BigInt,
     public val z: BigInt = BigInt.zero
 ) {
-    public fun isAtInfinity(): Boolean = y.compareTo(BigInt.zero).isEqual()
+    public fun isAtInfinity(): Boolean = y.compareSpecial(BigInt.zero).isEqual()
 }
 
 public fun EcPoint.isNull(): Boolean = NullObject.ecPoint === this

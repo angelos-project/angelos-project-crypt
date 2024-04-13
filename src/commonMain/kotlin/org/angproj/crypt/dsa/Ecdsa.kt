@@ -14,12 +14,12 @@
  */
 package org.angproj.crypt.dsa
 
-import org.angproj.aux.num.BigInt
+import org.angproj.aux.num.*
+import org.angproj.crypt.num.*
 import org.angproj.crypt.ec.EcPoint
 import org.angproj.crypt.ec.EcPrivateKey
 import org.angproj.crypt.ec.EcPublicKey
 import org.angproj.crypt.ec.Jacobian
-import org.angproj.crypt.number.*
 import org.angproj.crypt.sec.Curves
 import org.angproj.crypt.sec.PrimeDomainParameters
 
@@ -39,22 +39,22 @@ public object Ecdsa {
     public fun isPointOnCurve(curve: Curves<PrimeDomainParameters>, point: EcPoint): Boolean {
         val dp = curve.domainParameters
         return when {
-            point.x.compareTo(BigInt.zero).isLesser() -> false
-            point.x.compareTo(dp.p).isGreater() -> false
-            point.y.compareTo(BigInt.zero).isLesser() -> false
-            point.y.compareTo(dp.p).isGreater() -> false
+            point.x.compareSpecial(BigInt.zero).isLesser() -> false
+            point.x.compareSpecial(dp.p).isGreater() -> false
+            point.y.compareSpecial(BigInt.zero).isLesser() -> false
+            point.y.compareSpecial(dp.p).isGreater() -> false
             else -> point.y.pow(2).subtract(
                 point.x.pow(3).add(dp.a.multiply(point.x)).add(dp.b)
-            ).mod(dp.p).compareTo(BigInt.zero).isEqual()
+            ).mod(dp.p).compareSpecial(BigInt.zero).isEqual()
         }
     }
 
     public fun isPointAtInfinity(point: EcPoint): Boolean {
-        return point.y.compareTo(Jacobian.zero).isEqual()
+        return point.y.compareSpecial(Jacobian.zero).isEqual()
     }
 
     public fun generatePrivateKey(curve: Curves<PrimeDomainParameters>): EcPrivateKey = EcPrivateKey(
-        BigInt.randomBetween(Jacobian.one, curve.domainParameters.n),
+        BigInt.between(Jacobian.one, curve.domainParameters.n),
         curve
     )
 

@@ -18,12 +18,10 @@
  */
 package org.angproj.crypt.ec
 
-import org.angproj.aux.num.BigInt
-import org.angproj.aux.num.isNull
+import org.angproj.aux.num.*
+import org.angproj.crypt.num.*
 import org.angproj.aux.util.BinHex
 import org.angproj.aux.util.NullObject
-import org.angproj.aux.util.bigIntOf
-import org.angproj.crypt.number.*
 
 public object Jacobian {
 
@@ -69,7 +67,7 @@ public object Jacobian {
      * @return Value representing the division
      */
     public fun inv(x: BigInt, n: BigInt): BigInt {
-        if (x.compareTo(zero).isEqual()) {
+        if (x.compareSpecial(zero).isEqual()) {
             return zero
         }
         var lm = one
@@ -79,7 +77,7 @@ public object Jacobian {
         var r: BigInt
         var nm: BigInt
         var nw: BigInt
-        while (low.compareTo(one).state > 0) {
+        while (low.compareSpecial(one).state > 0) {
             r = high.divide(low).toBigInt()
             nm = hm.subtract(lm.multiply(r)).toBigInt()
             nw = high.subtract(low.multiply(r)).toBigInt()
@@ -122,7 +120,7 @@ public object Jacobian {
      * @return the result point doubled in elliptic curves
      */
     public fun jacobianDouble(p: EcPoint, A: BigInt, P: BigInt): EcPoint {
-        if (p.y.isNull() || p.y.compareTo(zero).isEqual()) return EcPoint(zero, zero, zero)
+        if (p.y.isNull() || p.y.compareSpecial(zero).isEqual()) return EcPoint(zero, zero, zero)
 
         val ysq = p.y.pow(2).mod(P)
         val S = four.multiply(p.x).multiply(ysq).mod(P)
@@ -143,15 +141,15 @@ public object Jacobian {
      * @return Point that represents the sum of First and Second Point
      */
     public fun jacobianAdd(p: EcPoint, q: EcPoint, A: BigInt, P: BigInt): EcPoint {
-        if (p.y.isNull() || p.y.compareTo(zero).isEqual()) return q
-        if (q.y.isNull() || q.y.compareTo(zero).isEqual()) return p
+        if (p.y.isNull() || p.y.compareSpecial(zero).isEqual()) return q
+        if (q.y.isNull() || q.y.compareSpecial(zero).isEqual()) return p
 
         val U1 = p.x.multiply(q.z.pow(2)).mod(P)
         val U2 = q.x.multiply(p.z.pow(2)).mod(P)
         val S1 = p.y.multiply(q.z.pow(3)).mod(P)
         val S2 = q.y.multiply(p.z.pow(3)).mod(P)
-        if (U1.compareTo(U2).isEqual()) {
-            if (S1.compareTo(S2).isEqual()) return EcPoint(zero, zero, one)
+        if (U1.compareSpecial(U2).isEqual()) {
+            if (S1.compareSpecial(S2).isEqual()) return EcPoint(zero, zero, one)
             return jacobianDouble(p, A, P)
         }
         val H = U2.subtract(U1)
@@ -176,20 +174,20 @@ public object Jacobian {
      * @return Point that represents the product of First Point and scalar
      */
     public fun jacobianMultiply(p: EcPoint, n: BigInt, N: BigInt, A: BigInt, P: BigInt): EcPoint {
-        if (zero.compareTo(p.y).state == 0 || zero.compareTo(n).state == 0) {
+        if (zero.compareSpecial(p.y).state == 0 || zero.compareSpecial(n).state == 0) {
             println("Mul 1")
             return EcPoint(zero, zero, one)
         }
         println(n.mag.size)
-        if (one.compareTo(n).state == 0) {
+        if (one.compareSpecial(n).state == 0) {
             println("Mul 2")
             return p
         }
-        if (n.compareTo(zero).state < 0 || n.compareTo(N).state >= 0) {
+        if (n.compareSpecial(zero).state < 0 || n.compareSpecial(N).state >= 0) {
             println("Mul 3")
             return jacobianMultiply(p, n.mod(N).toBigInt(), N, A, P)
         }
-        if (n.mod(two).compareTo(zero).state == 0) {
+        if (n.mod(two).compareSpecial(zero).state == 0) {
             println("Mul 4")
             val NUM = n.divide(two).toBigInt()
             NUM.mag.forEach { print("$it, ") }
@@ -197,7 +195,7 @@ public object Jacobian {
             println(BinHex.encodeToHex(NUM.toByteArray()))
             return jacobianDouble(jacobianMultiply(p, NUM, N, A, P), A, P)
         }
-        if (n.mod(two).compareTo(one).state == 0) {
+        if (n.mod(two).compareSpecial(one).state == 0) {
             println("Mul 5")
             val NUM = n.divide(two).toBigInt()
             NUM.mag.forEach { print("$it, ") }

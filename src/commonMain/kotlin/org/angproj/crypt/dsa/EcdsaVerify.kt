@@ -14,14 +14,13 @@
  */
 package org.angproj.crypt.dsa
 
-import org.angproj.aux.util.unsignedBigIntOf
 import org.angproj.crypt.Hash
 import org.angproj.crypt.SignatureVerificationEngine
 import org.angproj.crypt.ec.EcPublicKey
 import org.angproj.crypt.ec.EcSignature
 import org.angproj.crypt.ec.Jacobian
-import org.angproj.crypt.number.mod
-import org.angproj.crypt.number.multiply
+import org.angproj.crypt.num.*
+import org.angproj.aux.num.*
 import org.angproj.crypt.sec.Curves
 import org.angproj.crypt.sec.PrimeDomainParameters
 import kotlin.math.min
@@ -46,16 +45,16 @@ public class EcdsaVerify(
         val r = signature.r
         val s = signature.s
 
-        if (r.compareTo(Jacobian.one).state < 0) {
+        if (r.compareSpecial(Jacobian.one).state < 0) {
             return false
         }
-        if (r.compareTo(dp.n).state >= 0) {
+        if (r.compareSpecial(dp.n).state >= 0) {
             return false
         }
-        if (s.compareTo(Jacobian.one).state < 0) {
+        if (s.compareSpecial(Jacobian.one).state < 0) {
             return false
         }
-        if (s.compareTo(dp.n).state >= 0) {
+        if (s.compareSpecial(dp.n).state >= 0) {
             return false
         }
 

@@ -23,7 +23,7 @@ import org.angproj.crypt.ellipticcurve.PrivateKey
 import org.angproj.crypt.ellipticcurve.Signature
 import org.angproj.crypt.ellipticcurve.utils.BinaryAscii
 import org.angproj.crypt.ellipticcurve.utils.RandomInteger
-import org.angproj.crypt.number.*
+import org.angproj.crypt.num.*
 import kotlin.math.min
 import java.math.BigInteger
 

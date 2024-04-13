@@ -14,8 +14,6 @@
  */
 package org.angproj.crypt.sec
 
-import org.angproj.aux.num.BigInt
-import org.angproj.crypt.number.*
 
 public object Primitives {
 

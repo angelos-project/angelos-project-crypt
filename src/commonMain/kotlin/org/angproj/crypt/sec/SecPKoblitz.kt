@@ -15,7 +15,7 @@
 package org.angproj.crypt.sec
 
 import org.angproj.aux.util.floorMod
-import org.angproj.aux.util.unsignedBigIntOf
+import org.angproj.aux.num.unsignedBigIntOf
 
 public interface SecPKoblitz: Curves<PrimeDomainParameters> {
     public val p: ByteArray

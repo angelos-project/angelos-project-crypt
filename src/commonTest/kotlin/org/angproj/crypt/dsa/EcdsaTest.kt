@@ -1,7 +1,7 @@
 package org.angproj.crypt.dsa
 
 import org.angproj.aux.util.BinHex
-import org.angproj.aux.util.bigIntOf
+import org.angproj.aux.num.*
 import org.angproj.crypt.ec.EcPoint
 import org.angproj.crypt.ec.NistPrime
 import kotlin.test.Test

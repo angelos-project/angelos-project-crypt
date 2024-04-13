@@ -1,16 +1,14 @@
 package org.angproj.crypt.sec
 
-import org.angproj.aux.num.BigInt
+import org.angproj.aux.num.*
 import org.angproj.aux.util.BinHex
-import org.angproj.aux.util.unsignedBigIntOf
 import org.angproj.crypt.Hash
 import org.angproj.crypt.dsa.Ecdsa
 import org.angproj.crypt.ec.EcPoint
 import org.angproj.crypt.ec.NistPrime
 import org.angproj.crypt.ellipticcurve.Curve
 import org.angproj.crypt.ellipticcurve.Point
-import org.angproj.crypt.number.*
-import org.angproj.crypt.number.multiply
+import org.angproj.crypt.num.*
 import org.angproj.crypt.sha.Sha1Hash
 import java.math.BigInteger
 import kotlin.test.Test

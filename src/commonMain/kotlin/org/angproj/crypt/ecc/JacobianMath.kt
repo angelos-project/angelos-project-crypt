@@ -20,9 +20,8 @@
  */
 package org.angproj.crypt.ecc
 
-import org.angproj.aux.num.BigInt
-import org.angproj.aux.util.bigIntOf
-import org.angproj.crypt.number.*
+import org.angproj.aux.num.*
+import org.angproj.crypt.num.*
 
 public object JacobianMath {
 
@@ -70,14 +69,14 @@ public object JacobianMath {
      * @return Value representing the division
      */
     public fun inv(x: BigInt, n: BigInt): BigInt {
-        if (x.compareTo(zero).isEqual()) {
+        if (x.compareSpecial(zero).isEqual()) {
             return zero
         }
         var lm = one
         var hm = zero
         var high = n
         var low = x.mod(n)
-        while (low.compareTo(one).isGreater()) {
+        while (low.compareSpecial(one).isGreater()) {
             val r = high.divide(low)
             val nm = hm.subtract(lm.multiply(r))
             val nw = high.subtract(low.multiply(r))
@@ -154,8 +153,8 @@ public object JacobianMath {
         val U2 = q.x.multiply(p.z.pow(2)).mod(P)
         val S1 = p.y.multiply(q.z.pow(3)).mod(P)
         val S2 = q.y.multiply(p.z.pow(3)).mod(P)
-        if (U1.compareTo(U2).isEqual()) {
-            if (S1.compareTo(S2).isNotEqual()) {
+        if (U1.compareSpecial(U2).isEqual()) {
+            if (S1.compareSpecial(S2).isNotEqual()) {
                 return EccPoint(zero, zero, one)
             }
             return eccDouble(p, A, P)
@@ -184,20 +183,20 @@ public object JacobianMath {
     public fun eccMultiply(
         p: EccPoint, n: BigInt, N: BigInt, A: BigInt, P: BigInt
     ): EccPoint {
-        if(zero.compareTo(p.y).isEqual() || zero.compareTo(n).isEqual()) {
+        if(zero.compareSpecial(p.y).isEqual() || zero.compareSpecial(n).isEqual()) {
             return EccPoint(zero, zero, one)
         }
-        if(one.compareTo(n).isEqual()){
+        if(one.compareSpecial(n).isEqual()){
             return p
         }
-        if(n.compareTo(zero).isLesser() || n.compareTo(N).isGreaterOrEqual()) {
+        if(n.compareSpecial(zero).isLesser() || n.compareSpecial(N).isGreaterOrEqual()) {
             return eccMultiply(p, n.mod(N).toBigInt(), N, A, P)
         }
-        if(n.mod(two).compareTo(zero).isEqual()) {
+        if(n.mod(two).compareSpecial(zero).isEqual()) {
             val mul = eccMultiply(p, n.divide(two).toBigInt(), N, A, P)
             return eccDouble(mul, A, P)
         }
-        if(n.mod(two).compareTo(one).isEqual()) {
+        if(n.mod(two).compareSpecial(one).isEqual()) {
             val mul = eccMultiply(p, n.divide(two).toBigInt(), N, A, P)
             val doub = eccDouble(mul, A, P)
             return eccAdd(doub, p, A, P)
