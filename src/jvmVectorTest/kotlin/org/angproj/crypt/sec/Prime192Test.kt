@@ -2,7 +2,6 @@ package org.angproj.crypt.sec
 
 import org.angproj.crypt.Hash
 import org.angproj.crypt.ec.NistPrime
-import org.angproj.crypt.ellipticcurve.Curve
 import org.angproj.crypt.sha.Sha1Hash
 import java.math.BigInteger
 import kotlin.test.Test
@@ -11,7 +10,7 @@ import kotlin.test.assertEquals
 class Prime192Test : AbstractNistPTest() {
 
     override val hash: Hash = Sha1Hash
-    override val curve: Curve = Curve.nistP192
+    override val curve: Curves<PrimeDomainParameters> = NistPrime.P_192.curve
 
     /**
      * From NIST SP.800-186, 3.2.1.2, P-192, p.10

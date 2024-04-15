@@ -45,16 +45,16 @@ public class EcdsaVerify(
         val r = signature.r
         val s = signature.s
 
-        if (r.compareSpecial(Jacobian.one).state < 0) {
+        if (r.compareTo(Jacobian.one) < 0) {
             return false
         }
-        if (r.compareSpecial(dp.n).state >= 0) {
+        if (r.compareTo(dp.n) >= 0) {
             return false
         }
-        if (s.compareSpecial(Jacobian.one).state < 0) {
+        if (s.compareTo(Jacobian.one) < 0) {
             return false
         }
-        if (s.compareSpecial(dp.n).state >= 0) {
+        if (s.compareTo(dp.n) >= 0) {
             return false
         }
 

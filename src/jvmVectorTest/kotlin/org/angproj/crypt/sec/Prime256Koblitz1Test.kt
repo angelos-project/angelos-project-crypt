@@ -1,13 +1,12 @@
 package org.angproj.crypt.sec
 
+import org.angproj.aux.num.unsignedBigIntOf
 import org.angproj.aux.util.BinHex
-import org.angproj.crypt.dsa.Ecdsa_Sign
-import org.angproj.crypt.dsa.Ecdsa_Verify
-import org.angproj.crypt.ellipticcurve.Point
-import org.angproj.crypt.ellipticcurve.PublicKey
-import org.angproj.crypt.ellipticcurve.Curve
-import org.angproj.crypt.ellipticcurve.PrivateKey
-import org.angproj.crypt.ellipticcurve.Signature
+
+import org.angproj.crypt.dsa.Ecdsa
+import org.angproj.crypt.dsa.EcdsaSign
+import org.angproj.crypt.dsa.EcdsaVerify
+import org.angproj.crypt.ec.*
 import org.angproj.crypt.sha.*
 import java.math.BigInteger
 import kotlin.test.Test
@@ -65,54 +64,54 @@ class Prime256Koblitz1Test {
 
     @Test
     fun testQonCurve() {
-        val curve = Curve.secp256k1
+        val curve = BitcoinKoblitz.BTC.curve
         vectors.forEach {
             val (v, _) = it
             msgIter(v) { _, _, qX, qY, _, _ ->
-                val q = Point(
-                    BigInteger(qX, 16),
-                    BigInteger(qY, 16)
+                val q = EcPoint(
+                    unsignedBigIntOf(qX),
+                    unsignedBigIntOf(qY)
                 )
-                assertTrue(curve.contains(q))
+                assertTrue(Ecdsa.isPointOnCurve(curve, q))
             }
         }
     }
 
     @Test
     fun testPubKeyFromPrivKey() {
-        val curve = Curve.secp256k1
+        val curve = BitcoinKoblitz.BTC.curve
         vectors.forEach {
             val (v, _) = it
             msgIter(v) { _, d, qX, _, _, _ ->
-                val privKey = PrivateKey(curve, BigInteger(d, 16))
-                val pubKey = privKey.publicKey()
+                val privKey = Ecdsa.importPrivateKey(curve, unsignedBigIntOf(d))
+                val pubKey = Ecdsa.derivePublicKeyFrom(privKey)
                 // When generating new Q(x,y) from a d with internal random k, Q(y) will be altered every time.
-                assertEquals(pubKey.point.x.toString(16), qX)
-                assertTrue(curve.contains(pubKey.point))
+                assertEquals(pubKey.point.x, unsignedBigIntOf(qX))
+                assertTrue(Ecdsa.isPointOnCurve(curve, pubKey.point))
             }
         }
     }
 
     @Test
     fun testEcdsaVerifyFromPubKey() {
-        val curve = Curve.secp256k1
+        val curve = BitcoinKoblitz.BTC.curve
         vectors.forEach {
             val (v, h) = it
             msgIter(v) { msg, _, qX, qY, r, s ->
-                val pubKey = PublicKey(
-                    Point(
-                        BigInteger(qX, 16),
-                        BigInteger(qY, 16)
+                val pubKey = EcPublicKey(
+                    EcPoint(
+                        unsignedBigIntOf(qX),
+                        unsignedBigIntOf(qY)
                     ),
                     curve
                 )
-                val signature = Signature(
-                    BigInteger(r, 16),
-                    BigInteger(s, 16)
+                val signature = EcSignature(
+                    unsignedBigIntOf(r),
+                    unsignedBigIntOf(s)
                 )
 
                 // Verifying message using given public key Q(x,y).
-                val ecdsa = Ecdsa_Verify(curve, h)
+                val ecdsa = EcdsaVerify(curve, h)
                 ecdsa.update(msg)
                 assertTrue { ecdsa.final(pubKey, signature) }
             }
@@ -121,42 +120,42 @@ class Prime256Koblitz1Test {
 
     @Test
     fun testEcdsaVerifyFromPrivKey() {
-        val curve = Curve.secp256k1
+        val curve = BitcoinKoblitz.BTC.curve
         vectors.forEach {
             val (v, h) = it
             msgIter(v) { msg, d, _, _, r, s ->
-                val privKey = PrivateKey(curve, BigInteger(d, 16))
-                val signature = Signature(
-                    BigInteger(r, 16),
-                    BigInteger(s, 16)
+                val privKey = Ecdsa.importPrivateKey(curve, unsignedBigIntOf(d))
+                val signature = EcSignature(
+                    unsignedBigIntOf(r),
+                    unsignedBigIntOf(s)
                 )
 
                 // Verifying message with new Q(x,y) generated with internal random k from given d.
-                val ecdsa = Ecdsa_Verify(curve, h)
+                val ecdsa = EcdsaVerify(curve, h)
                 ecdsa.update(msg)
-                assertTrue { ecdsa.final(privKey.publicKey(), signature) }
+                assertTrue { ecdsa.final(Ecdsa.derivePublicKeyFrom(privKey), signature) }
             }
         }
     }
 
     @Test
     fun testEcdsaSignAndVerify() {
-        val curve = Curve.secp256k1
+        val curve = BitcoinKoblitz.BTC.curve
         vectors.forEach {
             val (v, h) = it
             msgIter(v) { msg, d, _, _, _, _ ->
                 // Signing given message msg with given private key d.
-                val privKey = PrivateKey(curve, BigInteger(d, 16))
-                val ecdsaSign = Ecdsa_Sign(curve, h)
+                val privKey = Ecdsa.importPrivateKey(curve, unsignedBigIntOf(d))
+                val ecdsaSign = EcdsaSign(curve, h)
                 ecdsaSign.update(msg)
                 val signature = ecdsaSign.final(privKey)
 
 
                 // Verifying message msg with new Q(x,y) generated with internal
                 // random k from given d using new signature (r,s).
-                val ecdsa = Ecdsa_Verify(curve, h)
+                val ecdsa = EcdsaVerify(curve, h)
                 ecdsa.update(msg)
-                assertTrue { ecdsa.final(privKey.publicKey(), signature) }
+                assertTrue { ecdsa.final(Ecdsa.derivePublicKeyFrom(privKey), signature) }
             }
         }
     }

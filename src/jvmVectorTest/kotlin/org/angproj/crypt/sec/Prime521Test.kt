@@ -2,7 +2,7 @@ package org.angproj.crypt.sec
 
 import junit.framework.TestCase
 import org.angproj.crypt.Hash
-import org.angproj.crypt.ellipticcurve.Curve
+import org.angproj.crypt.ec.NistPrime
 import org.angproj.crypt.sha.Sha1Hash
 import org.junit.Test
 import java.math.BigInteger
@@ -10,7 +10,7 @@ import java.math.BigInteger
 class Prime521Test : AbstractNistPTest() {
 
     override val hash: Hash = Sha1Hash
-    override val curve: Curve = Curve.nistP521
+    override val curve: Curves<PrimeDomainParameters> = NistPrime.P_521.curve
 
     /**
      * From NIST SP.800-186, 3.2.1.5, P-521, p.12-13

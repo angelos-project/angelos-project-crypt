@@ -80,6 +80,7 @@ public class Curve {
         if (p.y.compareTo(this.P) >= 0) {
             return false;
         }
+
         return p.y.pow(2).subtract(p.x.pow(3).add(A.multiply(p.x)).add(B)).mod(P).intValue() == 0;
     }
 

@@ -1,29 +1,33 @@
 package org.angproj.crypt.sec
 
+import org.angproj.aux.num.unsignedBigIntOf
 import org.angproj.aux.util.BinHex
 import org.angproj.crypt.Hash
-import org.angproj.crypt.dsa.Ecdsa_Verify
-import org.angproj.crypt.ellipticcurve.*
-import java.math.BigInteger
-import kotlin.test.assertContains
+import org.angproj.crypt.ec.EcPoint
+import org.angproj.crypt.dsa.Ecdsa
+import org.angproj.crypt.dsa.EcdsaVerify
+import org.angproj.crypt.ec.EcPublicKey
+import org.angproj.crypt.ec.EcSignature
+import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 abstract class AbstractNistPTest {
     abstract val hash: Hash
-    abstract val curve: Curve
+    abstract val curve: Curves<PrimeDomainParameters>
 
     fun testKeyPair (file: String) {
         keyPairIter(file) { d, qX, qY ->
-            val point = Point(
-                BigInteger(qX, 16),
-                BigInteger(qY, 16)
+            val point = EcPoint(
+                unsignedBigIntOf(qX),
+                unsignedBigIntOf(qY)
             )
-            assertTrue(curve.contains(point))
-            println("----------------------------------------------------------------")
-            assertContains(
-                qX,
-                PrivateKey(curve, BigInteger(d, 16)).publicKey().point.x.toString(16)
+            assertTrue(Ecdsa.isPointOnCurve(curve, point))
+            val privKey = Ecdsa.importPrivateKey(curve, unsignedBigIntOf(d))
+            val pubKey = Ecdsa.derivePublicKeyFrom(privKey)
+            assertContentEquals(
+                point.x.toByteArray(),
+                pubKey.point.x.toByteArray()
             )
         }
     }
@@ -48,16 +52,16 @@ abstract class AbstractNistPTest {
 
     fun testPkv (file: String) {
         pkvIter(file) { qX, qY, result ->
-            val point = Point(
-                BigInteger(qX, 16),
-                BigInteger(qY, 16)
+            val point = EcPoint(
+                unsignedBigIntOf(qX),
+                unsignedBigIntOf(qY)
             )
             val valid = when(result[0]) {
                 'P' -> true
                 'F' -> false
                 else -> error("")
             }
-            assertEquals(curve.contains(point), valid)
+            assertEquals(Ecdsa.isPointOnCurve(curve, point), valid)
         }
     }
 
@@ -81,19 +85,19 @@ abstract class AbstractNistPTest {
 
     fun testSigGen (file: String) {
         sigGenIter(file) { msg, qX, qY, r, s ->
-            val publicKey = PublicKey(
-                Point(
-                    BigInteger(qX, 16),
-                    BigInteger(qY, 16)
+            val publicKey = EcPublicKey(
+                EcPoint(
+                    unsignedBigIntOf(qX),
+                    unsignedBigIntOf(qY)
                 ),
                 curve,
             )
-            val signature = Signature(
-                BigInteger(r, 16),
-                BigInteger(s, 16)
+            val signature = EcSignature(
+                unsignedBigIntOf(r),
+                unsignedBigIntOf(s)
             )
 
-            val ecdsa = Ecdsa_Verify(curve, hash)
+            val ecdsa = EcdsaVerify(curve, hash)
             ecdsa.update(msg)
             assertTrue(ecdsa.final(publicKey, signature))
         }
@@ -123,16 +127,16 @@ abstract class AbstractNistPTest {
 
     fun testSigVer (file: String) {
         sigVerIter(file) { msg, qX, qY, r, s, result ->
-            val publicKey = PublicKey(
-                Point(
-                    BigInteger(qX, 16),
-                    BigInteger(qY, 16)
+            val publicKey = EcPublicKey(
+                EcPoint(
+                    unsignedBigIntOf(qX),
+                    unsignedBigIntOf(qY)
                 ),
                 curve,
             )
-            val signature = Signature(
-                BigInteger(r, 16),
-                BigInteger(s, 16)
+            val signature = EcSignature(
+                unsignedBigIntOf(r),
+                unsignedBigIntOf(s)
             )
             val valid = when(result[0]) {
                 'P' -> true
@@ -140,7 +144,7 @@ abstract class AbstractNistPTest {
                 else -> error("")
             }
 
-            val ecdsa = Ecdsa_Verify(curve, hash)
+            val ecdsa = EcdsaVerify(curve, hash)
             ecdsa.update(msg)
             assertEquals(ecdsa.final(publicKey, signature), valid)
         }

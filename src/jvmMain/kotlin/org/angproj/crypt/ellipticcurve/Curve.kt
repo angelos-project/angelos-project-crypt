@@ -15,6 +15,7 @@
 package org.angproj.crypt.ellipticcurve
 
 import org.angproj.crypt.sec.*
+import org.angproj.aux.util.BinHex
 import java.math.BigInteger
 
 public fun secp256k1From(): Curve {
@@ -110,4 +111,50 @@ public fun nistP521From(): Curve {
         longArrayOf(4, 1, 2, 3, 4),
         64
     )
+}
+
+public fun pointOnCurve2(c: Curve, p: Point): Boolean {
+    if (p.x.compareTo(BigInteger.ZERO) < 0) {
+        return false
+    }
+    if (p.x.compareTo(c.P) >= 0) {
+        return false
+    }
+    if (p.y.compareTo(BigInteger.ZERO) < 0) {
+        return false
+    }
+    if (p.y.compareTo(c.P) >= 0) {
+        return false
+    }
+
+    println(BinHex.encodeToHex(p.x.toByteArray()))
+    println(BinHex.encodeToHex(p.y.toByteArray()))
+
+
+    val Amul: BigInteger = c.A.multiply(p.x)
+    println(BinHex.encodeToHex(Amul.toByteArray()))
+
+    val Xpow = p.x.pow(3)
+    println(BinHex.encodeToHex(Xpow.toByteArray()))
+
+    val Add1 = Xpow.add(Amul)
+    println(BinHex.encodeToHex(Add1.toByteArray()))
+
+    val Add2 = Add1.add(c.B)
+    println(BinHex.encodeToHex(Add2.toByteArray()))
+
+
+    val Ypow = p.y.pow(2)
+    println(BinHex.encodeToHex(Ypow.toByteArray()))
+
+    val Sub1 = Ypow.subtract(Add2)
+    println(BinHex.encodeToHex(Sub1.toByteArray()))
+
+    val modP = Sub1.mod(c.P)
+    println(BinHex.encodeToHex(modP.toByteArray()))
+    println("")
+
+    return modP.toInt() == 0
+
+    //return p.y.pow(2).subtract(p.x.pow(3).add(A.multiply(p.x)).add(B)).mod(P).intValue() == 0;
 }

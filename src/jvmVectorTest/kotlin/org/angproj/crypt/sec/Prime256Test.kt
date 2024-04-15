@@ -2,6 +2,7 @@ package org.angproj.crypt.sec
 
 import junit.framework.TestCase
 import org.angproj.crypt.Hash
+import org.angproj.crypt.ec.NistPrime
 import org.angproj.crypt.ellipticcurve.Curve
 import org.angproj.crypt.sha.Sha1Hash
 import org.junit.Test
@@ -10,7 +11,7 @@ import java.math.BigInteger
 class Prime256Test : AbstractNistPTest() {
 
     override val hash: Hash = Sha1Hash
-    override val curve: Curve = Curve.nistP256
+    override val curve: Curves<PrimeDomainParameters> = NistPrime.P_256.curve
 
     /**
      * From NIST SP.800-186, 3.2.1.3, P-256, p.10-11

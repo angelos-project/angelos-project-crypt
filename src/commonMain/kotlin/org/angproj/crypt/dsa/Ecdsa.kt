@@ -15,11 +15,12 @@
 package org.angproj.crypt.dsa
 
 import org.angproj.aux.num.*
-import org.angproj.crypt.num.*
+import org.angproj.aux.util.BinHex
 import org.angproj.crypt.ec.EcPoint
 import org.angproj.crypt.ec.EcPrivateKey
 import org.angproj.crypt.ec.EcPublicKey
 import org.angproj.crypt.ec.Jacobian
+import org.angproj.crypt.num.*
 import org.angproj.crypt.sec.Curves
 import org.angproj.crypt.sec.PrimeDomainParameters
 
@@ -36,17 +37,22 @@ import org.angproj.crypt.sec.PrimeDomainParameters
 // https://github.com/carterharrison/ecdsa-kotlin.git
 
 public object Ecdsa {
-    public fun isPointOnCurve(curve: Curves<PrimeDomainParameters>, point: EcPoint): Boolean {
+    public fun isPointOnCurve(curve: Curves<PrimeDomainParameters>, p: EcPoint): Boolean {
         val dp = curve.domainParameters
-        return when {
-            point.x.compareSpecial(BigInt.zero).isLesser() -> false
-            point.x.compareSpecial(dp.p).isGreater() -> false
-            point.y.compareSpecial(BigInt.zero).isLesser() -> false
-            point.y.compareSpecial(dp.p).isGreater() -> false
-            else -> point.y.pow(2).subtract(
-                point.x.pow(3).add(dp.a.multiply(point.x)).add(dp.b)
-            ).mod(dp.p).compareSpecial(BigInt.zero).isEqual()
+        if (p.x.compareTo(Jacobian.zero) < 0) {
+            return false
         }
+        if (p.x.compareTo(dp.p) >= 0) {
+            return false
+        }
+        if (p.y.compareTo(Jacobian.zero) < 0) {
+            return false
+        }
+        if (p.y.compareTo(dp.p) >= 0) {
+            return false
+        }
+
+        return p.y.pow(2).subtract(p.x.pow(3).add(dp.a.multiply(p.x)).add(dp.b)).mod(dp.p).toInt() == 0
     }
 
     public fun isPointAtInfinity(point: EcPoint): Boolean {

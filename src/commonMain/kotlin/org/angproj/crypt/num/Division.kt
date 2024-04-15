@@ -45,8 +45,8 @@ public fun BigInt.divideAndRemainder(
                     value.mag.size == 1 -> MutableBigInt.divideOneWord(qabs, vabs)
                     else -> MutableBigInt.divideMagnitude(qabs, vabs)
                 }
-                val q = result.first.toComplementedIntArray()
-                val r = result.second.toComplementedIntArray()
+                val q = BigMath.stripLeadingZeros(result.first.toComplementedIntArray())
+                val r = BigMath.stripLeadingZeros(result.second.toComplementedIntArray())
                 Pair(
                     BigInt(
                         q.toList(),
