@@ -15,19 +15,15 @@
 package org.angproj.crypt.ec
 
 import org.angproj.aux.num.*
-import org.angproj.crypt.num.*
 import org.angproj.aux.util.NullObject
 
 public data class EcPoint(
-    public val x: BigInt,
-    public val y: BigInt,
-    public val z: BigInt = BigInt.zero
-) {
-    public fun isAtInfinity(): Boolean = y.compareSpecial(BigInt.zero).isEqual()
-}
+    override val x: BigInt,
+    override val y: BigInt
+): Point
 
 public fun EcPoint.isNull(): Boolean = NullObject.ecPoint === this
 
-private val nullEcPoint = EcPoint(NullObject.bigInt, NullObject.bigInt, NullObject.bigInt)
+private val nullEcPoint = EcPoint(NullObject.bigInt, NullObject.bigInt)
 public val NullObject.ecPoint: EcPoint
     get() = nullEcPoint

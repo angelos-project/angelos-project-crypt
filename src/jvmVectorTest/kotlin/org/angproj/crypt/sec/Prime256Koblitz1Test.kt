@@ -31,7 +31,6 @@ class Prime256Koblitz1Test {
     @Test
     fun testOutputOfBigInteger () {
         val dp = Secp256Koblitz1.domainParameters
-        println(BigInteger(dp.G.y.toByteArray()).toString())
         assertEquals(
             BigInteger(dp.a.toByteArray()).toString(),
             "0"

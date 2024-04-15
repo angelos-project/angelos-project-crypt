@@ -94,7 +94,7 @@ public object Jacobian {
      * @param p the point you want to transform
      * @return Point in Jacobian coordinates
      */
-    public fun toJacobian(p: EcPoint): EcPoint = EcPoint(p.x, p.y, one)
+    public fun toJacobian(p: EcPoint): JacobianPoint = JacobianPoint(p.x, p.y, one)
 
     /**
      * Convert point back from Jacobian coordinates
@@ -103,11 +103,11 @@ public object Jacobian {
      * @param P Prime number in the module of the equation Y^2 = X^3 + A*X + B (mod P)
      * @return Point in default coordinates
      */
-    public fun fromJacobian(p: EcPoint, P: BigInt): EcPoint {
+    public fun fromJacobian(p: JacobianPoint, P: BigInt): EcPoint {
         val z = inv(p.z, P)
         val x = p.x.multiply(z.pow(2)).mod(P)
         val y = p.y.multiply(z.pow(3)).mod(P)
-        return EcPoint(x, y, zero)
+        return EcPoint(x, y)
     }
 
     /**
@@ -118,9 +118,9 @@ public object Jacobian {
      * @param P Prime number in the module of the equation Y^2 = X^3 + A*X + B (mod P)
      * @return the result point doubled in elliptic curves
      */
-    public fun jacobianDouble(p: EcPoint, A: BigInt, P: BigInt): EcPoint {
+    public fun jacobianDouble(p: JacobianPoint, A: BigInt, P: BigInt): JacobianPoint {
         if (p.y.isNull() || p.y == zero) {
-            return EcPoint(zero, zero, zero)
+            return JacobianPoint(zero, zero, zero)
         }
         val ysq = p.y.pow(2).mod(P)
         val S = four.multiply(p.x).multiply(ysq).mod(P)
@@ -128,7 +128,7 @@ public object Jacobian {
         val nx = M.pow(2).subtract(two.multiply(S)).mod(P)
         val ny = M.multiply(S.subtract(nx)).subtract(eight.multiply(ysq.pow(2))).mod(P)
         val nz = two.multiply(p.y).multiply(p.z).mod(P)
-        return EcPoint(nx, ny, nz)
+        return JacobianPoint(nx, ny, nz)
     }
 
     /**
@@ -140,7 +140,7 @@ public object Jacobian {
      * @param P Prime number in the module of the equation Y^2 = X^3 + A*X + B (mod P)
      * @return Point that represents the sum of First and Second Point
      */
-    public fun jacobianAdd(p: EcPoint, q: EcPoint, A: BigInt, P: BigInt): EcPoint {
+    public fun jacobianAdd(p: JacobianPoint, q: JacobianPoint, A: BigInt, P: BigInt): JacobianPoint {
         if (p.y.isNull() || p.y == zero) {
             return q
         }
@@ -153,7 +153,7 @@ public object Jacobian {
         val S2 = q.y.multiply(p.z.pow(3)).mod(P)
         if (U1.compareTo(U2) == 0) {
             if (S1.compareTo(S2) != 0) {
-                return EcPoint(zero, zero, one)
+                return JacobianPoint(zero, zero, one)
             }
             return jacobianDouble(p, A, P)
         }
@@ -165,7 +165,7 @@ public object Jacobian {
         val nx = R.pow(2).subtract(H3).subtract(two.multiply(U1H2)).mod(P)
         val ny = R.multiply(U1H2.subtract(nx)).subtract(S1.multiply(H3)).mod(P)
         val nz = H.multiply(p.z).multiply(q.z).mod(P)
-        return EcPoint(nx, ny, nz)
+        return JacobianPoint(nx, ny, nz)
     }
 
     /**
@@ -178,9 +178,9 @@ public object Jacobian {
      * @param P Prime number in the module of the equation Y^2 = X^3 + A*X + B (mod P)
      * @return Point that represents the product of First Point and scalar
      */
-    public fun jacobianMultiply(p: EcPoint, n: BigInt, N: BigInt, A: BigInt, P: BigInt): EcPoint {
+    public fun jacobianMultiply(p: JacobianPoint, n: BigInt, N: BigInt, A: BigInt, P: BigInt): JacobianPoint {
         if (zero.compareTo(p.y) == 0 || zero.compareTo(n) == 0) {
-            return EcPoint(zero, zero, one)
+            return JacobianPoint(zero, zero, one)
         }
         if (one.compareTo(n) == 0) {
             return p
@@ -196,6 +196,6 @@ public object Jacobian {
             val NUM: BigInt = n.divide(two)
             return jacobianAdd(jacobianDouble(jacobianMultiply(p, NUM, N, A, P), A, P), p, A, P)
         }
-        return NullObject.ecPoint
+        return NullObject.jacobianPoint
     }
 }

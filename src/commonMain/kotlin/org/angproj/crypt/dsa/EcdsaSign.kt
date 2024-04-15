@@ -1,16 +1,20 @@
 /**
  * Copyright (c) 2024 by Kristoffer Paulsson <kristoffer.paulsson@talenten.se>.
+ * Copyright (c) 2019 Stark Bank S.A.
  *
- * This software is available under the terms of the MIT license. Parts are licensed
- * under different terms if stated. The legal terms are attached to the LICENSE file
- * and are made available on:
+ * This software is available under the terms of the MIT license.
+ * The legal terms are attached to the LICENSE file and are made available on:
  *
  *      https://opensource.org/licenses/MIT
  *
  * SPDX-License-Identifier: MIT
  *
  * Contributors:
- *      Kristoffer Paulsson - initial implementation
+ *      Rafael Stark - original implementation
+ *      Dalton Menezes - original implementation
+ *      Caio Dottori - original implementation
+ *      Thales Mello - original implementation
+ *      Kristoffer Paulsson - adaption and additions
  */
 package org.angproj.crypt.dsa
 
@@ -42,7 +46,7 @@ public class EcdsaSign(
         val hashMessage: ByteArray = algo.final()
         val numberMessage = unsignedBigIntOf(hashMessage.copyOf(min(hash.messageDigestSize, curve.digestSize)))
         val randNum = BigInt.between(Jacobian.one, dp.n)
-        val randomSignPoint = Jacobian.multiply(dp.G.toEcPoint(), randNum, dp.n, dp.a, dp.p)
+        val randomSignPoint = Jacobian.multiply(dp.G, randNum, dp.n, dp.a, dp.p)
         val r = randomSignPoint.x.mod(dp.n)
         val s = numberMessage.add(r.multiply(privKey.secret)).multiply(Jacobian.inv(randNum, dp.n)).mod(dp.n)
 

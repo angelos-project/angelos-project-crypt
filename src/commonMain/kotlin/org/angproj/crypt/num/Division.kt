@@ -62,6 +62,10 @@ public fun BigInt.divideAndRemainder(
     }
 }
 
+/**
+ * Adaption from Java BigInteger.
+ * */
+
 internal fun MutableBigInt.Companion.divideOneWord(
     dividend: BigMath<*>,
     divisor: BigMath<*>,

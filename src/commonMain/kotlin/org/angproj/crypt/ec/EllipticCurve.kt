@@ -1,41 +1,29 @@
 /**
- * Copyright (c) 2023-2024 by Kristoffer Paulsson <kristoffer.paulsson@talenten.se>.
+ * Copyright (c) 2024 by Kristoffer Paulsson <kristoffer.paulsson@talenten.se>.
+ * Copyright (c) 2019 Stark Bank S.A.
  *
- * This software is available under the terms of the MIT license. Parts are licensed
- * under different terms if stated. The legal terms are attached to the LICENSE file
- * and are made available on:
+ * This software is available under the terms of the MIT license.
+ * The legal terms are attached to the LICENSE file and are made available on:
  *
  *      https://opensource.org/licenses/MIT
  *
  * SPDX-License-Identifier: MIT
  *
  * Contributors:
- *      Kristoffer Paulsson - initial implementation
+ *      Rafael Stark - original implementation
+ *      Dalton Menezes - original implementation
+ *      Caio Dottori - original implementation
+ *      Thales Mello - original implementation
+ *      Kristoffer Paulsson - additions
  */
-package org.angproj.crypt.dsa
+package org.angproj.crypt.ec
 
-import org.angproj.aux.num.*
-import org.angproj.crypt.ec.EcPoint
-import org.angproj.crypt.ec.EcPrivateKey
-import org.angproj.crypt.ec.EcPublicKey
-import org.angproj.crypt.ec.Jacobian
+import org.angproj.aux.num.BigInt
 import org.angproj.crypt.num.*
 import org.angproj.crypt.sec.Curves
 import org.angproj.crypt.sec.PrimeDomainParameters
 
-
-// https://csrc.nist.gov/files/pubs/fips/186-3/final/docs/fips_186-3.pdf
-// https://datatracker.ietf.org/doc/html/rfc6979
-
-
-// https://csrc.nist.gov/Projects/Cryptographic-Algorithm-Validation-Program/Secure-Hashing
-// https://csrc.nist.gov/Projects/Cryptographic-Algorithm-Validation-Program/Digital-Signatures
-
-// https://github.com/starkbank/ecdsa-java
-
-// https://github.com/carterharrison/ecdsa-kotlin.git
-
-public object Ecdsa {
+public object EllipticCurve {
     public fun isPointOnCurve(curve: Curves<PrimeDomainParameters>, p: EcPoint): Boolean {
         val dp = curve.domainParameters
         if (p.x.compareTo(Jacobian.zero) < 0) {

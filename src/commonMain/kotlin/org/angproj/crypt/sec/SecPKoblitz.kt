@@ -16,6 +16,7 @@ package org.angproj.crypt.sec
 
 import org.angproj.aux.util.floorMod
 import org.angproj.aux.num.unsignedBigIntOf
+import org.angproj.crypt.ec.EcPoint
 
 public interface SecPKoblitz: Curves<PrimeDomainParameters> {
     public val p: ByteArray
@@ -33,12 +34,12 @@ public interface SecPKoblitz: Curves<PrimeDomainParameters> {
             )
         }
 
-        public fun splitXY(data: ByteArray): EllipticCurvePoint {
+        public fun splitXY(data: ByteArray): EcPoint {
             check((data.size - 1).floorMod(2) == 0)
             check(data[0].toInt() == 4)
 
             val size = (data.size - 1) / 2
-            return EllipticCurvePoint(
+            return EcPoint(
                 unsignedBigIntOf(data.copyOfRange(1, 1 + size)),
                 unsignedBigIntOf(data.copyOfRange(1 + size, data.size))
             )

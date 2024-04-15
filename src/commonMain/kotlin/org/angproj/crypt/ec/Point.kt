@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2024 by Kristoffer Paulsson <kristoffer.paulsson@talenten.se>.
+ * Copyright (c) 2023-2024 by Kristoffer Paulsson <kristoffer.paulsson@talenten.se>.
  *
  * This software is available under the terms of the MIT license. Parts are licensed
  * under different terms if stated. The legal terms are attached to the LICENSE file
@@ -12,12 +12,11 @@
  * Contributors:
  *      Kristoffer Paulsson - initial implementation
  */
-package org.angproj.crypt.sec
+package org.angproj.crypt.ec
 
-import kotlin.jvm.JvmInline
+import org.angproj.aux.num.BigInt
 
-@JvmInline
-public value class OctetString(internal val octets: ByteArray) {
-    public val value: ByteArray
-        get() = octets.copyOf()
+public interface Point {
+    public val x: BigInt
+    public val y: BigInt
 }

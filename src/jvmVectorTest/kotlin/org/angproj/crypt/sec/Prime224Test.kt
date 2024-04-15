@@ -1,11 +1,11 @@
 package org.angproj.crypt.sec
 
-import junit.framework.TestCase
 import org.angproj.crypt.Hash
 import org.angproj.crypt.ec.NistPrime
 import org.angproj.crypt.sha.Sha1Hash
 import org.junit.Test
 import java.math.BigInteger
+import kotlin.test.assertEquals
 
 class Prime224Test: AbstractNistPTest() {
 
@@ -18,27 +18,27 @@ class Prime224Test: AbstractNistPTest() {
     @Test
     fun testOutputOfBigInteger () {
         val dp = Secp224Random1.domainParameters
-        TestCase.assertEquals(
+        assertEquals(
             BigInteger(dp.a.toByteArray()).toString(),
             "26959946667150639794667015087019630673557916260026308143510066298878"
         )
-        TestCase.assertEquals(
+        assertEquals(
             BigInteger(dp.b.toByteArray()).toString(),
             "18958286285566608000408668544493926415504680968679321075787234672564"
         )
-        TestCase.assertEquals(
+        assertEquals(
             BigInteger(dp.n.toByteArray()).toString(),
             "26959946667150639794667015087019625940457807714424391721682722368061"
         )
-        TestCase.assertEquals(
+        assertEquals(
             BigInteger(dp.p.toByteArray()).toString(),
             "26959946667150639794667015087019630673557916260026308143510066298881"
         )
-        TestCase.assertEquals(
+        assertEquals(
             BigInteger(dp.G.x.toByteArray()).toString(),
             "19277929113566293071110308034699488026831934219452440156649784352033"
         )
-        TestCase.assertEquals(
+        assertEquals(
             BigInteger(dp.G.y.toByteArray()).toString(),
             "19926808758034470970197974370888749184205991990603949537637343198772"
         )

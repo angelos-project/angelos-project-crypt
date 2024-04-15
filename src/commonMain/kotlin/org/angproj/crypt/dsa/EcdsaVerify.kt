@@ -1,16 +1,20 @@
 /**
  * Copyright (c) 2024 by Kristoffer Paulsson <kristoffer.paulsson@talenten.se>.
+ * Copyright (c) 2019 Stark Bank S.A.
  *
- * This software is available under the terms of the MIT license. Parts are licensed
- * under different terms if stated. The legal terms are attached to the LICENSE file
- * and are made available on:
+ * This software is available under the terms of the MIT license.
+ * The legal terms are attached to the LICENSE file and are made available on:
  *
  *      https://opensource.org/licenses/MIT
  *
  * SPDX-License-Identifier: MIT
  *
  * Contributors:
- *      Kristoffer Paulsson - initial implementation
+ *      Rafael Stark - original implementation
+ *      Dalton Menezes - original implementation
+ *      Caio Dottori - original implementation
+ *      Thales Mello - original implementation
+ *      Kristoffer Paulsson - adaption and additions
  */
 package org.angproj.crypt.dsa
 
@@ -59,8 +63,8 @@ public class EcdsaVerify(
         }
 
         val w = Jacobian.inv(s, dp.n)
-        val u1 = Jacobian.multiply(dp.G.toEcPoint(), numberMessage.multiply(w).mod(dp.n).toBigInt(), dp.n, dp.a, dp.p)
-        val u2 = Jacobian.multiply(pubKey.point, r.multiply(w).mod(dp.n).toBigInt(), dp.n, dp.a, dp.p)
+        val u1 = Jacobian.multiply(dp.G, numberMessage.multiply(w).mod(dp.n), dp.n, dp.a, dp.p)
+        val u2 = Jacobian.multiply(pubKey.point, r.multiply(w).mod(dp.n), dp.n, dp.a, dp.p)
         val v = Jacobian.add(u1, u2, dp.a, dp.p)
         if (Ecdsa.isPointAtInfinity(v)) {
             return false
