@@ -1,6 +1,6 @@
 plugins {
     `java-library`
-    kotlin("multiplatform") version "1.9.23"
+    kotlin("multiplatform") version "1.9.25"
     `maven-publish`
 }
 
@@ -39,7 +39,8 @@ kotlin {
     sourceSets {
         val commonMain by getting {
             dependencies {
-                implementation("org.angproj.aux:angelos-project-aux:0.9.7")
+                implementation("org.angproj.aux:angelos-project-aux:0.9.8")
+                implementation("org.angproj.big:angelos-project-big:0.9")
             }
         }
         val commonTest by getting {
@@ -49,7 +50,8 @@ kotlin {
         }
         val jvmMain by getting{
             dependencies {
-                implementation("org.angproj.aux:angelos-project-aux:0.9.7")
+                implementation("org.angproj.aux:angelos-project-aux:0.9.8")
+                implementation("org.angproj.big:angelos-project-big:0.9")
             }
         }
         val jvmTest by getting {

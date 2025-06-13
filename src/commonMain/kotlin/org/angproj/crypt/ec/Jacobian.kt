@@ -22,6 +22,7 @@ import org.angproj.aux.num.*
 import org.angproj.aux.util.NullObject
 import org.angproj.crypt.num.*
 
+
 public object Jacobian {
 
     public val zero: BigInt = BigInt.zero
