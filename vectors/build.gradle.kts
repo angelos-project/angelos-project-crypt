@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.targets.js.dsl.ExperimentalWasmDsl
+
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.androidLibrary)
@@ -11,12 +13,50 @@ kotlin {
     jvmToolchain(libs.versions.jvm.toolchain.get().toInt())
 
     jvm()
+    js {
+        browser()
+        nodejs()
+    }
+    // WASM and similar
+    @OptIn(ExperimentalWasmDsl::class)
+    wasmJs {
+        browser()
+        nodejs()
+    }
+    @OptIn(ExperimentalWasmDsl::class)
+    wasmWasi { nodejs() }
+    // Android
     androidTarget {
         publishLibraryVariants("release")
     }
+    androidNativeArm32()
+    androidNativeArm64()
+    androidNativeX64()
+    androidNativeX86()
+    // Linux
+    linuxArm64()
+    linuxX64()
+    // macOS
+    macosArm64()
+    macosX64()
+    // MingW
+    mingwX64()
+    // iOS
+    iosArm64()
+    iosX64()
+    iosSimulatorArm64()
+    // tvOS
+    tvosArm64()
+    tvosX64()
+    tvosSimulatorArm64()
+    // watchOS
+    watchosArm32()
+    watchosArm64()
+    watchosDeviceArm64()
+    watchosSimulatorArm64()
 
     sourceSets {
-        jvmTest.dependencies {
+        commonTest.dependencies {
             api(project(":library"))
             implementation("org.angproj.sec:angelos-project-secrand:0.10.3")
             implementation("org.angproj.big:angelos-project-big:0.9.4")
@@ -24,6 +64,7 @@ kotlin {
             implementation(libs.kotlin.test)
             implementation(libs.kotlin.mockito)
         }
+        jvmTest
     }
 }
 
