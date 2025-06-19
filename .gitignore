@@ -27,3 +27,4 @@ replay_pid*
 .kotlin/
 
 kotlin-js-store/
+local.properties
