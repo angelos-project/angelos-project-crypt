@@ -1,25 +1,38 @@
+rootProject.name = "angelos-project-crypt"
+enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
+
 pluginManagement {
     repositories {
-        google()
+        google {
+            mavenContent {
+                includeGroupAndSubgroups("androidx")
+                includeGroupAndSubgroups("com.android")
+                includeGroupAndSubgroups("com.google")
+            }
+        }
         mavenCentral()
-        mavenLocal()
         gradlePluginPortal()
-        //maven(url = "./local-repo")
     }
 }
 
 dependencyResolutionManagement {
     repositories {
-        google()
+        google {
+            mavenContent {
+                includeGroupAndSubgroups("androidx")
+                includeGroupAndSubgroups("com.android")
+                includeGroupAndSubgroups("com.google")
+            }
+        }
         mavenCentral()
         mavenLocal()
     }
 }
 
-rootProject.name = "angelos-project-crypt"
+plugins {
+    id("org.gradle.toolchains.foojay-resolver-convention") version "1.0.0"
+}
 
-/*sourceControl {
-    gitRepository(uri("https://github.com/angelos-project/angelos-project-aux.git")) {
-        producesModule("angelos-project-aux:org.angproj.aux")
-    }
-}*/
+include(":library")
+include(":jazzer")
+include(":vectors")

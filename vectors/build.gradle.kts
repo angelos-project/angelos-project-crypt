@@ -18,7 +18,9 @@ kotlin {
     sourceSets {
         jvmTest.dependencies {
             api(project(":library"))
-            implementation("org.angproj.aux:angelos-project-aux:0.9.8")
+            implementation("org.angproj.sec:angelos-project-secrand:0.10.3")
+            implementation("org.angproj.big:angelos-project-big:0.9.4")
+            implementation("org.angproj.aux:angelos-project-aux:0.10.0")
             implementation(libs.kotlin.test)
             implementation(libs.kotlin.mockito)
         }
@@ -31,8 +33,8 @@ android {
     defaultConfig {
         minSdk = libs.versions.android.minSdk.get().toInt()
     }
-    /*compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
-    }*/
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_11
+        targetCompatibility = JavaVersion.VERSION_11
+    }
 }
