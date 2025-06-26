@@ -1,9 +1,7 @@
 package org.angproj.crypt.drbg
 
 import org.angproj.aux.util.BinHex
-import org.angproj.crypt.ripemd.Ripemd160Hash
 import org.angproj.crypt.sha.Sha256Hash
-import org.angproj.crypt.sha.Sha3512Hash
 import kotlin.test.Test
 
 class HmacDrbgTest {

@@ -15,7 +15,6 @@
 package org.angproj.crypt.kdf
 
 import org.angproj.aux.util.UtilityAware
-import org.angproj.aux.util.writeIntAt
 import org.angproj.crypt.Hash
 import org.angproj.crypt.Pbkd
 import org.angproj.crypt.hmac.HmacKey
@@ -23,7 +22,7 @@ import org.angproj.crypt.hmac.KeyHashedMac
 import org.angproj.crypt.sha.Sha256Hash
 import kotlin.math.ceil
 
- public class PasswordBasedKdf2(algo: Hash, public val keySize: Int, public val count: Int = 1000): PasswordBasedKeyDerivation, UtilityAware {
+public class PasswordBasedKdf2(algo: Hash, public val keySize: Int, public val count: Int = 1000): PasswordBasedKeyDerivation, UtilityAware {
 
     init {
         require(keySize >= 14) { "Key length to small" }

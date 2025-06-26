@@ -14,7 +14,7 @@
  */
 package org.angproj.crypt.c
 
-import org.angproj.aux.num.BigInt
+import org.angproj.big.BigInt
 
 public interface ECDomainParameters {
 

@@ -1,8 +1,6 @@
 package org.angproj.crypt.sec
 
-import org.angproj.aux.util.BinHex
 import kotlin.test.Test
-import kotlin.test.assertContentEquals
 
 class ConversionTest {
 

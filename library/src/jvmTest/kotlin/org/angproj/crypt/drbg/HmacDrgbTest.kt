@@ -5,9 +5,6 @@ import org.angproj.crypt.ripemd.Ripemd160Hash
 import org.angproj.crypt.ripemd.Ripemd256Hash
 import org.angproj.crypt.ripemd.Ripemd320Hash
 import org.angproj.crypt.sha.*
-import org.angproj.crypt.sha.Sha1Hash
-import org.angproj.crypt.sha.Sha224Hash
-import org.angproj.crypt.sha.Sha384Hash
 import java.io.File
 import kotlin.test.Test
 

@@ -1,6 +1,5 @@
 package org.angproj.crypt.sec
 
-import org.angproj.big.toByteArray
 import org.angproj.crypt.Hash
 import org.angproj.crypt.ec.NistPrime
 import org.angproj.crypt.sha.Sha1Hash

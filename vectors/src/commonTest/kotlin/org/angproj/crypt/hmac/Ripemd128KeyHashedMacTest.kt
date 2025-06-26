@@ -1,8 +1,8 @@
 package org.angproj.crypt.hmac
 
-import org.angproj.crypt.ripemd.RipemdMessages
 import org.angproj.aux.util.BinHex
 import org.angproj.crypt.ripemd.Ripemd128Hash
+import org.angproj.crypt.ripemd.RipemdMessages
 import kotlin.test.Test
 import kotlin.test.assertEquals
 

@@ -14,7 +14,6 @@
  */
 package org.angproj.crypt.sha
 
-import org.angproj.aux.util.writeLongAt
 import org.angproj.crypt.keccak.AbstractKeccakHashEngine
 
 public abstract class AbstractSha3HashEngine(protected val messageDigestSize: Int, protected val blockSize: Int): AbstractKeccakHashEngine() {

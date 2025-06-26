@@ -14,7 +14,7 @@
  */
 package org.angproj.crypt.c
 
-import org.angproj.aux.sec.SecureRandom
+import org.angproj.sec.SecureRandom
 
 
 public interface ECKeyPairGenerator<U: ECPublicKeyParameters, R: ECPrivateKeyParameters>: AsymmetricCipherKeyPairGenerator<U, R> {
