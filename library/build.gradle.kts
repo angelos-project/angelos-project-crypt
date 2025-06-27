@@ -73,7 +73,7 @@ kotlin {
 
     sourceSets {
         commonMain.dependencies {
-            implementation("org.angproj.sec:angelos-project-secrand:0.10.3")
+            implementation("org.angproj.sec:angelos-project-secrand:0.11.0")
             implementation("org.angproj.big:angelos-project-big:0.9.4")
             implementation("org.angproj.aux:angelos-project-aux:0.10.0")
         }
@@ -104,8 +104,12 @@ mavenPublishing {
 
     //signAllPublications()
 
-    coordinates(group.toString(), "library", version.toString())
-
+    /**
+     * The temporary artifact setup, final is coming later at some point.
+     * DO NOT USE FOR SONATYPE NEXUS
+     * */
+    coordinates(group.toString(), rootProject.name, version.toString())
+    //coordinates(group.toString(), version.toString())
     pom {
         name.set(This.longName)
         description.set(This.longDescription)
