@@ -14,7 +14,7 @@
  */
 package org.angproj.crypt.sha
 
-import org.angproj.aux.util.UtilityAware
+import org.angproj.io.buf.util.UtilityAware
 import org.angproj.crypt.Crypto
 
 public abstract class AbstractSha256HashEngine : AbstractShaHashEngine(), UtilityAware {

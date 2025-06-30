@@ -14,7 +14,7 @@
  */
 package org.angproj.crypt.ripemd
 
-import org.angproj.aux.util.UtilityAware
+import org.angproj.io.buf.util.UtilityAware
 import org.angproj.crypt.Crypto
 import org.angproj.crypt.sha.RipemdHashEngine
 import kotlin.jvm.JvmStatic

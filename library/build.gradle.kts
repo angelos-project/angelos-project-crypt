@@ -73,8 +73,9 @@ kotlin {
 
     sourceSets {
         commonMain.dependencies {
-            implementation("org.angproj.sec:angelos-project-secrand:0.11.0")
-            implementation("org.angproj.big:angelos-project-big:0.9.4")
+            implementation("org.angproj.sec:angelos-project-secrand:0.11.7")
+            implementation("org.angproj.big:angelos-project-big:0.9.5")
+            implementation("org.angproj.io.buf:angelos-project-buffer:1.1.0-alpha.2")
             implementation("org.angproj.aux:angelos-project-aux:0.10.0")
         }
         commonTest.dependencies {

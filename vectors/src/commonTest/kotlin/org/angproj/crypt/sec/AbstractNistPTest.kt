@@ -1,7 +1,7 @@
 package org.angproj.crypt.sec
 
 import org.angproj.aux.util.BinHex
-import org.angproj.aux.util.floorMod
+import org.angproj.sec.util.floorMod
 import org.angproj.big.toByteArray
 import org.angproj.big.unsignedBigIntOf
 import org.angproj.crypt.Hash

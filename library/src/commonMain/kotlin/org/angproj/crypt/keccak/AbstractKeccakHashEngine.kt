@@ -14,7 +14,7 @@
  */
 package org.angproj.crypt.keccak
 
-import org.angproj.aux.util.UtilityAware
+import org.angproj.io.buf.util.UtilityAware
 import org.angproj.crypt.Hash
 import org.angproj.crypt.HashEngine
 
